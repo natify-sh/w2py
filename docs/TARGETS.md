@@ -57,6 +57,9 @@ For `"auto"`, the engine probes in this order and takes the first that is ok:
 2. `mpy` on MicroPython;
 3. `pyc` (always available).
 
+Platforms that restrict run-time code (and CPU control-flow integrity: CET, BTI) are listed with
+possible answers in RISKS.md, R2.
+
 Per module: if the chosen target does not support a feature the module uses, the next target that
 does is taken (and the choice is logged), so adding a JIT never makes a module stop working.
 `W2PY_TARGET` (environment) overrides for testing.

@@ -278,7 +278,8 @@ Like Wasmtime's cache (and `Module.serialize`), compiled artifacts are kept on d
 * **Where**: `$XDG_CACHE_HOME/w2py` (or the platform's equivalent, computed with stdlib only); atomic
   writes (temp file + `os.replace`); a size limit with LRU eviction; `w2py cache` in the CLI.
 * `Module.serialize()` / `deserialize()` write and read the same artifact format, so a module can
-  also be compiled ahead of time and shipped (`w2py compile`).
+  also be compiled ahead of time and shipped (`w2py compile`). What to cache versus ship, and the
+  trust problem of artifacts from other machines: RISKS.md, R1.
 * Measured cost it saves (PoC, CoreMark): `pyc` translation + `compile()` ≈ 111 ms, from cache
   ≈ 0.5 ms; the JIT compiles in ≈ 25 ms.
 

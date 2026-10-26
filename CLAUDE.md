@@ -38,7 +38,7 @@ The maintainer communicates in Ukrainian; code, comments, commit messages and do
 ## Working on the code
 * The PoC in `poc/` is the reference for how things were done and measured; it is not the package.
   Port from it deliberately (phase 0), keep it runnable for comparisons.
-* JIT work: read `docs/LESSONS.md` items 1–9 first (flags, callee-saved registers across host calls,
+* JIT work: read `docs/RISKS.md` (R2, R3) and `docs/LESSONS.md` items 1–9 first (flags, callee-saved registers across host calls,
   alignment, nested entries, zero-extension). Debug by mixing a known-good and a new code generator
   per function and bisecting — it is how the `printf` bug was found.
 * Every new opcode or feature: spec tests for it pass on every target that claims it, plus a
