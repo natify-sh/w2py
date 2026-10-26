@@ -55,7 +55,7 @@ w2py/
   targets/
     base.py      Target protocol, Artifact, registry, selection
     pyc/         codegen.py  runtime.py (the helpers emitted into / imported by modules)
-    mpy/         codegen.py (flavour of pyc)  native.py  (viper.py later)
+    mpy/         codegen.py (flavour of pyc)  native.py  (viper.py: HIR → viper code, later)
     jit/
       common/    asm.py  execmem.py (mmap/mprotect/MAP_JIT/VirtualAlloc)  bridge.py (ctypes entry,
                  host callbacks)  frame.py (value stack, frame overlap)  regalloc.py  traps.py
@@ -331,7 +331,8 @@ A target of its own (`mpy`), best effort:
 * artifacts: source compiled on the device, or `.mpy` made ahead of time with `mpy-cross`
   (69 it/s, 37 KB, 2 ms import for CoreMark); `@micropython.native` per function (94 it/s, faster
   than CPython); `@micropython.viper` is the promising next step (a 32-bit load through `ptr32` costs
-  3.4 ns against ~150 ns through `struct`);
+  3.4 ns against ~150 ns through `struct`): wasm lowered to viper code lets MicroPython's own emitters
+  act as native back ends on every MCU architecture (TARGETS.md);
 * limits: small heap and C stack, 31-bit small ints on 32-bit MCUs (i32 values ≥ 2³⁰ become heap
   integers), a native-emitter bug in `mpy-cross` 1.29.0 on very large functions (LESSONS.md);
 * the translator itself does not run on MicroPython yet (it imports `marshal`, uses `str.isidentifier`),

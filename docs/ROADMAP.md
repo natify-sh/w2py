@@ -55,7 +55,10 @@ Phases in order; each ends with tests green for what it claims. Numbers are meas
 ## Phase 6 — `mpy` target
 * `.mpy` ahead of time and on-device source; `@native` where it helps; avoid the `mpy-cross` large
   function bug (LESSONS.md 17).
-* Research: `@micropython.viper` code generation (machine-word ints, `ptr8/16/32` memory).
+* Research: lower HIR to `@micropython.viper` code (machine-word ints, `ptr8/16/32` memory) so that
+  MicroPython's own emitters become native back ends on every MCU architecture its ports support
+  (Thumb, Xtensa, RISC-V, …) without an encoder of ours; inline assemblers (`asm_thumb`, `asm_xtensa`)
+  for the hottest functions (TARGETS.md, "MicroPython's own native emitters as JIT back ends").
 * Port the translator to run on MicroPython if on-device compilation is wanted.
 
 ## Phase 7 — more architectures

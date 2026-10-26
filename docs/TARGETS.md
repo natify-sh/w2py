@@ -103,13 +103,27 @@ with real numbers for both.
 | target | runs on | state in the PoC | notes |
 |---|---|---|---|
 | `pyc` | CPython ≥ 3.8 (3.4 with `--legacy`), PyPy | CoreMark | floor for everything; artifact = code object; the fastest pure-Python option on PyPy (2 300–2 900 it/s) |
-| `mpy` | MicroPython (unix port tested, 1.29.0) | CoreMark | `.mpy` ahead of time or source on device; `@native`; viper next |
+| `mpy` | MicroPython (unix port tested, 1.29.0) | CoreMark | `.mpy` ahead of time or source on device; `@native` (94 it/s); next: viper code, i.e. MicroPython's own emitters as native back ends for every MCU architecture (below) |
 | `jit-x86_64-sysv` | Linux, macOS (Intel), BSDs | CoreMark (`w2jit2`) | 15 337 it/s; needs the rest of the opcode set, `memory.grow`, nested entry |
 | `jit-x86_64-win64` | Windows | — | other argument registers, shadow space, `VirtualAlloc` |
 | `jit-aarch64` | Linux, macOS (Apple Silicon: `MAP_JIT`), Windows on ARM, Android (Termux) | — | the second architecture; proves the split |
 | `jit-riscv64`, `jit-armv7`, `jit-mips32` (Ingenic X2000, little-endian), `jit-ppc64le`, `jit-loongarch64` | as available | — | QEMU user-mode in CI; candidates for copy-and-patch |
 | `lua` / `luajit` | Lua 5.4, LuaJIT | CoreMark | **not a w2py target**: an experiment showing the IR serves other languages (271 / 1 873 it/s); the shared layers stay language-neutral so such backends remain possible (DECISIONS.md D17) |
 | `mypyc` | CPython + mypyc runtime | CoreMark | **dropped**: needs `librt` at run time (a dependency) and is 9× slower than wasm2c for a native build |
+
+**MicroPython's own native emitters as JIT back ends (research).** Our JIT is the same idea as
+MicroPython's `@micropython.viper` and `@micropython.asm_thumb` / `asm_xtensa`: machine code emitted
+into RAM at run time — they from Python source, we from wasm. Wasm is statically typed with a flat
+byte memory, which is almost exactly viper's model (machine-word integers, raw `ptr8/16/32` pointers).
+So on MicroPython the `mpy` target can lower HIR to **viper-flavoured Python** and let MicroPython's
+emitter produce the machine code: native back ends for the architectures its ports support (x86/x64,
+ARM Thumb on Cortex-M, Xtensa on ESP32, RISC-V — per port and release, to check) without an encoder of
+ours. Measured: a 32-bit load through viper `ptr32` costs 3.4 ns against ~150 ns through `struct`
+(BENCHMARKS.md). The hottest functions could go further through the inline assemblers
+(`asm_thumb`, `asm_xtensa`), with MicroPython doing the instruction encoding. Limits to work around:
+viper's argument-count and calling-convention limits (to check per release), i64 and floats remaining
+objects, `ptr` accesses without bounds checks (we emit the checks), and the `mpy-cross` native bug on
+very large functions (LESSONS.md 17).
 
 Where no JIT is allowed at all — iOS (Pythonista), Pyodide, hardened Linux without executable
 anonymous memory — `pyc` is the target. In Pyodide the browser's own `WebAssembly` is faster than any
