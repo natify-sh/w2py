@@ -3,6 +3,31 @@
 Phases in order; each ends with tests green for what it claims. Numbers are measured, never estimated
 (BENCHMARKS.md).
 
+## Where to start
+
+The first goal is not a feature but a **measurement**: every later change should move a number.
+
+1. **Skeleton** (phase 0): the repository under natify-sh with the working name `w2py` (renaming later is
+   cheap); `pyproject.toml` with no runtime dependencies and a development group — `wasmtime` (the
+   oracle), `pytest`, `wabt-package` (for `wast2json`); CI on CPython 3.8 and the latest, plus PyPy, on
+   Linux x86-64. Minimum Python 3.8 for now (open question 1).
+2. **The spec-suite runner** (phase 1, the most important step): convert `WebAssembly/spec` at a pinned
+   commit with `wast2json`; a runner for the commands (`module`, `assert_return`, `assert_trap`,
+   `assert_invalid`, …) over a thin interface — load a module, call an export, read a global.
+   **Run it against wasmtime first**: this tests the runner itself, and the oracle should pass nearly
+   everything.
+3. **Port the PoC front end** into `frontend/` unchanged (reader and decoder from `poc/w2py.py`), connect
+   the PoC's `pyc` code generator as it is, and record the **first number**: how many spec commands
+   pass. The per-target expected-failures file (TESTING.md) is the task list from then on.
+4. **Loop**: take the largest group of failures, fix it, watch the number grow. The validator, block
+   parameters, tables, trap conversion come in the order the failures dictate.
+
+Why this order: the spec suite plus the oracle give an objective metric from day one; `pyc` is the
+simplest target and the one every other must match, so semantics are pinned there; the JIT (phase 4)
+then only reproduces checked semantics faster, and the same runner shows at once where it deviates.
+The open questions below do not block this start — the name, the WASI host and parallelism are needed
+only in phases 2–3.
+
 ## Phase 0 — repository from the PoC
 * Package layout of ARCHITECTURE.md; move the PoC's reader, decoder and stack-to-tree builder out of
   `w2py.py` into `frontend/` and `ir/`; the code generators become `targets/pyc` and `targets/jit/x86_64`.

@@ -6,7 +6,8 @@ Context and rules for working on w2py with an agent.
 A dependency-free WebAssembly runtime for Python that follows Wasmtime (model, API, CLI, features,
 traps) and replaces its compiler with targets: `pyc` (translation to Python), `mpy` (MicroPython),
 `jit-<arch>` (machine code from Python via `mmap` + `ctypes`). Read `README.md`, then
-`docs/ARCHITECTURE.md`, `docs/TARGETS.md` and `docs/ROADMAP.md` before changing anything.
+`docs/ARCHITECTURE.md`, `docs/TARGETS.md` and `docs/ROADMAP.md` before changing anything. The order of
+the first steps is in `docs/ROADMAP.md`, "Where to start".
 
 The maintainer communicates in Ukrainian; code, comments, commit messages and docs are in English.
 
