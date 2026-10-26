@@ -1,0 +1,323 @@
+# Architecture
+
+## Principles
+
+1. **No runtime dependencies.** At run time w2py uses the Python standard library only (`struct`,
+   `mmap`, `ctypes`, `marshal`, `hashlib`, `os`, `threading`). Tools used while *developing* w2py
+   (wabt, wasm-tools, wasmtime as a reference, clang for experiments) never reach the user.
+2. **Wasmtime is the reference.** Its object model, its API (as wasmtime-py exposes it), its CLI, its
+   trap codes and its set of features are what w2py follows. We do not invent what Wasmtime already
+   answers; we replace only its compiler (Cranelift / Winch / Pulley) with our targets.
+3. **Translation, not interpretation.** Wasm is compiled once into the form the host runs best:
+   Python code for an interpreter, machine code where executable memory is allowed. The PoC shows
+   why: a pure-Python interpreter (pywasm) runs CoreMark at 0.58 it/s, the translation at 86 it/s,
+   the JIT at 15 000 it/s.
+4. **Targets are added one at a time** behind one interface, with one test suite. A new architecture
+   is a new target, never a change to the others.
+5. **Everything works everywhere; speed where the platform allows.** The `pyc` target is the floor
+   that every Python can run; JIT targets are taken when the machine, the OS and the module allow it.
+
+## Layers
+
+```
+            .wasm / .wat                                   cache (~/.cache/w2py)
+                 │                                                  ▲ │
+   ┌─────────────▼──────────────┐                                   │ │
+   │ frontend                    │ decode · validate · const exprs  │ │
+   │  (pure, target-independent) │ names section · features gate    │ │
+   └─────────────┬──────────────┘                                   │ │
+   ┌─────────────▼──────────────┐                                   │ │
+   │ IR + analyses               │ operand stack resolved to trees  │ │
+   │  (pure, target-independent) │ structured control tree          │ │
+   │                             │ value bounds / wrap analysis     │ │
+   │                             │ local use weights (loop depth)   │ │
+   │                             │ side-effect order, call graph    │ │
+   └─────────────┬──────────────┘                                   │ │
+   ┌─────────────▼──────────────┐   Artifact (serializable) ────────┘ │
+   │ targets                     │ pyc · mpy · jit-x86_64 · jit-aarch64 · …
+   └─────────────┬──────────────┘   ◄─────────────────────────────────┘
+   ┌─────────────▼──────────────┐
+   │ runtime                     │ Engine · Store · Module · Linker · Instance
+   │                             │ Func · Memory · Table · Global · Tag · Trap
+   └─────────────┬──────────────┘
+   ┌─────────────▼──────────────┐
+   │ wasi                        │ host for WASI p1 and fused p2 (to decide; fusedwasi is a candidate)
+   └─────────────────────────────┘
+```
+
+Proposed package layout:
+
+```
+w2py/
+  frontend/      reader.py  module.py  validate.py  constexpr.py  names.py  wat.py (optional)
+  ir/            hir.py (stack → trees, structured control)  analyses.py  opt.py  types.py
+    lir.py       (machine-neutral linear form for the JITs, built from HIR)
+  targets/
+    base.py      Target protocol, Artifact, registry, selection
+    pyc/         codegen.py  runtime.py (the helpers emitted into / imported by modules)
+    mpy/         codegen.py (flavour of pyc)  native.py  (viper.py later)
+    jit/
+      common/    asm.py  execmem.py (mmap/mprotect/MAP_JIT/VirtualAlloc)  bridge.py (ctypes entry,
+                 host callbacks)  frame.py (value stack, frame overlap)  regalloc.py  traps.py
+      x86_64/    encoder.py  abi_sysv.py  abi_win64.py  lower.py
+      aarch64/   …
+  runtime/       engine.py config.py store.py module.py linker.py instance.py func.py memory.py
+                 table.py global_.py tag.py trap.py values.py types.py caller.py
+  wasi/          config.py (WasiConfig)  p1.py  p2.py (bindings to the chosen WASI host)
+  cache/         store.py keys.py
+  cli/           main.py (run, compile, wast, settings, cache)
+  __main__.py
+```
+
+The PoC files map onto this as follows: `w2py.py` holds the reader, the decoder, the stack-to-tree
+builder, the value-bounds analysis and the `pyc` code generator in one file; `w2jit.py`/`w2jit2.py`
+hold the assembler, the executable-memory and ctypes bridge and the x86-64 lowering. Splitting them
+along the lines above is the first step of the roadmap.
+
+## The IR
+
+**Wasm is already the portable, optimised IR.** It is typed, validated and optimised by its producer
+(clang `-O3`, rustc: inlining, unrolling, common subexpressions are done before w2py sees it). That is
+why w2py needs no LLVM-class optimiser — measured: a baseline JIT with no such optimisations reaches
+~80 % of Cranelift on CoreMark. What wasm does not give a code generator directly is computed once, in
+a thin IR of our own, and shared by all targets.
+
+**Two levels.**
+
+| level | shared by | form | built from |
+|---|---|---|---|
+| **HIR** | every target (`pyc`, `mpy`, JITs) | expression trees (the operand stack resolved), **structured** control flow (block / loop / if / br with targets and arities), annotations from the analyses | validated wasm function bodies |
+| **LIR** | every JIT architecture | a linear sequence of machine-neutral operations; operands are *imm*, *reg* (virtual or pinned) or *mem* (slot / local / linear memory); labels and branches; trap points; call sites with their convention | HIR, by the shared JIT core |
+
+Per architecture only instruction selection from LIR and the encoder remain. With copy-and-patch
+(TARGETS.md) each LIR operation would become a stencil.
+
+**Why structured, not a CFG of basic blocks**: Python (and Lua 5.1) has no `goto`, so `pyc`/`mpy` need
+structure; a JIT lowers structure to labels trivially. **Why not SSA**: phi nodes buy GVN/LICM-class
+optimisations that pay little on already-optimised wasm, and SSA would have to be deconstructed back
+into structured code for Python. Wasm locals are kept as variables; register allocation pins the hot
+ones (TARGETS.md).
+
+**Analyses** (annotations on HIR, computed once):
+
+* value bounds and wrap state of integer expressions (when a `& 0xFFFFFFFF` or compare-and-adjust is
+  needed — worth ~15 % in `pyc`);
+* local use weights by loop depth (which locals to pin in registers), liveness where it helps;
+* side-effect order (memory, globals, calls, traps): when a tree may stay lazy and when it must be
+  materialised;
+* branch targets with arities; trap points with wasm byte offsets (for `TRAPMAP` and `Trap.frames`);
+* call graph (leaf functions, recursion, inlining candidates).
+
+**Language-neutral by design (a principle, not a goal).** HIR, LIR and the JIT artifact contain
+nothing specific to Python, so other output languages or other host languages stay possible without
+redesign — the PoC already drove Lua 5.4 and LuaJIT backends from the same front end. Rules for the
+shared layers:
+
+* the **integer model is a parameter of the target**, not a property of the analyses: unbounded ints
+  (Python), wrapping int64 (Lua 5.4), doubles / `|0` (LuaJIT, JS), real 32-bit registers (JITs). The
+  bounds/wrap analysis answers "where must this target normalise", given that model;
+* no Python objects, names or semantics in HIR/LIR nodes; whatever a backend needs from its language
+  lives in the backend;
+* the compiler is written in Python, so for other languages it works ahead of time (generate code or
+  an artifact; for JIT artifacts the other language needs only a loader, ARTIFACT.md).
+
+Other languages are **not in scope** now; this only keeps the door open cheaply.
+
+**Optimisations: only those that pay for themselves, each measured.** Constant folding; dead code
+after unconditional branches; compare + branch fusion; in-place updates of pinned locals (`x op= y`);
+loads straight into a pinned local; and, the one that matters most for JITs, **bounds-check
+elimination** — e.g. one check per loop for a pointer that advances monotonically, or for accesses with
+a common base and small constant offsets — because guard pages are not available to us and the
+explicit checks are a large part of the remaining ~20 % gap to Cranelift.
+
+## The object model (after Wasmtime)
+
+| Object | Owns / does | w2py notes |
+|---|---|---|
+| `Config` | features, target choice, cache, stack limits, fuel/epoch switches | `target='auto'` or a name; Wasmtime's Cranelift options have no meaning here and are accepted and ignored, or rejected (decide) |
+| `Engine` | a `Config`; the selected target; the compiled-code registry | one per process is typical; selection is resolved here (see TARGETS.md) |
+| `Module` | the validated module, its imports and exports, the target `Artifact` | `Module(engine, wasm)`, `from_file`, `validate`, `serialize`, `deserialize`, `deserialize_file` |
+| `Store` | instances, memories, tables, globals, host data, limits, fuel, epoch deadline, the WASI context | every runtime object belongs to one store; host functions receive a `Caller` |
+| `Linker` | name → extern resolution; `define`, `define_func`, `define_wasi`, `define_instance`, `define_module`, `instantiate`, `instantiate_pre` | resolution and type checks are target-independent |
+| `Instance` | the instantiated module: exports | the target builds the executable form; the runtime wraps it |
+| `Func`, `Memory`, `Table`, `Global`, `Tag` | extern values | `Func` calls cross from Python into the target's code; `Memory` must offer `read`/`write`/`data_ptr`/`data_len`/`grow` for all targets |
+| `Trap` / `TrapCode` | wasm traps with Wasmtime's codes | targets report a code; the runtime raises `Trap`; `ExitTrap` for `proc_exit` |
+| `WasiConfig` | argv, env, preopens, stdio | fed into the WASI host (fusedwasi's `Host` / `State` if it is chosen) |
+
+## The pipeline of a call
+
+1. `Module(engine, wasm)`: frontend → IR → `engine.target.compile(ir, config)` → `Artifact`.
+   With the cache on, the artifact is looked up first (key below) and stored after.
+2. `linker.instantiate(store, module)`: resolve imports, then `target.instantiate(artifact, store,
+   imports)` creates memories, tables, globals, runs active segments and the start function.
+3. `instance.exports(store)["f"](store, *args)`: the `Func` converts arguments and enters the target
+   (`pyc`: a Python call; JIT: the ctypes entry trampoline). Traps come back as a code, the runtime
+   raises `Trap(code)`.
+
+## Memory
+
+All targets must share one `Memory` facade, because hosts (WASI included) read and write guest
+memory without knowing the target.
+
+* `pyc`: a `bytearray` (grows in place with `extend`; struct `unpack_from`/`pack_into` on it).
+  Temporary `memoryview`s are fine; a long-lived export blocks `extend` on CPython (`BufferError`).
+* JIT: a raw mapping whose address the code holds in a register (r13 in the PoC). Growth must not
+  move it while code runs: reserve the maximum address range up front (wasm32: 4 GiB + slack on a
+  64-bit host; less, with explicit checks, on 32-bit hosts) and commit pages on `memory.grow`
+  (`mprotect` / `VirtualAlloc(MEM_COMMIT)` through ctypes). The Python `mmap` module cannot reserve
+  without committing portably, so the reservation goes through ctypes.
+* `memory64`, `multi-memory`, shared memory (threads) and custom page sizes are properties of the
+  facade and of the code generators, not of separate paths.
+* Bounds checks are explicit in every target. Guard pages + a signal handler (how Wasmtime avoids the
+  checks) are not available from Python: a SIGSEGV cannot be turned into a trap safely.
+
+## Calls, stack depth and recursion
+
+Wasmtime traps with `STACK_OVERFLOW` when guest recursion exceeds `max_wasm_stack`. w2py must do the
+same on every target, deterministically, and must never let a guest crash the interpreter.
+
+**`pyc` (and `mpy`).** A wasm call is a Python call, so a deep guest recursion meets the interpreter's
+limits (`sys.getrecursionlimit()`, 1000 by default, and the C stack). Plan:
+
+1. **Depth counter.** Each translated function increments and decrements a per-store depth counter
+   (or the call sites do); past `Config.max_wasm_stack` (converted to a call depth) it raises
+   `Trap(STACK_OVERFLOW)`. Cost: two integer operations per call, measure on CoreMark.
+2. **Never rely on `sys.setrecursionlimit` globally.** It is process-wide and affects the host
+   program. If a deeper limit is wanted, run guest calls on a dedicated thread created with
+   `threading.stack_size(...)` and raise the limit only around that call, restoring it after.
+3. **Safety net.** `RecursionError` that escapes a guest call is converted to `Trap(STACK_OVERFLOW)`.
+4. **Optional trampolined code** for modules that recurse deeply by design: calls become returns to a
+   driver loop (slower, but bounded only by memory). A per-module flag, off by default.
+5. Re-entrancy (wasm → host → wasm) is allowed: the counter is per store and nests naturally.
+
+**JIT.** Two stacks:
+
+* the value stack (wasm locals and operands, frame overlap as in wasm3): every function's prologue
+  compares `frame + frame_size` against a limit in the context (the PoC does this) → trap 5;
+* the native stack (return addresses, saved registers): checked against a limit in the context taken
+  from the entry `rsp` minus a budget, so the thread's C stack is never exhausted.
+* Re-entrancy: **the PoC entry trampoline stores one saved `rsp`**; a nested entry (wasm → host →
+  wasm) overwrites it. The real entry must push the previous saved `rsp` and restore it on exit and
+  on trap (see LESSONS.md).
+
+## Long calls and the GIL
+
+A single call into wasm can run for a long time (CoreMark's `setup` runs ~20 s). What that means
+differs per target:
+
+**JIT: the GIL is released, but the call cannot be interrupted from Python.** The entry is a
+`ctypes.CFUNCTYPE`, which releases the GIL for the duration of the call (`PYFUNCTYPE` would keep it);
+host callbacks take it back automatically. Measured with the PoC (`w2jit2`, CoreMark): during a 19.6 s
+guest call another Python thread kept running (17 175 iterations of a 1 ms sleep loop, ~876/s).
+But Python handles signals only between its own bytecodes: a SIGINT sent 3 s into the call did not
+stop it — the call returned normally after 20.6 s. Consequences:
+
+* **Interruption is the code's job**, as in Wasmtime: the machine code polls an interrupt/epoch word
+  in the context at loop back-edges and function entries (one compare + branch) and traps with
+  `INTERRUPT`; `Engine.increment_epoch()` or an `interrupt()` call from any thread sets it. For Ctrl+C
+  the CLI (and an opt-in API mode) runs the guest call on a worker thread while the main thread waits
+  in a loop it can be interrupted in, and on `KeyboardInterrupt` sets the word.
+* **A store is used by one thread at a time** (Wasmtime's rule too): with the GIL released, another
+  Python thread could otherwise touch the same memory or store mid-call. The runtime guards it (owner
+  thread per store; re-entry from a host callback on the same thread is allowed).
+
+**`pyc` (and `mpy`): the guest is Python bytecode and holds the GIL while it runs.** CPython switches
+threads every `sys.getswitchinterval()` (5 ms), so other threads are not frozen, but they compete for
+the same GIL: no real parallelism, and an asyncio loop in another thread gets latency. Ctrl+C works,
+because signals are handled between bytecodes. Options, all stdlib, to choose from (measure each on
+CoreMark):
+
+1. **Yield points** in generated code: the same back-edge counter used for fuel/epochs, every N
+   iterations calling `time.sleep(0)` (gives the GIL away) and checking the interrupt word. Removes
+   the latency problem, not the lack of parallelism; costs something per back-edge.
+2. **A separate interpreter with its own GIL**: CPython 3.12+ subinterpreters (`concurrent.interpreters`
+   in 3.14). Real parallelism without processes; sharing linear memory with the host side is not
+   checked yet.
+3. **Free-threaded CPython** (3.13t / 3.14t): parallel as is; the one-thread-per-store rule becomes
+   essential, and atomics of shared memories need real synchronisation.
+4. **A separate process** with `multiprocessing.shared_memory` for linear memory: heaviest, works
+   everywhere CPython does.
+
+Deep recursion is a separate limit of `pyc` (previous section), not a GIL question.
+
+## Traps
+
+Targets report a numeric trap code that maps to Wasmtime's `TrapCode` (`UNREACHABLE`,
+`MEMORY_OUT_OF_BOUNDS`, `INTEGER_DIVISION_BY_ZERO`, `INTEGER_OVERFLOW`, `BAD_CONVERSION_TO_INTEGER`,
+`STACK_OVERFLOW`, `INDIRECT_CALL_TO_NULL`, `BAD_SIGNATURE`, `TABLE_OUT_OF_BOUNDS`, `NULL_REFERENCE`,
+`OUT_OF_FUEL`, `INTERRUPT`, `UNCAUGHT_EXCEPTION`, …).
+
+* `pyc`: a `Trap` exception raised by the generated code or its helpers; Python errors that mean a
+  trap (`struct.error`, `IndexError` on memory, `RecursionError`) are converted at the boundary.
+* JIT: trap stubs store the code in the context and unwind to the entry trampoline, which returns it
+  to Python; the runtime raises. A frame list for `Trap.frames` needs a code-address → function map
+  (kept in the artifact).
+* Host exceptions raised inside a host function called from wasm must cross back: `pyc` lets them
+  propagate; a JIT callback catches them, stores them in the store and returns a "host error" code
+  that unwinds like a trap, after which the runtime re-raises the original exception.
+
+## Interruption: fuel and epochs
+
+Wasmtime offers `consume_fuel` and `epoch_interruption`. Both are counters checked at function entry
+and loop back-edges; in `pyc` they cost noticeably, so they are compiled in only when the `Config`
+asks (the flag is part of the cache key). In a JIT the check is one decrement + branch on a context
+slot.
+
+## Cache
+
+Like Wasmtime's cache (and `Module.serialize`), compiled artifacts are kept on disk.
+
+* **Key**: sha256 of the wasm bytes + w2py version + target id + target environment + every config
+  option that changes generated code (features, fuel/epoch, stack limits, bounds-check mode).
+  Target environment: for `pyc` the implementation and bytecode magic (`importlib.util.MAGIC_NUMBER`,
+  `sys.implementation.cache_tag`); for `mpy` the `.mpy` version and architecture; for a JIT the
+  architecture, ABI and CPU features the code assumes.
+* **Content**: `pyc` → the marshalled code object (exactly what a `.pyc` holds) plus metadata;
+  `mpy` → the `.mpy`; JIT → the artifact of [ARTIFACT.md](ARTIFACT.md) (position-independent code,
+  entry trampolines per calling convention, tables, segments; declared ISA level and context ABI).
+* **Where**: `$XDG_CACHE_HOME/w2py` (or the platform's equivalent, computed with stdlib only); atomic
+  writes (temp file + `os.replace`); a size limit with LRU eviction; `w2py cache` in the CLI.
+* `Module.serialize()` / `deserialize()` write and read the same artifact format, so a module can
+  also be compiled ahead of time and shipped (`w2py compile`).
+* Measured cost it saves (PoC, CoreMark): `pyc` translation + `compile()` ≈ 111 ms, from cache
+  ≈ 0.5 ms; the JIT compiles in ≈ 25 ms.
+
+## WASI
+
+**The WASI host is not decided.** What the runtime needs from one: a flat function per import that
+takes the store's state and a memory, so `Linker.define_wasi()` can bind names to functions.
+
+The candidate is **fusedwasi** (natify-sh/fusedwasi, branch `wasi-p2` at the time of writing): one
+flat function per import, in C and in a Python twin, for WASI 0.1 (`wasi_snapshot_preview1`,
+`wasi_unstable`) and WASI 0.2 (all imports of the command world and `wasi:http`). **It has not been
+used with w2py yet**: only its README and the Python twin's source were read, and one assumption was
+checked separately (below). If it is chosen:
+
+* `Linker.define_wasi()` binds the import names to the twin's functions (`partial(fn, host, comp)`);
+  the names follow a fixed convention (`wasi:filesystem/types` + `[method]descriptor.read` →
+  `wasi_filesystem_types_descriptor_read`).
+* The twin takes "any writable buffer" as a memory: the `pyc` `bytearray` fits as is (checked: a
+  temporary `memoryview` per call does not block `bytearray.extend` on CPython or PyPy); for a JIT
+  the facade exposes the mapping as a buffer.
+* `realloc` for p2 is the guest's `cabi_realloc` export of the component, wrapped.
+* The component model itself is out of scope: components are fused into one core module first
+  (`meld fuse`), which needs **multi-memory** (one memory per component). p1 programs can also go
+  through the preview1 adapter + fuse, so one host serves both.
+* The Python twin declares `requires-python >= 3.10` and uses `dataclasses`/`typing`, so it would
+  set the minimum Python of WASI support and does not run on MicroPython. The host choice must not
+  dictate the minimum Python of the whole package (ROADMAP.md, open questions).
+
+## MicroPython
+
+A target of its own (`mpy`), best effort:
+
+* the `pyc` code generator with the MicroPython flavour (no `struct.Struct`, no `int.bit_length` /
+  `bit_count`, no `memoryview.cast`; struct calls emitted with their format strings);
+* artifacts: source compiled on the device, or `.mpy` made ahead of time with `mpy-cross`
+  (69 it/s, 37 KB, 2 ms import for CoreMark); `@micropython.native` per function (94 it/s, faster
+  than CPython); `@micropython.viper` is the promising next step (a 32-bit load through `ptr32` costs
+  3.4 ns against ~150 ns through `struct`);
+* limits: small heap and C stack, 31-bit small ints on 32-bit MCUs (i32 values ≥ 2³⁰ become heap
+  integers), a native-emitter bug in `mpy-cross` 1.29.0 on very large functions (LESSONS.md);
+* the translator itself does not run on MicroPython yet (it imports `marshal`, uses `str.isidentifier`),
+  so on-device compilation needs a port; host-side ahead-of-time compilation works today.

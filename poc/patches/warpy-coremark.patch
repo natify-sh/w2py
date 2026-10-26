@@ -1,0 +1,93 @@
+--- warpy.orig.py	2026-10-25 01:40:57.937842494 +0000
++++ warpy.py	2026-10-25 01:40:57.983633736 +0000
+@@ -27,10 +27,6 @@
+     from rpython.rlib.rarithmetic import (
+             intmask, string_to_int)
+ 
+-    from pypy.objspace.std.objspace import StdObjSpace
+-    from pypy.objspace.std.floatobject import W_FloatObject
+-    _tmpspace = StdObjSpace()
+-    _tmpspace.call_function = lambda f, a: a
+ 
+ 
+     class IntSort(TimSort):
+@@ -60,10 +56,8 @@
+     def fround(val, digits):
+         return round_double(val, digits)
+ 
+-    @elidable
+     def float_fromhex(s):
+-        fo = W_FloatObject.descr_fromhex(_tmpspace, None, s)
+-        return fo.floatval
++        raise Exception("hex float literals unsupported in this build")
+ 
+ else:
+     import traceback
+@@ -158,7 +152,8 @@
+         fname = "%s.%s" % (module, field)
+         if not fname in ["spectest.print", "spectest.print_i32",
+                 "env.printline", "env.readline", "env.read_file",
+-                "env.get_time_ms", "env.exit"]:
++                "env.get_time_ms", "env.exit",
++                "wiring.millis", "wiring.print"]:
+             raise Exception("function import %s not found" % (fname))
+ 
+ 
+@@ -447,6 +442,9 @@
+         0xbd : ['i64.reinterpret_f64', ''],
+         0xbe : ['f32.reinterpret_i32', ''],
+         0xbf : ['f64.reinterpret_i64', ''],
++        0xc0 : ['i32.extend8_s',       ''],
++        0xc1 : ['i32.extend16_s',      ''],
++        0xfc : ['misc_prefix',         'varuint32'],
+         }
+ 
+ LOAD_SIZE = { 0x28 : 4,
+@@ -2054,6 +2052,33 @@
+             sp += 1
+             stack[sp] = res
+ 
++        ## sign-extension operators (post-MVP)
++        elif 0xc0 <= opcode <= 0xc1:
++            a = stack[sp]
++            if 0xc0 == opcode:
++                v = a[1] & 0xff
++                if v & 0x80: v -= 0x100
++            else:
++                v = a[1] & 0xffff
++                if v & 0x8000: v -= 0x10000
++            stack[sp] = (I32, v, 0.0)
++
++        ## 0xFC prefix: non-trapping float-to-int (post-MVP)
++        elif 0xfc == opcode:
++            pc, sub = read_LEB(code, pc, 32)
++            a = stack[sp]
++            f = a[2]
++            if 0 <= sub <= 3:
++                if sub & 1: lo, hi = 0.0, 4294967295.0
++                else: lo, hi = -2147483648.0, 2147483647.0
++                if math.isnan(f): r = 0
++                elif f >= hi: r = int(hi)
++                elif f <= lo: r = int(lo)
++                else: r = int(f)
++                stack[sp] = (I32, int2int32(r), 0.0)
++            else:
++                raise WAException("0xfc %d unimplemented" % sub)
++
+         else:
+             raise WAException("unrecognized opcode 0x%x" % opcode)
+ 
+@@ -2665,6 +2690,13 @@
+         return env_get_time_ms(mem, args)
+     elif fname == "env.exit":
+         raise ExitException(args[0][1])
++    elif fname == "wiring.millis":
++        return [(I32, int2int32(int(time.time() * 1000.0) & 0xffffffff), 0.0)]
++    elif fname == "wiring.print":
++        p = args[0][1]; n = args[1][1]
++        assert p >= 0 and n >= 0
++        os.write(1, "".join([chr(b) for b in mem.bytes[p:p + n]]))
++        return []
+     else:
+         raise Exception("function import %s not found" % (fname))
+ 
