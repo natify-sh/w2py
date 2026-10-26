@@ -83,7 +83,43 @@ wrong results or sandbox escapes. The PoC already met three silent bugs (LESSONS
   new code generator per function to bisect failures (how the `printf` bug was found);
 * decide on copy-and-patch after `jit-aarch64` exists by hand, with numbers for both.
 
-## R4. Other known risks (detailed elsewhere)
+## R4. Version skew: output of one w2py version used by another
+
+Two versions meet: the one that **generated** the code and the one that **runs** it (another machine,
+an upgrade, a shared cache, an artifact shipped with a package).
+
+**Per kind of output.**
+
+| output | coupling today (PoC) | coupling in the planned design | what can break |
+|---|---|---|---|
+| `pyc` / `mpy` module (Python source) | none: the runtime helpers are emitted into the module | the module talks to the runtime (`Store`, the `Memory` facade, imports, traps); to stay small it will want to import shared helpers | a module from version N calling helpers or facades that changed in N+1 |
+| `.pyc` code object | the CPython bytecode version (magic number) | same | another Python version: refused by the magic check, must be regenerated |
+| `.mpy` | the MicroPython `.mpy` version and architecture | same | another MicroPython release / port |
+| JIT artifact | format, context ABI and compiler versions in the header (ARTIFACT.md) | same | a loader that does not know those versions refuses it |
+
+**The silent case: fixed compiler bugs.** An artifact or module generated before a code-generation fix
+keeps the bug forever — the code is frozen. Possible answer: a list of known-bad compiler versions in
+the runtime that forces regeneration.
+
+**Possible solutions for the generated-module coupling** (ARCHITECTURE.md, "Versioned contracts"):
+
+* (a) **self-contained modules**: helpers always emitted into the module — no coupling, larger output;
+* (b) **versioned helper namespaces** (`w2py.rt.v1`, `w2py.rt.v2`, …): the package keeps old helper
+  versions side by side; a module imports exactly the one it was generated for;
+* (c) **a declared module ABI** (`__w2py_abi__ = N` in the module): the runtime refuses a mismatch and
+  regenerates from the wasm.
+
+**Possible general policy: the wasm is the source of truth, everything generated is a derivative.** On
+any mismatch — format, ABI, compiler version on the bad list, Python/MicroPython version — regenerate
+from the wasm. Regeneration is cheap (CoreMark: ~25 ms JIT, ~111 ms `pyc`), so "accept only what I
+know, otherwise recompile" is the simplest robust rule. It needs the wasm at hand:
+
+* cache entries keep the wasm hash, and the wasm stays where it was loaded from;
+* or **"fat" artifacts** embed the original wasm: larger, but self-healing under any version;
+* long compatibility windows (e.g. the current and previous major format) are needed only for artifacts
+  shipped **without** their wasm.
+
+## R5. Other known risks (detailed elsewhere)
 
 | risk | where |
 |---|---|

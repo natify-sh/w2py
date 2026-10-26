@@ -283,6 +283,20 @@ Like Wasmtime's cache (and `Module.serialize`), compiled artifacts are kept on d
 * Measured cost it saves (PoC, CoreMark): `pyc` translation + `compile()` ≈ 111 ms, from cache
   ≈ 0.5 ms; the JIT compiles in ≈ 25 ms.
 
+## Versioned contracts
+
+Everything w2py generates is a derivative of the wasm and is consumed by code that may come from
+another w2py version. Each interface between them is a versioned contract:
+
+| contract | between | where |
+|---|---|---|
+| JIT artifact format + context ABI + ISA level | the JIT compiler and any loader (Python or another language) | ARTIFACT.md |
+| **generated-module ABI** (`pyc`, `mpy`) | a generated Python module and the runtime: how it receives imports and memories, which helpers it calls, how it reports traps, how the runtime finds its exports | to define in phase 2; options in RISKS.md, R4 (self-contained modules, versioned helper namespaces, a declared `__w2py_abi__`) |
+| cache key fields | a cache entry and the runtime looking it up | "Cache" above |
+
+On a mismatch the runtime refuses the derivative and regenerates from the wasm when it has it; how long
+older versions stay accepted is an open question (ROADMAP.md, question 10; RISKS.md, R4).
+
 ## WASI
 
 **The WASI host is not decided.** What the runtime needs from one: a flat function per import that

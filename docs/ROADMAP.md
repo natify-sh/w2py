@@ -23,6 +23,8 @@ Phases in order; each ends with tests green for what it claims. Numbers are meas
 * Long calls: yield points + interrupt word (measure the cost); one-thread-per-store guard.
 * Fuel and epochs (compiled in on demand).
 * Cache and `Module.serialize`/`deserialize`.
+* The generated-module ABI (ARCHITECTURE.md, "Versioned contracts"); regeneration from the wasm on
+  any mismatch.
 * Exit criterion: the spec suite passes on CPython and PyPy.
 
 ## Phase 3 — runtime API, WASI, CLI
@@ -77,3 +79,6 @@ Phases in order; each ends with tests green for what it claims. Numbers are meas
 8. **Free-threaded CPython (no GIL)**: shared memories and atomics in `pyc` need real synchronisation.
 9. **Name**: `w2py` grew beyond "wasm to Python" — keep it, or rename the runtime and keep `w2py` for
    the translator?
+10. **Version skew**: self-contained modules, versioned helper namespaces or a declared module ABI;
+   fat artifacts with the wasm embedded or not; how many older format versions a loader accepts
+   (RISKS.md, R4).
