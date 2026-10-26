@@ -42,6 +42,9 @@ The maintainer communicates in Ukrainian; code, comments, commit messages and do
 * JIT work: read `docs/RISKS.md` (R2, R3) and `docs/LESSONS.md` items 1–9 first (flags, callee-saved registers across host calls,
   alignment, nested entries, zero-extension). Debug by mixing a known-good and a new code generator
   per function and bisecting — it is how the `printf` bug was found.
+* Before implementing something hard (an operator's exact semantics, an ABI, an encoding, a new
+  architecture), look at how the projects in `docs/REFERENCES.md` do it. Read and understand, write
+  our own — never translate their code line by line; name the source of an idea in a comment.
 * Every new opcode or feature: spec tests for it pass on every target that claims it, plus a
   differential run against wasmtime.
 * `pyc` codegen: keep generated code valid for the minimum Python (see `docs/ROADMAP.md`, open

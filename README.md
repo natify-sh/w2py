@@ -41,6 +41,7 @@ everywhere else (iOS/Pythonista, hardened systems, unknown architectures), Micro
 | [`docs/TESTING.md`](docs/TESTING.md) | the spec test suite, differential testing, benchmarks, CI matrix |
 | [`docs/BENCHMARKS.md`](docs/BENCHMARKS.md) | every measurement made, with conditions |
 | [`docs/RISKS.md`](docs/RISKS.md) | risks with possible solutions (not decisions): moving artifacts between machines and trust, version skew between generator and runtime, platforms restricting JIT and CPU control-flow integrity, alternatives to a hand-written JIT |
+| [`docs/REFERENCES.md`](docs/REFERENCES.md) | projects to read for how things are done correctly (Winch, V8 Liftoff, wasm2c, TinyCC, asmjit, DynASM, MicroPython's emitters, …) — read, understand, write our own |
 | [`docs/DECISIONS.md`](docs/DECISIONS.md) | the decisions taken and the alternatives rejected, with the reasons |
 | [`docs/LESSONS.md`](docs/LESSONS.md) | traps found while building the PoC (bugs, platform limits) |
 | [`docs/ROADMAP.md`](docs/ROADMAP.md) | the phases of the work and the open questions |

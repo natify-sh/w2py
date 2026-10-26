@@ -78,6 +78,9 @@ grow:
 | pinned-local choice (uses weighted by loop depth), top-of-stack caching | lowering of memory access (bounds check + addressing modes) |
 | labels, fixups, trap stubs, function table, artifact format | relocation/fixup kinds of the ISA |
 
+How others solved the same problems on each architecture (Winch, V8 Liftoff, TinyCC, asmjit, DynASM,
+MicroPython's emitters): REFERENCES.md — read to understand, then write our own.
+
 An architecture is added in stages, each one usable because of per-module fallback:
 
 1. **Integer core**: i32/i64, locals, globals, control flow, calls, memory loads/stores with bounds
