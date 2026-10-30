@@ -62,6 +62,8 @@ class Ctl:
         "mark",
         "nests",
         "tg",
+        "pv",
+        "pin",
     )
 
     def __init__(s, kind, mode, id_, res, rv, h):
@@ -74,6 +76,8 @@ class Ctl:
         s.has_else = False
         s.live_then = False
         s.mark = None
+        s.pv = []  # python-loop parameter variables (assigned by a br to the loop)
+        s.pin = []  # block parameters as they stand on entry (restored for `else`)
 
 
 # ----------------------------------------------------------------------------- function compiler
@@ -249,12 +253,13 @@ class FuncGen:
     # structurally: a br to the innermost block at its top level turns the rest of the block into
     # `if not cond:`; anything else sets the label register `_br` and the rest of each enclosing
     # construct is guarded (an `else:`/`if not _br:` nest), breaking out of python loops on the way.
-    def assign_results(s, T, n):
-        if not T.rv:
+    def assign_results(s, T, n, names=None):
+        names = T.rv if names is None else names
+        if not names:
             return
         vals = s.stack[len(s.stack) - n :] if n else []
         codes = [s.n(v) if v.t in (I32, I64) else v.c for v in vals]
-        s.emit("%s = %s" % (", ".join(T.rv), ", ".join(codes)))
+        s.emit("%s = %s" % (", ".join(names), ", ".join(codes)))
 
     def br_code(s, depth):
         """emit a branch; returns True if control is transferred by a python jump (continue/break/
@@ -265,6 +270,8 @@ class FuncGen:
             return True
         if T.kind != "loop":
             s.assign_results(T, len(T.res))
+        else:
+            s.assign_results(T, len(T.pv), T.pv)
         if depth == 0 and T.kind != "loop":
             return False  # rest of T is skipped structurally by the caller
         P = None
@@ -362,6 +369,7 @@ class FuncGen:
                     s.assign_results(F, len(F.res))
                     F.live_then = True
                 del st[F.h :]
+                st.extend(F.pin)
                 for mk in reversed(F.nests):
                     s.close(mk)
                 F.nests = []
@@ -372,8 +380,6 @@ class FuncGen:
                 continue
             if op in (0x02, 0x03, 0x04):
                 ps, rs = s.bt(x[1])
-                if ps:
-                    raise NotImplementedError("block params")
                 tg, top = info[i - 1]
                 if op == 0x04:
                     c = s.popc()
@@ -390,8 +396,26 @@ class FuncGen:
                 rv = ["r%d_%d" % (fid, j) for j in range(len(rs))]
                 for nm_, t_ in zip(rv, rs):
                     s.rvty[nm_] = t_
-                F = Ctl(kind, mode, fid, rs, rv, len(st))
+                np_ = len(ps)
+                F = Ctl(kind, mode, fid, rs, rv, len(st) - np_)
                 F.tg = tg
+                F.pin = st[len(st) - np_ :]
+                if F.pyloop and np_:
+                    # a br to this loop re-assigns these; the body sees them as plain temporaries
+                    vals = s.popn(np_)
+                    F.pv = ["q%d_%d" % (fid, j) for j in range(np_)]
+                    s.emit(
+                        "%s = %s"
+                        % (
+                            ", ".join(F.pv),
+                            ", ".join(s.n(v) if v.t in (I32, I64) else v.c for v in vals),
+                        )
+                    )
+                    F.pin = [
+                        E(q, t_, (M32 if t_ == I32 else M64) if t_ in (I32, I64) else None, k=True)
+                        for q, t_ in zip(F.pv, ps)
+                    ]
+                    st.extend(F.pin)
                 s.ctl.append(F)
                 if F.pyloop:
                     F.mark = s.open("while True:")

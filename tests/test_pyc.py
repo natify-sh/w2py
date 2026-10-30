@@ -63,3 +63,29 @@ def test_shared_memory_and_mutable_global_between_instances() -> None:
     b = load(bytes.fromhex(SHARE_B), {"A": {"m": a["m"], "g": a["g"]}})
     assert b["f"]() == 7
     assert a["m"][0] == 7 and a["g"].get() == 9
+
+
+# (module (type (func (param i32) (result i32))) (type (func (param i32 i32) (result i32)))
+#  (func (export "f") (param i32) (result i32) (local i32 i32) ;; sum 0..n, loop with params
+#    local.get 0 i32.const 0 loop (type 1) local.set 1 local.set 2
+#      local.get 2 i32.const 1 i32.sub  local.get 1 local.get 2 i32.add  local.get 2 br_if 0
+#      local.set 1 drop local.get 1 end)
+#  (func (export "g") (param i32 i32) (result i32)               ;; if with a param on each arm
+#    local.get 0 local.get 1 if (type 0) i32.const 10 i32.add else i32.const 20 i32.sub end))
+BLOCK_PARAMS = bytes.fromhex(
+    HEAD
+    + "010c02" + "60017f017f" + "60027f7f017f"
+    + "03030200" + "01"
+    + "07090201660000" + "01670001"
+    + "0a3502" + "22" + "01027f" + "2000410003012101210220024101" + "6b" + "20012002" + "6a"
+    + "20020d00" + "21011a2001" + "0b0b"
+    + "10" + "00" + "20002001" + "0400" + "410a6a" + "05" + "41146b" + "0b0b"
+)  # fmt: skip
+
+
+def test_block_params_loop_and_if() -> None:
+    ex = load(BLOCK_PARAMS, {})
+    assert ex["f"](4) == 10
+    assert ex["f"](0) == 0
+    assert ex["g"](5, 1) == 15
+    assert ex["g"](5, 0) == 0xFFFFFFF1

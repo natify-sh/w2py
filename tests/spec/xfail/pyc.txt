@@ -30,59 +30,6 @@ align.wast:949  gap: decoder does not support the construct (block type / memarg
 annotations.wast:129  gap: table import / unknown import kind
 annotations.wast:98  gap: table import / unknown import kind
 binary.wast:1238  validator gap: accepted (typed references, tag, table initializer, non-core construct)
-block.wast:3  gap: block parameters
-block.wast:353  earlier module of the file did not load
-block.wast:354  earlier module of the file did not load
-block.wast:355  earlier module of the file did not load
-block.wast:356  earlier module of the file did not load
-block.wast:357  earlier module of the file did not load
-block.wast:359  earlier module of the file did not load
-block.wast:360  earlier module of the file did not load
-block.wast:361  earlier module of the file did not load
-block.wast:363  earlier module of the file did not load
-block.wast:364  earlier module of the file did not load
-block.wast:365  earlier module of the file did not load
-block.wast:367  earlier module of the file did not load
-block.wast:368  earlier module of the file did not load
-block.wast:369  earlier module of the file did not load
-block.wast:371  earlier module of the file did not load
-block.wast:372  earlier module of the file did not load
-block.wast:374  earlier module of the file did not load
-block.wast:375  earlier module of the file did not load
-block.wast:377  earlier module of the file did not load
-block.wast:378  earlier module of the file did not load
-block.wast:379  earlier module of the file did not load
-block.wast:381  earlier module of the file did not load
-block.wast:382  earlier module of the file did not load
-block.wast:384  earlier module of the file did not load
-block.wast:385  earlier module of the file did not load
-block.wast:386  earlier module of the file did not load
-block.wast:387  earlier module of the file did not load
-block.wast:388  earlier module of the file did not load
-block.wast:389  earlier module of the file did not load
-block.wast:390  earlier module of the file did not load
-block.wast:391  earlier module of the file did not load
-block.wast:392  earlier module of the file did not load
-block.wast:394  earlier module of the file did not load
-block.wast:395  earlier module of the file did not load
-block.wast:396  earlier module of the file did not load
-block.wast:397  earlier module of the file did not load
-block.wast:398  earlier module of the file did not load
-block.wast:399  earlier module of the file did not load
-block.wast:400  earlier module of the file did not load
-block.wast:402  earlier module of the file did not load
-block.wast:403  earlier module of the file did not load
-block.wast:404  earlier module of the file did not load
-block.wast:407  earlier module of the file did not load
-block.wast:408  earlier module of the file did not load
-block.wast:410  earlier module of the file did not load
-block.wast:411  earlier module of the file did not load
-block.wast:412  earlier module of the file did not load
-block.wast:413  earlier module of the file did not load
-block.wast:414  earlier module of the file did not load
-block.wast:415  earlier module of the file did not load
-block.wast:417  earlier module of the file did not load
-block.wast:419  earlier module of the file did not load
 br_if.wast:668  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
 br_on_non_null.wast:1  decoder rejects a valid module (unsupported construct)
 br_on_non_null.wast:49  earlier module of the file did not load
@@ -384,14 +331,6 @@ f64.wast:2496  wrong result (float NaN payload / conversion)
 f64.wast:2498  wrong result (float NaN payload / conversion)
 f64.wast:2516  wrong result (float NaN payload / conversion)
 f64.wast:2518  wrong result (float NaN payload / conversion)
-fac.wast:1  gap: block parameters
-fac.wast:102  earlier module of the file did not load
-fac.wast:103  earlier module of the file did not load
-fac.wast:104  earlier module of the file did not load
-fac.wast:105  earlier module of the file did not load
-fac.wast:106  earlier module of the file did not load
-fac.wast:107  earlier module of the file did not load
-fac.wast:109  earlier module of the file did not load
 float_exprs.wast:1074  wrong result (float NaN payload / conversion)
 float_exprs.wast:1078  wrong result (float NaN payload / conversion)
 float_exprs.wast:1082  wrong result (float NaN payload / conversion)
@@ -509,131 +448,11 @@ global.wast:661  earlier module of the file did not load (name or export missing
 global.wast:663  earlier module of the file did not load (name or export missing)
 global.wast:664  earlier module of the file did not load (name or export missing)
 global.wast:675  gap: init expression
-if.wast:3  gap: block parameters
-if.wast:537  earlier module of the file did not load
-if.wast:538  earlier module of the file did not load
-if.wast:539  earlier module of the file did not load
-if.wast:540  earlier module of the file did not load
-if.wast:542  earlier module of the file did not load
-if.wast:543  earlier module of the file did not load
-if.wast:544  earlier module of the file did not load
-if.wast:545  earlier module of the file did not load
-if.wast:547  earlier module of the file did not load
-if.wast:548  earlier module of the file did not load
-if.wast:549  earlier module of the file did not load
-if.wast:550  earlier module of the file did not load
-if.wast:552  earlier module of the file did not load
-if.wast:553  earlier module of the file did not load
-if.wast:554  earlier module of the file did not load
-if.wast:555  earlier module of the file did not load
-if.wast:556  earlier module of the file did not load
-if.wast:557  earlier module of the file did not load
-if.wast:558  earlier module of the file did not load
-if.wast:559  earlier module of the file did not load
-if.wast:561  earlier module of the file did not load
-if.wast:562  earlier module of the file did not load
-if.wast:563  earlier module of the file did not load
-if.wast:564  earlier module of the file did not load
-if.wast:565  earlier module of the file did not load
-if.wast:566  earlier module of the file did not load
-if.wast:568  earlier module of the file did not load
-if.wast:569  earlier module of the file did not load
-if.wast:570  earlier module of the file did not load
-if.wast:571  earlier module of the file did not load
-if.wast:572  earlier module of the file did not load
-if.wast:573  earlier module of the file did not load
-if.wast:575  earlier module of the file did not load
-if.wast:576  earlier module of the file did not load
-if.wast:578  earlier module of the file did not load
-if.wast:579  earlier module of the file did not load
-if.wast:580  earlier module of the file did not load
-if.wast:581  earlier module of the file did not load
-if.wast:583  earlier module of the file did not load
-if.wast:584  earlier module of the file did not load
-if.wast:585  earlier module of the file did not load
-if.wast:586  earlier module of the file did not load
-if.wast:588  earlier module of the file did not load
-if.wast:589  earlier module of the file did not load
-if.wast:590  earlier module of the file did not load
-if.wast:591  earlier module of the file did not load
-if.wast:592  earlier module of the file did not load
-if.wast:593  earlier module of the file did not load
-if.wast:595  earlier module of the file did not load
-if.wast:596  earlier module of the file did not load
-if.wast:597  earlier module of the file did not load
-if.wast:598  earlier module of the file did not load
-if.wast:600  earlier module of the file did not load
-if.wast:601  earlier module of the file did not load
-if.wast:603  earlier module of the file did not load
-if.wast:604  earlier module of the file did not load
-if.wast:606  earlier module of the file did not load
-if.wast:607  earlier module of the file did not load
-if.wast:609  earlier module of the file did not load
-if.wast:610  earlier module of the file did not load
-if.wast:612  earlier module of the file did not load
-if.wast:613  earlier module of the file did not load
-if.wast:615  earlier module of the file did not load
-if.wast:616  earlier module of the file did not load
-if.wast:618  earlier module of the file did not load
-if.wast:619  earlier module of the file did not load
-if.wast:621  earlier module of the file did not load
-if.wast:622  earlier module of the file did not load
-if.wast:624  earlier module of the file did not load
-if.wast:625  earlier module of the file did not load
-if.wast:627  earlier module of the file did not load
-if.wast:628  earlier module of the file did not load
-if.wast:629  earlier module of the file did not load
-if.wast:631  earlier module of the file did not load
-if.wast:632  earlier module of the file did not load
-if.wast:633  earlier module of the file did not load
-if.wast:634  earlier module of the file did not load
-if.wast:636  earlier module of the file did not load
-if.wast:637  earlier module of the file did not load
-if.wast:639  earlier module of the file did not load
-if.wast:640  earlier module of the file did not load
-if.wast:641  earlier module of the file did not load
-if.wast:642  earlier module of the file did not load
-if.wast:644  earlier module of the file did not load
-if.wast:645  earlier module of the file did not load
-if.wast:647  earlier module of the file did not load
-if.wast:648  earlier module of the file did not load
-if.wast:650  earlier module of the file did not load
-if.wast:651  earlier module of the file did not load
-if.wast:653  earlier module of the file did not load
-if.wast:654  earlier module of the file did not load
-if.wast:655  earlier module of the file did not load
-if.wast:656  earlier module of the file did not load
-if.wast:659  earlier module of the file did not load
-if.wast:663  earlier module of the file did not load
-if.wast:664  earlier module of the file did not load
-if.wast:665  earlier module of the file did not load
-if.wast:666  earlier module of the file did not load
 if.wast:667  earlier module of the file did not load
-if.wast:668  earlier module of the file did not load
-if.wast:669  earlier module of the file did not load
-if.wast:670  earlier module of the file did not load
-if.wast:671  earlier module of the file did not load
-if.wast:672  earlier module of the file did not load
 if.wast:673  earlier module of the file did not load
-if.wast:674  earlier module of the file did not load
-if.wast:676  earlier module of the file did not load
-if.wast:677  earlier module of the file did not load
-if.wast:680  earlier module of the file did not load
-if.wast:684  earlier module of the file did not load
-if.wast:688  earlier module of the file did not load
-if.wast:692  earlier module of the file did not load
-if.wast:696  earlier module of the file did not load
-if.wast:700  earlier module of the file did not load
-if.wast:704  earlier module of the file did not load
-if.wast:708  earlier module of the file did not load
 if.wast:713  earlier module of the file did not load
 if.wast:716  earlier module of the file did not load
 if.wast:719  earlier module of the file did not load
-if.wast:722  earlier module of the file did not load
-if.wast:725  earlier module of the file did not load
-if.wast:728  earlier module of the file did not load
-if.wast:731  earlier module of the file did not load
-if.wast:733  earlier module of the file did not load
 imports.wast:240  gap: table import / unknown import kind
 imports.wast:244  gap: table import / unknown import kind
 imports.wast:248  gap: table import / unknown import kind
@@ -687,85 +506,6 @@ local_init.wast:53  validator gap: accepted (typed references, tag, table initia
 local_init.wast:74  earlier module of the file did not load
 local_tee.wast:338  wrong result (float NaN payload / conversion)
 local_tee.wast:613  gap: opcode not implemented
-loop.wast:3  gap: block parameters
-loop.wast:441  earlier module of the file did not load
-loop.wast:442  earlier module of the file did not load
-loop.wast:443  earlier module of the file did not load
-loop.wast:444  earlier module of the file did not load
-loop.wast:445  earlier module of the file did not load
-loop.wast:447  earlier module of the file did not load
-loop.wast:448  earlier module of the file did not load
-loop.wast:449  earlier module of the file did not load
-loop.wast:451  earlier module of the file did not load
-loop.wast:452  earlier module of the file did not load
-loop.wast:453  earlier module of the file did not load
-loop.wast:455  earlier module of the file did not load
-loop.wast:456  earlier module of the file did not load
-loop.wast:458  earlier module of the file did not load
-loop.wast:459  earlier module of the file did not load
-loop.wast:461  earlier module of the file did not load
-loop.wast:462  earlier module of the file did not load
-loop.wast:463  earlier module of the file did not load
-loop.wast:465  earlier module of the file did not load
-loop.wast:466  earlier module of the file did not load
-loop.wast:468  earlier module of the file did not load
-loop.wast:469  earlier module of the file did not load
-loop.wast:470  earlier module of the file did not load
-loop.wast:471  earlier module of the file did not load
-loop.wast:472  earlier module of the file did not load
-loop.wast:473  earlier module of the file did not load
-loop.wast:474  earlier module of the file did not load
-loop.wast:475  earlier module of the file did not load
-loop.wast:476  earlier module of the file did not load
-loop.wast:478  earlier module of the file did not load
-loop.wast:479  earlier module of the file did not load
-loop.wast:480  earlier module of the file did not load
-loop.wast:481  earlier module of the file did not load
-loop.wast:482  earlier module of the file did not load
-loop.wast:483  earlier module of the file did not load
-loop.wast:484  earlier module of the file did not load
-loop.wast:486  earlier module of the file did not load
-loop.wast:487  earlier module of the file did not load
-loop.wast:488  earlier module of the file did not load
-loop.wast:491  earlier module of the file did not load
-loop.wast:492  earlier module of the file did not load
-loop.wast:494  earlier module of the file did not load
-loop.wast:495  earlier module of the file did not load
-loop.wast:496  earlier module of the file did not load
-loop.wast:497  earlier module of the file did not load
-loop.wast:498  earlier module of the file did not load
-loop.wast:499  earlier module of the file did not load
-loop.wast:501  earlier module of the file did not load
-loop.wast:503  earlier module of the file did not load
-loop.wast:504  earlier module of the file did not load
-loop.wast:505  earlier module of the file did not load
-loop.wast:506  earlier module of the file did not load
-loop.wast:507  earlier module of the file did not load
-loop.wast:508  earlier module of the file did not load
-loop.wast:510  earlier module of the file did not load
-loop.wast:511  earlier module of the file did not load
-loop.wast:512  earlier module of the file did not load
-loop.wast:513  earlier module of the file did not load
-loop.wast:514  earlier module of the file did not load
-loop.wast:515  earlier module of the file did not load
-loop.wast:517  earlier module of the file did not load
-loop.wast:518  earlier module of the file did not load
-loop.wast:519  earlier module of the file did not load
-loop.wast:520  earlier module of the file did not load
-loop.wast:521  earlier module of the file did not load
-loop.wast:522  earlier module of the file did not load
-loop.wast:523  earlier module of the file did not load
-loop.wast:524  earlier module of the file did not load
-loop.wast:525  earlier module of the file did not load
-loop.wast:526  earlier module of the file did not load
-loop.wast:527  earlier module of the file did not load
-loop.wast:528  earlier module of the file did not load
-loop.wast:529  earlier module of the file did not load
-loop.wast:530  earlier module of the file did not load
-loop.wast:531  earlier module of the file did not load
-loop.wast:532  earlier module of the file did not load
-loop.wast:534  earlier module of the file did not load
-loop.wast:536  earlier module of the file did not load
 ref.wast:28  validator gap: accepted (typed references, tag, table initializer, non-core construct)
 ref.wast:32  validator gap: accepted (typed references, tag, table initializer, non-core construct)
 ref.wast:37  gap: init expression
