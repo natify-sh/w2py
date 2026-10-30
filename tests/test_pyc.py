@@ -89,3 +89,52 @@ def test_block_params_loop_and_if() -> None:
     assert ex["f"](0) == 0
     assert ex["g"](5, 1) == 15
     assert ex["g"](5, 0) == 0xFFFFFFF1
+
+
+def _wasm_module() -> bytes:
+    def sec(i: int, body: bytes) -> bytes:
+        return bytes([i, len(body)]) + body
+
+    def vec(items: list[bytes]) -> bytes:
+        return bytes([len(items)]) + b"".join(items)
+
+    types = vec([b"\x60\x00\x01\x7f", b"\x60\x01\x7f\x01\x7f", b"\x60\x00\x00"])
+    funcs = bytes([6, 0, 2, 1, 1, 0, 1])  # f0 t0, f1 t2, f2 t1, f3 t1, f4 t0, f5 t1
+    table = vec([b"\x70\x01\x02\x05"])  # funcref, min 2, max 5
+    names = ["init", "isnull", "grow", "size", "call"]
+    exports = vec([bytes([len(n)]) + n.encode() + bytes([0, i + 1]) for i, n in enumerate(names)])
+    elem = vec([b"\x01\x00\x01\x00"])  # passive segment: func 0
+    bodies = [
+        b"\x41\x07",  # i32.const 7
+        b"\x41\x01\x41\x00\x41\x01\xfc\x0c\x00\x00",  # table.init: segment 0, table 0, (1, 0, 1)
+        b"\x20\x00\x25\x00\xd1",  # table.get, ref.is_null
+        b"\xd0\x70\x20\x00\xfc\x0f\x00",  # table.grow with null
+        b"\xfc\x10\x00",  # table.size
+        b"\x20\x00\x11\x00\x00",  # call_indirect (type 0) table 0
+    ]
+    code = vec([bytes([len(b) + 2, 0]) + b + b"\x0b" for b in bodies])
+    return (
+        b"\0asm\1\0\0\0"
+        + sec(1, types)
+        + sec(3, funcs)
+        + sec(4, table)
+        + sec(7, exports)
+        + sec(9, elem)
+        + sec(10, code)
+    )
+
+
+def test_table_init_get_grow_size_and_bounds() -> None:
+    ex = load(_wasm_module(), {})
+    assert ex["isnull"](1) == 1
+    with pytest.raises(Trap):
+        ex["call"](1)  # null element
+    ex["init"]()
+    assert ex["isnull"](1) == 0
+    assert ex["call"](1) == 7
+    with pytest.raises(Trap):
+        ex["isnull"](2)  # out of bounds table.get
+    assert ex["size"]() == 2
+    assert ex["grow"](3) == 2
+    assert ex["grow"](1) == 0xFFFFFFFF  # above the maximum of 5
+    assert ex["size"]() == 5

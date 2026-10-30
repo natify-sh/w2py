@@ -29,7 +29,7 @@ address.wast:610  gap: no bounds/segment checks (instantiation or table access d
 align.wast:949  gap: decoder does not support the construct (block type / memarg memory index)
 annotations.wast:129  gap: table import / unknown import kind
 annotations.wast:98  gap: table import / unknown import kind
-binary.wast:1238  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+binary.wast:1238  validator gap: accepted (typed references, tag, non-core construct)
 br_if.wast:668  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
 br_on_non_null.wast:1  decoder rejects a valid module (unsupported construct)
 br_on_non_null.wast:49  earlier module of the file did not load
@@ -214,7 +214,7 @@ br_table.wast:1261  earlier module of the file did not load
 br_table.wast:1262  earlier module of the file did not load
 br_table.wast:1263  earlier module of the file did not load
 br_table.wast:1264  earlier module of the file did not load
-br_table.wast:3  gap: element segment flags
+br_table.wast:3  gap: extended constant expressions / typed references (not table ops)
 call_ref.wast:1  decoder rejects a valid module (unsupported construct)
 call_ref.wast:100  earlier module of the file did not load
 call_ref.wast:101  earlier module of the file did not load
@@ -236,8 +236,8 @@ call_ref.wast:121  earlier module of the file did not load
 call_ref.wast:122  earlier module of the file did not load
 call_ref.wast:123  earlier module of the file did not load
 call_ref.wast:124  earlier module of the file did not load
-call_ref.wast:168  validator gap: accepted (typed references, tag, table initializer, non-core construct)
-call_ref.wast:184  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+call_ref.wast:168  validator gap: accepted (typed references, tag, non-core construct)
+call_ref.wast:184  validator gap: accepted (typed references, tag, non-core construct)
 call_ref.wast:201  gap: opcode not implemented
 call_ref.wast:211  gap: opcode not implemented
 call_ref.wast:94  earlier module of the file did not load
@@ -263,54 +263,19 @@ data.wast:195  decoder rejects a valid module (unsupported construct)
 data.wast:532  gap: opcode not implemented
 data.wast:542  earlier module of the file did not load (name or export missing)
 data.wast:543  earlier module of the file did not load (name or export missing)
-elem.wast:1007  gap: opcode not implemented
-elem.wast:1014  earlier module of the file did not load (name or export missing)
-elem.wast:1016  earlier module of the file did not load (name or export missing)
-elem.wast:1017  earlier module of the file did not load (name or export missing)
-elem.wast:1019  earlier module of the file did not load (name or export missing)
-elem.wast:1020  earlier module of the file did not load (name or export missing)
-elem.wast:1022  earlier module of the file did not load (name or export missing)
-elem.wast:1023  earlier module of the file did not load (name or export missing)
-elem.wast:1025  gap: table import / unknown import kind
-elem.wast:1029  earlier module of the file did not load (name or export missing)
-elem.wast:1030  earlier module of the file did not load (name or export missing)
-elem.wast:1043  gap: element segment flags
-elem.wast:1053  earlier module of the file did not load (name or export missing)
-elem.wast:1057  gap: element segment flags
+elem.wast:1057  gap: extended constant expressions / typed references (not table ops)
 elem.wast:1065  earlier module of the file did not load (name or export missing)
 elem.wast:1066  earlier module of the file did not load (name or export missing)
-elem.wast:1068  gap: element segment flags
+elem.wast:1068  gap: extended constant expressions / typed references (not table ops)
 elem.wast:1076  earlier module of the file did not load (name or export missing)
 elem.wast:1077  earlier module of the file did not load (name or export missing)
-elem.wast:1079  gap: element segment flags
+elem.wast:1079  gap: extended constant expressions / typed references (not table ops)
 elem.wast:1087  earlier module of the file did not load (name or export missing)
 elem.wast:1088  earlier module of the file did not load (name or export missing)
-elem.wast:1092  gap: element segment flags
+elem.wast:1092  gap: extended constant expressions / typed references (not table ops)
 elem.wast:1109  earlier module of the file did not load (name or export missing)
 elem.wast:1110  earlier module of the file did not load (name or export missing)
-elem.wast:1113  gap: element segment flags
-elem.wast:1125  earlier module of the file did not load (name or export missing)
-elem.wast:1126  earlier module of the file did not load (name or export missing)
-elem.wast:161  gap: element segment flags
-elem.wast:315  gap: element segment flags
-elem.wast:320  gap: element segment flags
-elem.wast:331  gap: element segment flags
-elem.wast:336  gap: element segment flags
-elem.wast:348  gap: element segment flags
-elem.wast:364  gap: element segment flags
-elem.wast:381  gap: element segment flags
-elem.wast:386  gap: element segment flags
-elem.wast:397  gap: element segment flags
-elem.wast:4  gap: element segment flags
-elem.wast:402  gap: element segment flags
-elem.wast:556  gap: element segment flags
-elem.wast:561  gap: element segment flags
-elem.wast:698  gap: opcode not implemented
-elem.wast:706  earlier module of the file did not load (name or export missing)
-elem.wast:708  gap: opcode not implemented
-elem.wast:716  earlier module of the file did not load (name or export missing)
-elem.wast:80  gap: element segment flags
-exports.wast:71  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+exports.wast:71  validator gap: accepted (typed references, tag, non-core construct)
 f32.wast:2461  wrong result (float NaN payload / conversion)
 f32.wast:2463  wrong result (float NaN payload / conversion)
 f32.wast:2465  wrong result (float NaN payload / conversion)
@@ -377,7 +342,7 @@ float_misc.wast:646  wrong result (float NaN payload / conversion)
 float_misc.wast:647  wrong result (float NaN payload / conversion)
 float_misc.wast:648  wrong result (float NaN payload / conversion)
 float_misc.wast:649  wrong result (float NaN payload / conversion)
-func.wast:660  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+func.wast:660  validator gap: accepted (typed references, tag, non-core construct)
 global.wast:204  earlier module of the file did not load
 global.wast:205  earlier module of the file did not load
 global.wast:206  earlier module of the file did not load
@@ -441,12 +406,6 @@ global.wast:280  earlier module of the file did not load
 global.wast:281  earlier module of the file did not load
 global.wast:282  earlier module of the file did not load
 global.wast:3  decoder rejects a valid module (unsupported construct)
-global.wast:634  gap: element segment flags
-global.wast:659  earlier module of the file did not load (name or export missing)
-global.wast:660  earlier module of the file did not load (name or export missing)
-global.wast:661  earlier module of the file did not load (name or export missing)
-global.wast:663  earlier module of the file did not load (name or export missing)
-global.wast:664  earlier module of the file did not load (name or export missing)
 global.wast:675  gap: init expression
 if.wast:667  earlier module of the file did not load
 if.wast:673  earlier module of the file did not load
@@ -498,26 +457,26 @@ linking.wast:83  earlier module of the file did not load (name or export missing
 local_init.wast:21  earlier module of the file did not load
 local_init.wast:22  earlier module of the file did not load
 local_init.wast:23  earlier module of the file did not load
-local_init.wast:26  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+local_init.wast:26  validator gap: accepted (typed references, tag, non-core construct)
 local_init.wast:3  translator crashes on a valid module (TypeError, not a validator matter)
-local_init.wast:30  validator gap: accepted (typed references, tag, table initializer, non-core construct)
-local_init.wast:40  validator gap: accepted (typed references, tag, table initializer, non-core construct)
-local_init.wast:53  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+local_init.wast:30  validator gap: accepted (typed references, tag, non-core construct)
+local_init.wast:40  validator gap: accepted (typed references, tag, non-core construct)
+local_init.wast:53  validator gap: accepted (typed references, tag, non-core construct)
 local_init.wast:74  earlier module of the file did not load
 local_tee.wast:338  wrong result (float NaN payload / conversion)
 local_tee.wast:613  gap: opcode not implemented
-ref.wast:28  validator gap: accepted (typed references, tag, table initializer, non-core construct)
-ref.wast:32  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+ref.wast:28  validator gap: accepted (typed references, tag, non-core construct)
+ref.wast:32  validator gap: accepted (typed references, tag, non-core construct)
 ref.wast:37  gap: init expression
-ref.wast:42  validator gap: accepted (typed references, tag, table initializer, non-core construct)
-ref.wast:47  gap: element segment flags
-ref.wast:52  validator gap: accepted (typed references, tag, table initializer, non-core construct)
-ref.wast:56  validator gap: accepted (typed references, tag, table initializer, non-core construct)
-ref.wast:60  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+ref.wast:42  validator gap: accepted (typed references, tag, non-core construct)
+ref.wast:47  gap: extended constant expressions / typed references (not table ops)
+ref.wast:52  validator gap: accepted (typed references, tag, non-core construct)
+ref.wast:56  validator gap: accepted (typed references, tag, non-core construct)
+ref.wast:60  validator gap: accepted (typed references, tag, non-core construct)
 ref.wast:65  gap: decoder does not support the construct (block type / memarg memory index)
 ref.wast:69  gap: decoder does not support the construct (block type / memarg memory index)
 ref.wast:73  gap: decoder does not support the construct (block type / memarg memory index)
-ref.wast:78  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+ref.wast:78  validator gap: accepted (typed references, tag, non-core construct)
 ref_as_non_null.wast:1  decoder rejects a valid module (unsupported construct)
 ref_as_non_null.wast:25  earlier module of the file did not load
 ref_as_non_null.wast:27  earlier module of the file did not load
@@ -525,38 +484,6 @@ ref_as_non_null.wast:28  earlier module of the file did not load
 ref_as_non_null.wast:29  earlier module of the file did not load
 ref_as_non_null.wast:32  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
 ref_as_non_null.wast:41  decoder rejects a valid module (unsupported construct)
-ref_func.wast:56  earlier module of the file did not load (name or export missing)
-ref_func.wast:57  earlier module of the file did not load (name or export missing)
-ref_func.wast:58  earlier module of the file did not load (name or export missing)
-ref_func.wast:6  gap: element segment flags
-ref_func.wast:60  earlier module of the file did not load (name or export missing)
-ref_func.wast:61  earlier module of the file did not load (name or export missing)
-ref_func.wast:62  earlier module of the file did not load (name or export missing)
-ref_func.wast:63  earlier module of the file did not load (name or export missing)
-ref_func.wast:64  earlier module of the file did not load (name or export missing)
-ref_func.wast:65  earlier module of the file did not load (name or export missing)
-ref_func.wast:66  earlier module of the file did not load (name or export missing)
-ref_func.wast:80  gap: element segment flags
-ref_is_null.wast:1  decoder rejects a valid module (unsupported construct)
-ref_is_null.wast:44  earlier module of the file did not load
-ref_is_null.wast:45  earlier module of the file did not load
-ref_is_null.wast:46  earlier module of the file did not load
-ref_is_null.wast:48  earlier module of the file did not load
-ref_is_null.wast:50  earlier module of the file did not load
-ref_is_null.wast:52  earlier module of the file did not load
-ref_is_null.wast:53  earlier module of the file did not load
-ref_is_null.wast:54  earlier module of the file did not load
-ref_is_null.wast:56  earlier module of the file did not load
-ref_is_null.wast:57  earlier module of the file did not load
-ref_is_null.wast:58  earlier module of the file did not load
-ref_is_null.wast:60  earlier module of the file did not load
-ref_is_null.wast:62  earlier module of the file did not load
-ref_is_null.wast:63  earlier module of the file did not load
-ref_is_null.wast:64  earlier module of the file did not load
-ref_is_null.wast:66  earlier module of the file did not load
-ref_is_null.wast:67  earlier module of the file did not load
-ref_is_null.wast:68  earlier module of the file did not load
-ref_is_null.wast:71  decoder rejects a valid module (unsupported construct)
 ref_null.wast:1  gap: init expression
 ref_null.wast:16  earlier module of the file did not load
 ref_null.wast:17  earlier module of the file did not load
@@ -723,276 +650,27 @@ return_call_ref.wast:265  gap: unsupported reference-type / tail-call / typed-re
 return_call_ref.wast:276  gap: opcode not implemented
 return_call_ref.wast:287  gap: opcode not implemented
 return_call_ref.wast:3  gap: init expression
-return_call_ref.wast:337  validator gap: accepted (typed references, tag, table initializer, non-core construct)
-return_call_ref.wast:353  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+return_call_ref.wast:337  validator gap: accepted (typed references, tag, non-core construct)
+return_call_ref.wast:353  validator gap: accepted (typed references, tag, non-core construct)
 return_call_ref.wast:369  gap: opcode not implemented
 return_call_ref.wast:379  gap: opcode not implemented
 return_call_ref.wast:389  gap: opcode not implemented
 return_call_ref.wast:399  gap: opcode not implemented
 return_call_ref.wast:409  gap: opcode not implemented
-select.wast:1  gap: opcode not implemented
-select.wast:219  earlier module of the file did not load
-select.wast:220  earlier module of the file did not load
-select.wast:221  earlier module of the file did not load
-select.wast:222  earlier module of the file did not load
-select.wast:224  earlier module of the file did not load
-select.wast:225  earlier module of the file did not load
-select.wast:226  earlier module of the file did not load
-select.wast:227  earlier module of the file did not load
-select.wast:229  earlier module of the file did not load
 select.wast:230  earlier module of the file did not load
-select.wast:231  earlier module of the file did not load
-select.wast:232  earlier module of the file did not load
-select.wast:233  earlier module of the file did not load
-select.wast:234  earlier module of the file did not load
-select.wast:235  earlier module of the file did not load
 select.wast:236  earlier module of the file did not load
-select.wast:238  earlier module of the file did not load
-select.wast:239  earlier module of the file did not load
-select.wast:240  earlier module of the file did not load
-select.wast:241  earlier module of the file did not load
-select.wast:242  earlier module of the file did not load
-select.wast:243  earlier module of the file did not load
-select.wast:244  earlier module of the file did not load
-select.wast:245  earlier module of the file did not load
-select.wast:247  earlier module of the file did not load
-select.wast:248  earlier module of the file did not load
-select.wast:249  earlier module of the file did not load
-select.wast:250  earlier module of the file did not load
-select.wast:251  earlier module of the file did not load
-select.wast:252  earlier module of the file did not load
-select.wast:254  earlier module of the file did not load
-select.wast:255  earlier module of the file did not load
-select.wast:256  earlier module of the file did not load
-select.wast:257  earlier module of the file did not load
-select.wast:258  earlier module of the file did not load
-select.wast:259  earlier module of the file did not load
-select.wast:261  earlier module of the file did not load
 select.wast:262  earlier module of the file did not load
-select.wast:263  earlier module of the file did not load
-select.wast:264  earlier module of the file did not load
-select.wast:265  earlier module of the file did not load
-select.wast:266  earlier module of the file did not load
-select.wast:267  earlier module of the file did not load
 select.wast:268  earlier module of the file did not load
-select.wast:270  earlier module of the file did not load
-select.wast:271  earlier module of the file did not load
-select.wast:272  earlier module of the file did not load
-select.wast:273  earlier module of the file did not load
-select.wast:274  earlier module of the file did not load
-select.wast:275  earlier module of the file did not load
-select.wast:276  earlier module of the file did not load
-select.wast:277  earlier module of the file did not load
-select.wast:279  earlier module of the file did not load
-select.wast:280  earlier module of the file did not load
-select.wast:282  earlier module of the file did not load
-select.wast:283  earlier module of the file did not load
-select.wast:284  earlier module of the file did not load
-select.wast:285  earlier module of the file did not load
-select.wast:287  earlier module of the file did not load
-select.wast:288  earlier module of the file did not load
-select.wast:289  earlier module of the file did not load
-select.wast:290  earlier module of the file did not load
-select.wast:291  earlier module of the file did not load
-select.wast:292  earlier module of the file did not load
-select.wast:294  earlier module of the file did not load
-select.wast:295  earlier module of the file did not load
-select.wast:296  earlier module of the file did not load
-select.wast:297  earlier module of the file did not load
-select.wast:298  earlier module of the file did not load
-select.wast:299  earlier module of the file did not load
-select.wast:301  earlier module of the file did not load
-select.wast:302  earlier module of the file did not load
-select.wast:303  earlier module of the file did not load
-select.wast:304  earlier module of the file did not load
-select.wast:305  earlier module of the file did not load
-select.wast:306  earlier module of the file did not load
-select.wast:308  earlier module of the file did not load
-select.wast:309  earlier module of the file did not load
-select.wast:310  earlier module of the file did not load
-select.wast:311  earlier module of the file did not load
-select.wast:313  earlier module of the file did not load
-select.wast:314  earlier module of the file did not load
-select.wast:315  earlier module of the file did not load
-select.wast:316  earlier module of the file did not load
-select.wast:318  earlier module of the file did not load
-select.wast:319  earlier module of the file did not load
-select.wast:320  earlier module of the file did not load
-select.wast:321  earlier module of the file did not load
-select.wast:322  earlier module of the file did not load
-select.wast:323  earlier module of the file did not load
-select.wast:325  earlier module of the file did not load
-select.wast:326  earlier module of the file did not load
-select.wast:327  earlier module of the file did not load
-select.wast:328  earlier module of the file did not load
-select.wast:330  earlier module of the file did not load
-select.wast:331  earlier module of the file did not load
-select.wast:333  earlier module of the file did not load
-select.wast:334  earlier module of the file did not load
-select.wast:335  earlier module of the file did not load
-select.wast:336  earlier module of the file did not load
-select.wast:337  earlier module of the file did not load
-select.wast:338  earlier module of the file did not load
-select.wast:339  earlier module of the file did not load
-select.wast:340  earlier module of the file did not load
-select.wast:341  earlier module of the file did not load
-select.wast:342  earlier module of the file did not load
-select.wast:343  earlier module of the file did not load
-select.wast:344  earlier module of the file did not load
-select.wast:345  earlier module of the file did not load
-select.wast:346  earlier module of the file did not load
-select.wast:347  earlier module of the file did not load
-select.wast:348  earlier module of the file did not load
-select.wast:350  earlier module of the file did not load
-select.wast:351  earlier module of the file did not load
-select.wast:352  earlier module of the file did not load
-select.wast:353  earlier module of the file did not load
-select.wast:354  earlier module of the file did not load
-select.wast:355  earlier module of the file did not load
-select.wast:356  earlier module of the file did not load
-select.wast:357  earlier module of the file did not load
-select.wast:358  earlier module of the file did not load
-select.wast:359  earlier module of the file did not load
-select.wast:360  earlier module of the file did not load
-select.wast:361  earlier module of the file did not load
-select.wast:384  validator gap: accepted (typed references, tag, table initializer, non-core construct)
-table.wast:112  earlier module of the file did not load (name or export missing)
-table.wast:113  earlier module of the file did not load (name or export missing)
-table.wast:114  earlier module of the file did not load (name or export missing)
-table.wast:115  earlier module of the file did not load (name or export missing)
-table.wast:116  earlier module of the file did not load (name or export missing)
-table.wast:120  validator gap: accepted (typed references, tag, table initializer, non-core construct)
-table.wast:128  validator gap: accepted (typed references, tag, table initializer, non-core construct)
-table.wast:136  validator gap: accepted (typed references, tag, table initializer, non-core construct)
-table.wast:55  validator gap: accepted (typed references, tag, table initializer, non-core construct)
-table.wast:59  validator gap: accepted (typed references, tag, table initializer, non-core construct)
-table.wast:63  validator gap: accepted (typed references, tag, table initializer, non-core construct)
-table.wast:67  validator gap: accepted (typed references, tag, table initializer, non-core construct)
-table.wast:71  validator gap: accepted (typed references, tag, table initializer, non-core construct)
-table.wast:75  validator gap: accepted (typed references, tag, table initializer, non-core construct)
-table.wast:79  validator gap: accepted (typed references, tag, table initializer, non-core construct)
-table.wast:93  gap: opcode not implemented
-table_get.wast:1  gap: opcode not implemented
-table_get.wast:23  earlier module of the file did not load
-table_get.wast:25  earlier module of the file did not load
-table_get.wast:26  earlier module of the file did not load
-table_get.wast:28  earlier module of the file did not load
-table_get.wast:29  earlier module of the file did not load
-table_get.wast:30  earlier module of the file did not load
-table_get.wast:32  earlier module of the file did not load
-table_get.wast:33  earlier module of the file did not load
-table_get.wast:34  earlier module of the file did not load
-table_get.wast:35  earlier module of the file did not load
-table_grow.wast:1  gap: opcode not implemented
-table_grow.wast:107  earlier module of the file did not load
-table_grow.wast:108  earlier module of the file did not load
-table_grow.wast:109  earlier module of the file did not load
-table_grow.wast:112  gap: opcode not implemented
-table_grow.wast:116  earlier module of the file did not load (name or export missing)
-table_grow.wast:117  earlier module of the file did not load (name or export missing)
-table_grow.wast:118  gap: table import / unknown import kind
-table_grow.wast:123  earlier module of the file did not load (name or export missing)
-table_grow.wast:124  earlier module of the file did not load (name or export missing)
-table_grow.wast:125  gap: table import / unknown import kind
-table_grow.wast:130  earlier module of the file did not load (name or export missing)
-table_grow.wast:17  earlier module of the file did not load
-table_grow.wast:18  earlier module of the file did not load
-table_grow.wast:19  earlier module of the file did not load
-table_grow.wast:201  gap: opcode not implemented
-table_grow.wast:208  earlier module of the file did not load
-table_grow.wast:209  earlier module of the file did not load
-table_grow.wast:21  earlier module of the file did not load
-table_grow.wast:22  earlier module of the file did not load
-table_grow.wast:23  earlier module of the file did not load
-table_grow.wast:24  earlier module of the file did not load
-table_grow.wast:25  earlier module of the file did not load
-table_grow.wast:26  earlier module of the file did not load
-table_grow.wast:27  earlier module of the file did not load
-table_grow.wast:29  earlier module of the file did not load
-table_grow.wast:30  earlier module of the file did not load
-table_grow.wast:31  earlier module of the file did not load
-table_grow.wast:32  earlier module of the file did not load
-table_grow.wast:33  earlier module of the file did not load
-table_grow.wast:34  earlier module of the file did not load
-table_grow.wast:35  earlier module of the file did not load
-table_grow.wast:36  earlier module of the file did not load
-table_grow.wast:37  earlier module of the file did not load
-table_grow.wast:38  earlier module of the file did not load
-table_grow.wast:39  earlier module of the file did not load
-table_grow.wast:43  gap: opcode not implemented
-table_grow.wast:51  earlier module of the file did not load
-table_grow.wast:54  gap: opcode not implemented
-table_grow.wast:61  earlier module of the file did not load
-table_grow.wast:62  earlier module of the file did not load
-table_grow.wast:63  earlier module of the file did not load
-table_grow.wast:64  earlier module of the file did not load
-table_grow.wast:65  earlier module of the file did not load
-table_grow.wast:68  gap: opcode not implemented
-table_grow.wast:75  earlier module of the file did not load
-table_grow.wast:76  earlier module of the file did not load
-table_grow.wast:77  earlier module of the file did not load
-table_grow.wast:78  earlier module of the file did not load
-table_grow.wast:79  earlier module of the file did not load
-table_grow.wast:80  earlier module of the file did not load
-table_grow.wast:81  earlier module of the file did not load
-table_grow.wast:82  earlier module of the file did not load
-table_grow.wast:85  gap: opcode not implemented
-table_set.wast:1  gap: opcode not implemented
-table_set.wast:29  earlier module of the file did not load
-table_set.wast:30  earlier module of the file did not load
-table_set.wast:31  earlier module of the file did not load
-table_set.wast:32  earlier module of the file did not load
-table_set.wast:33  earlier module of the file did not load
-table_set.wast:35  earlier module of the file did not load
-table_set.wast:36  earlier module of the file did not load
-table_set.wast:37  earlier module of the file did not load
-table_set.wast:38  earlier module of the file did not load
-table_set.wast:39  earlier module of the file did not load
-table_set.wast:41  earlier module of the file did not load
-table_set.wast:42  earlier module of the file did not load
-table_set.wast:43  earlier module of the file did not load
-table_set.wast:44  earlier module of the file did not load
-table_set.wast:46  earlier module of the file did not load
-table_set.wast:47  earlier module of the file did not load
-table_set.wast:48  earlier module of the file did not load
-table_set.wast:49  earlier module of the file did not load
-table_size.wast:1  gap: opcode not implemented
-table_size.wast:26  earlier module of the file did not load
-table_size.wast:27  earlier module of the file did not load
-table_size.wast:28  earlier module of the file did not load
-table_size.wast:29  earlier module of the file did not load
-table_size.wast:30  earlier module of the file did not load
-table_size.wast:31  earlier module of the file did not load
-table_size.wast:32  earlier module of the file did not load
-table_size.wast:34  earlier module of the file did not load
-table_size.wast:35  earlier module of the file did not load
-table_size.wast:36  earlier module of the file did not load
-table_size.wast:37  earlier module of the file did not load
-table_size.wast:38  earlier module of the file did not load
-table_size.wast:39  earlier module of the file did not load
-table_size.wast:40  earlier module of the file did not load
-table_size.wast:42  earlier module of the file did not load
-table_size.wast:43  earlier module of the file did not load
-table_size.wast:44  earlier module of the file did not load
-table_size.wast:45  earlier module of the file did not load
-table_size.wast:46  earlier module of the file did not load
-table_size.wast:47  earlier module of the file did not load
-table_size.wast:48  earlier module of the file did not load
-table_size.wast:49  earlier module of the file did not load
-table_size.wast:50  earlier module of the file did not load
-table_size.wast:51  earlier module of the file did not load
-table_size.wast:52  earlier module of the file did not load
-table_size.wast:54  earlier module of the file did not load
-table_size.wast:55  earlier module of the file did not load
-table_size.wast:56  earlier module of the file did not load
-table_size.wast:57  earlier module of the file did not load
-table_size.wast:58  earlier module of the file did not load
-table_size.wast:59  earlier module of the file did not load
-table_size.wast:60  earlier module of the file did not load
-table_size.wast:61  earlier module of the file did not load
-table_size.wast:62  earlier module of the file did not load
-table_size.wast:63  earlier module of the file did not load
-table_size.wast:64  earlier module of the file did not load
+select.wast:384  validator gap: accepted (typed references, tag, non-core construct)
+table.wast:120  validator gap: accepted (typed references, tag, non-core construct)
+table.wast:128  validator gap: accepted (typed references, tag, non-core construct)
+table.wast:136  validator gap: accepted (typed references, tag, non-core construct)
+table.wast:59  validator gap: accepted (typed references, tag, non-core construct)
+table.wast:63  validator gap: accepted (typed references, tag, non-core construct)
+table.wast:67  validator gap: accepted (typed references, tag, non-core construct)
+table.wast:71  validator gap: accepted (typed references, tag, non-core construct)
+table.wast:75  validator gap: accepted (typed references, tag, non-core construct)
+table.wast:79  validator gap: accepted (typed references, tag, non-core construct)
 traps.wast:16  gap: no bounds/segment checks (instantiation or table access does not trap)
 traps.wast:17  gap: no bounds/segment checks (instantiation or table access does not trap)
 traps.wast:18  gap: no bounds/segment checks (instantiation or table access does not trap)
@@ -1027,7 +705,6 @@ traps.wast:90  gap: no bounds/segment checks (instantiation or table access does
 traps.wast:91  gap: no bounds/segment checks (instantiation or table access does not trap)
 type-canon.wast:1  decoder rejects a valid module (unsupported construct)
 type-canon.wast:9  decoder rejects a valid module (unsupported construct)
-type-equivalence.wast:107  decoder rejects a valid module (unsupported construct)
 type-equivalence.wast:136  decoder rejects a valid module (unsupported construct)
 type-equivalence.wast:161  decoder rejects a valid module (unsupported construct)
 type-equivalence.wast:233  decoder rejects a valid module (unsupported construct)
@@ -1040,7 +717,7 @@ type-equivalence.wast:290  decoder rejects a valid module (unsupported construct
 type-equivalence.wast:30  decoder rejects a valid module (unsupported construct)
 type-equivalence.wast:308  decoder rejects a valid module (unsupported construct)
 type-equivalence.wast:49  decoder rejects a valid module (unsupported construct)
-type-equivalence.wast:77  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+type-equivalence.wast:77  validator gap: accepted (typed references, tag, non-core construct)
 type-rec.wast:137  decoder rejects a valid module (unsupported construct)
 type-rec.wast:141  earlier module of the file did not load (name or export missing)
 type-rec.wast:143  decoder rejects a valid module (unsupported construct)
@@ -1053,12 +730,12 @@ type-rec.wast:183  earlier module of the file did not load
 type-rec.wast:185  decoder rejects a valid module (unsupported construct)
 type-rec.wast:192  earlier module of the file did not load
 type-rec.wast:197  decoder rejects a valid module (unsupported construct)
-type-rec.wast:22  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+type-rec.wast:22  validator gap: accepted (typed references, tag, non-core construct)
 type-rec.wast:3  decoder rejects a valid module (unsupported construct)
 type-rec.wast:39  decoder rejects a valid module (unsupported construct)
 type-rec.wast:45  decoder rejects a valid module (unsupported construct)
 type-rec.wast:71  decoder rejects a valid module (unsupported construct)
 type-rec.wast:78  decoder rejects a valid module (unsupported construct)
-unreached-invalid.wast:698  validator gap: accepted (typed references, tag, table initializer, non-core construct)
-unreached-invalid.wast:764  validator gap: accepted (typed references, tag, table initializer, non-core construct)
-unreached-invalid.wast:774  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+unreached-invalid.wast:698  validator gap: accepted (typed references, tag, non-core construct)
+unreached-invalid.wast:764  validator gap: accepted (typed references, tag, non-core construct)
+unreached-invalid.wast:774  validator gap: accepted (typed references, tag, non-core construct)

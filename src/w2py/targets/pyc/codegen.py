@@ -521,7 +521,12 @@ class FuncGen:
             head.append("    global " + ", ".join(sorted(s.globals_set)))
         inits = [s.lname(j) for j in range(len(s.params), len(s.ltypes))]
         fl = [s.lname(j) for j in range(len(s.params), len(s.ltypes)) if s.ltypes[j] in (F32, F64)]
-        il = [v for v in inits if v not in fl]
+        rl = [
+            s.lname(j) for j in range(len(s.params), len(s.ltypes)) if s.ltypes[j] in (0x70, 0x6F)
+        ]
+        il = [v for v in inits if v not in fl and v not in rl]
+        if rl:
+            head.append("    " + " = ".join(rl) + " = None")
         if il:
             head.append("    " + " = ".join(il) + " = 0")
         if fl:
@@ -1109,6 +1114,56 @@ class FuncGen:
             m = (1 << bits) - 1
             push(E("(((%s&%d)^%d)-%d)" % (a.c, m, h, h), T, None, **dep(a)))
             return
+        if op == 0xD0:
+            push(E("None", 0x70 if x[1] == -16 else 0x6F, k=True))
+            return
+        if op == 0xD1:
+            a = pop()
+            push(E("(%s is None)" % a.c, "bool", 1, **dep(a)))
+            return
+        if op == 0xD2:
+            push(E(mg.fname(x[1]), 0x70, k=True))
+            return
+        if op == 0x25:
+            i = pop()
+            s.flush_call()
+            t = s.newtmp()
+            s.emit("%s = _tget(T%d,%s)" % (t, x[1], n(i)))
+            push(E(t, mg.ttypes[x[1]], None, k=True))
+            return
+        if 0xFC0C <= op <= 0xFC11 or op in (0x26, 0xFC0D):
+            if op == 0xFC0D:
+                s.globals_set.add("S%d" % x[1])
+                s.emit("S%d = []" % x[1])
+                return
+            k = len(x) > 1 and x[1] or 0
+            args = {
+                0x26: 2,
+                0xFC0C: 3,
+                0xFC0E: 3,
+                0xFC0F: 2,
+                0xFC10: 0,
+                0xFC11: 3,
+            }[op]
+            a = s.popn(args)
+            s.flush_call()
+            v = [n(e) if e.t in (I32, I64) else e.c for e in a]
+            if op == 0x26:
+                s.emit("_tset(T%d,%s,%s)" % (k, v[0], v[1]))
+            elif op == 0xFC0C:
+                s.emit("_tinit(T%d,S%d,%s)" % (x[2], k, ",".join(v)))
+            elif op == 0xFC0E:
+                s.emit("_tcopy(T%d,T%d,%s)" % (k, x[2], ",".join(v)))
+            elif op == 0xFC11:
+                s.emit("_tfill(T%d,%s)" % (k, ",".join(v)))
+            else:
+                t = s.newtmp(I32)
+                if op == 0xFC0F:
+                    s.emit("%s = _tgrow(TX%d,%s,%s)" % (t, k, v[1], v[0]))
+                else:
+                    s.emit("%s = len(T%d)" % (t, k))
+                push(E(t, I32, M32, k=True))
+            return
         if op == 0xFC0A:
             nn = pop()
             src = pop()
@@ -1137,6 +1192,7 @@ class ModGen:
         s.gimports = [i for i in im if i[0] == "global"]
         s.timports = [i for i in im if i[0] == "table"]
         s.mimports = [i for i in im if i[0] == "mem"]
+        s.ttypes = mod["ttypes"]
         s.gtypes = [i[3][0] for i in s.gimports] + [g[0] for g in mod["globals"]]
         s.gmut = [i[3][1] for i in s.gimports] + [g[1] for g in mod["globals"]]
         s.ginit = [("i32", 0)] * len(s.gimports) + [g[2] for g in mod["globals"]]
@@ -1166,7 +1222,11 @@ class ModGen:
         return "C%d.v" % gi if gi in s.cells else "G%d" % gi
 
     def val(s, init):
-        return s.gname(init[1]) if init[0] == "global" else repr(init[1])
+        if init[0] == "global":
+            return s.gname(init[1])
+        if init[0] == "func":
+            return s.fname(init[1])
+        return "None" if init[0] == "null" else repr(init[1])
 
     def gen(s):
         mod = s.mod
@@ -1181,6 +1241,7 @@ class ModGen:
         ]
         L = ["def instantiate(imports):"]
         gl = []  # module globals that instantiate assigns
+        gi = []  # global initializers: after the function imports (ref.func may name one)
         for i, (t, mut, init) in enumerate(zip(s.gtypes, s.gmut, s.ginit)):
             if i < ng:
                 im = s.gimports[i]
@@ -1195,15 +1256,15 @@ class ModGen:
                 )
                 gl.append("C%d" % i if i in s.cells else "G%d" % i)
                 continue
-            first = init[0] != "global"
+            first = init[0] not in ("global", "func")
             if i in s.cells:
-                out.append("C%d = _Cell(%s)" % (i, repr(init[1]) if first else "0"))
+                out.append("C%d = _Cell(%s)" % (i, s.val(init) if first else "0"))
             else:
-                out.append("G%d = %s" % (i, repr(init[1]) if first else "0"))
+                out.append("G%d = %s" % (i, s.val(init) if first else "0"))
                 if not first:
                     gl.append("G%d" % i)
             if not first:
-                L.append("    %s = %s" % (s.gname(i), s.val(init)))
+                gi.append("    %s = %s" % (s.gname(i), s.val(init)))
         for ti, (mn, mx) in enumerate(mod["tables"]):
             k = len(s.timports) + ti
             out.append("T%d = [None] * %d" % (k, mn))
@@ -1225,12 +1286,22 @@ class ModGen:
             out.append("f%d.s = %r" % (s.nimp + k, s.sig(*s.types[tidx])))
         for i, im in enumerate(s.fimports):
             L.append("    I%d = imports[%r][%r]" % (i, im[1], im[2]))
+        L += gi
+        for ti, init in enumerate(mod["tinit"]):
+            if init is not None:
+                k = len(s.timports) + ti
+                L.append("    T%d[:] = [%s] * len(T%d)" % (k, s.val(init), k))
+        for i, ((ti, off, _, items), mode) in enumerate(
+            zip(mod["elem_info"], mod["elem_mode"], strict=True)
+        ):
+            gl.append("S%d" % i)
+            L.append("    S%d = [%s]" % (i, ", ".join(s.val(e) for e in items)))
+            if mode == "active":
+                L.append("    _eseg(T%d, %s, S%d)" % (ti, s.val(off), i))
+            if mode != "passive":
+                L.append("    S%d = []" % i)
         if gl:
             L.insert(1, "    global " + ", ".join(gl))
-        for ti, off, fs in mod["elems"]:
-            L.append(
-                "    _eseg(T%d, %s, [%s])" % (ti, s.val(off), ", ".join(s.fname(f) for f in fs))
-            )
         for off, d in mod["datas"]:
             if off is not None:
                 L.append("    _dseg(M, %s, %r)" % (s.val(off), d))

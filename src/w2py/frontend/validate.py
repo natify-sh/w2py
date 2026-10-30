@@ -135,6 +135,11 @@ def _vt(t: int) -> int:
     return t
 
 
+def _sub(a: int, b: int) -> bool:
+    """Segment type `a` fits table type `b` (0x64 is (ref func), 0x63 (ref null func))."""
+    return a == b or (a == 0x64 and b in (FUNCREF, 0x63))
+
+
 def _ref(ht: int) -> int:
     """Reference type of a `ref.null` heap type (-16: func, -17: extern)."""
     if ht == -16:
@@ -157,7 +162,7 @@ class _Ctx:
         self.nmems = sum(1 for i in imps if i[0] == "mem") + len(mod["mems"])
         self.gtypes = [i[3][0] for i in imps if i[0] == "global"] + [g[0] for g in mod["globals"]]
         self.gmut = [i[3][1] for i in imps if i[0] == "global"] + [g[1] for g in mod["globals"]]
-        self.nelems = len(mod["elem_info"])
+        self.etypes = [e[2] for e in mod["elem_info"]]
         self.ndatas = len(mod["datas"])
         self.refs: set[int] = set()
 
@@ -208,6 +213,9 @@ def _validate(mod: dict) -> None:
             _vt(im[3][0])
     for g in mod["globals"]:
         _vt(g[0])
+    for ti, _, rt, _ in mod["elem_info"]:  # a nullable segment type never fits a (ref ht) table
+        if ti is not None and ti < len(mod["ttypes"]) and mod["ttypes"][ti] == 0x64 and rt != 0x64:
+            raise Invalid("type mismatch")
     for t in mod["ttypes"]:
         _vt(t)
     for locs, _ in mod["codes"]:
@@ -230,9 +238,9 @@ def _validate(mod: dict) -> None:
     # function references allowed in function bodies: those named outside of them (spec: C.refs)
     for _, _, _, items in mod["elem_info"]:
         c.refs.update(e[1] for e in items if e[0] == "func")
-    for g in mod["globals"]:
-        if g[2][0] == "func":
-            c.refs.add(g[2][1])
+    for e in (*(g[2] for g in mod["globals"]), *mod["tinit"]):
+        if e is not None and e[0] == "func":
+            c.refs.add(e[1])
     for _, kind, idx in mod["exports"]:
         if kind == 0:
             c.refs.add(idx)
@@ -240,6 +248,11 @@ def _validate(mod: dict) -> None:
         if _const(c, init, nimpg + i) != t:
             raise Invalid("type mismatch")
     ng = len(c.gtypes)
+    for t, init in zip(
+        mod["ttypes"][len(c.ttypes) - len(mod["tables"]) :], mod["tinit"], strict=True
+    ):
+        if init is not None and _const(c, init, ng) != t:
+            raise Invalid("type mismatch")
     seen = set()
     counts = (len(c.funcs), len(c.ttypes), c.nmems, ng)
     for name, kind, idx in mod["exports"]:
@@ -259,12 +272,12 @@ def _validate(mod: dict) -> None:
         if ti is not None:
             if ti >= len(c.ttypes):
                 raise Invalid("unknown table")
-            if c.ttypes[ti] != rt:
+            if not _sub(rt, c.ttypes[ti]):
                 raise Invalid("type mismatch")
             if _const(c, off, ng) != I32:
                 raise Invalid("type mismatch")
         for e in items:
-            if _const(c, e, ng) != rt:
+            if _const(c, e, ng) != rt and not (rt == 0x64 and e[0] == "func"):
                 raise Invalid("type mismatch")
     for (off, _), mi in zip(mod["datas"], mod["data_mem"], strict=True):
         if mi is not None:
@@ -490,6 +503,32 @@ def _body(c: _Ctx, lt: list[int], nparams: int, results: list[int], insns: list[
             if ins[1] not in c.refs:
                 raise Invalid("undeclared function reference")
             vals.append(FUNCREF)
+        elif op == 0xFC0C:
+            if ins[1] >= len(c.etypes):
+                raise Invalid("unknown elem segment")
+            if not _sub(c.etypes[ins[1]], table(ins[2])):
+                raise Invalid("type mismatch")
+            popn(list(BULK3))
+        elif op == 0xFC0D:
+            if ins[1] >= len(c.etypes):
+                raise Invalid("unknown elem segment")
+        elif op == 0xFC0E:
+            if table(ins[1]) != table(ins[2]):
+                raise Invalid("type mismatch")
+            popn(list(BULK3))
+        elif op == 0xFC0F:
+            t = table(ins[1])
+            pop(I32)
+            pop(t)
+            vals.append(I32)
+        elif op == 0xFC10:
+            table(ins[1])
+            vals.append(I32)
+        elif op == 0xFC11:
+            t = table(ins[1])
+            pop(I32)
+            pop(t)
+            pop(I32)
         elif op in (0xFC08, 0xFC09):
             if ins[1] >= c.ndatas:
                 raise Invalid("unknown data segment")

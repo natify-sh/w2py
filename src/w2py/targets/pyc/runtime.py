@@ -72,6 +72,45 @@ def _eseg(T, o, fs):
     T[o : o + len(fs)] = fs
 
 
+def _tget(T, i):
+    if i >= len(T):
+        raise Trap("out of bounds table access", "TABLE_OUT_OF_BOUNDS")
+    return T[i]
+
+
+def _tset(T, i, v):
+    if i >= len(T):
+        raise Trap("out of bounds table access", "TABLE_OUT_OF_BOUNDS")
+    T[i] = v
+
+
+def _tgrow(TX, n, v):
+    old = len(TX.t)
+    # the cap is Wasmtime's default table limit (10M elements)
+    if old + n > (0xFFFFFFFF if TX.max is None else TX.max) or old + n > 10000000:
+        return 0xFFFFFFFF
+    TX.t.extend([v] * n)
+    return old
+
+
+def _tfill(T, i, v, n):
+    if i + n > len(T):
+        raise Trap("out of bounds table access", "TABLE_OUT_OF_BOUNDS")
+    T[i : i + n] = [v] * n
+
+
+def _tcopy(D, S, d, s, n):
+    if d + n > len(D) or s + n > len(S):
+        raise Trap("out of bounds table access", "TABLE_OUT_OF_BOUNDS")
+    D[d : d + n] = S[s : s + n]
+
+
+def _tinit(T, S, d, s, n):
+    if d + n > len(T) or s + n > len(S):
+        raise Trap("out of bounds table access", "TABLE_OUT_OF_BOUNDS")
+    T[d : d + n] = S[s : s + n]
+
+
 def _dseg(M, o, d):
     o &= 0xFFFFFFFF
     if o + len(d) > len(M):

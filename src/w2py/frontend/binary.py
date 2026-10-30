@@ -167,10 +167,11 @@ def parse(data):
         globals=[],
         exports=[],
         start=None,
-        elems=[],
         codes=[],
         datas=[],
         ttypes=[],  # reference type of every table, imported first (for the validator)
+        tinit=[],  # initializer expression of every defined table (None: null)
+        elem_mode=[],  # "active" / "passive" / "declarative" for every segment
         elem_info=[],  # (table index or None, offset expr or None, reftype, item exprs) of every segment
         data_mem=[],  # memory index of every data segment (None: passive)
     )
@@ -250,14 +251,13 @@ def parse(data):
         elif sid == 4:
             for _ in range(r.u()):
                 init = r.p < r.n and r.b[r.p] == 0x40
-                if init:  # 0x40 0x00 reftype limits expr: the initializer is ignored
+                if init:  # 0x40 0x00 reftype limits expr
                     r.p += 1
                     if r.u8() != 0:
                         raise Malformed("malformed table encoding")
                 mod["ttypes"].append(r.vt(True))
                 mod["tables"].append(r.limits())
-                if init:
-                    initexpr()
+                mod["tinit"].append(initexpr() if init else None)
         elif sid == 5:
             for _ in range(r.u()):
                 mod["mems"].append(r.limits())
@@ -278,31 +278,25 @@ def parse(data):
         elif sid == 9:
             for _ in range(r.u()):
                 fl = r.u()
-                if fl == 0:
-                    off = initexpr()
-                    fs = [r.u() for _ in range(r.u())]
-                    mod["elems"].append((0, off, fs))
-                    mod["elem_info"].append((0, off, 0x70, [("func", f) for f in fs]))
-                elif fl == 2:
-                    ti = r.u()
-                    off = initexpr()
-                    if r.u8() != 0:
-                        raise Malformed("malformed element kind")
-                    fs = [r.u() for _ in range(r.u())]
-                    mod["elems"].append((ti, off, fs))
-                    mod["elem_info"].append((ti, off, 0x70, [("func", f) for f in fs]))
-                elif fl in (1, 3):
-                    if r.u8() != 0:
-                        raise Malformed("malformed element kind")
-                    fs = [r.u() for _ in range(r.u())]  # passive/declarative: not translated
-                    mod["elem_info"].append((None, None, 0x70, [("func", f) for f in fs]))
-                elif fl in (5, 7):  # passive/declarative with expressions: not translated
-                    rt = r.vt(True)
-                    mod["elem_info"].append((None, None, rt, [initexpr() for _ in range(r.u())]))
-                elif fl < 8:
-                    raise NotImplementedError("elem flags %d" % fl)
-                else:
+                if fl > 7:
                     raise Malformed("malformed element segment kind")
+                # bit 0: not active; bit 1: explicit table (active) / declarative; bit 2: expressions
+                ti = r.u() if fl & 3 == 2 else 0
+                off = initexpr() if not fl & 1 else None
+                rt = 0x70 if fl & 4 else 0x64  # function indices are (ref func)
+                if fl & 3:
+                    if fl & 4:
+                        rt = r.vt(True)
+                    elif r.u8() != 0:
+                        raise Malformed("malformed element kind")
+                if fl & 4:
+                    items = [initexpr() for _ in range(r.u())]
+                else:
+                    items = [("func", r.u()) for _ in range(r.u())]
+                mod["elem_info"].append((None if fl & 1 else ti, off, rt, items))
+                mod["elem_mode"].append(
+                    "active" if not fl & 1 else "declarative" if fl & 2 else "passive"
+                )
         elif sid == 10:
             for _ in range(r.u()):
                 sz = r.u()
@@ -453,8 +447,16 @@ def decode(body):
             elif sub == 11:
                 r.u8()
                 out.append((0xFC0B,))
-            elif sub < 18:
-                raise NotImplementedError("0xFC %d" % sub)
+            elif sub == 12:  # table.init elem table
+                e = r.u()
+                out.append((0xFC0C, e, r.u()))
+            elif sub == 13:
+                out.append((0xFC0D, r.u()))
+            elif sub == 14:  # table.copy dst src
+                d = r.u()
+                out.append((0xFC0E, d, r.u()))
+            elif sub < 18:  # table.grow / size / fill
+                out.append((0xFC00 + sub, r.u()))
             else:
                 raise Malformed("illegal opcode 0xfc %d" % sub)
         elif op in SIMPLE_OPS:

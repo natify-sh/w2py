@@ -2,14 +2,15 @@
 """The `pyc` target as a SpecEngine (docs/specs/S0001): an adapter over package internals.
 
 Values: i32/i64 are signed at the interface and unsigned inside `pyc`; f32/f64 are bit patterns at
-the interface and Python floats inside (NaN payloads can be lost). References are unsupported.
+the interface and Python floats inside (NaN payloads can be lost). References: null is None, an
+externref is the runner's ExternRef, a funcref is the function object.
 """
 
 import struct
 from collections.abc import Callable, Mapping, Sequence
 from typing import Any, cast
 
-from tests.spec.engine import Instance, LinkError, LoadError, Module, Trap, TrapCode, Value
+from tests.spec.engine import FuncRef, Instance, LinkError, LoadError, Module, Trap, TrapCode, Value
 from w2py.frontend.binary import ImplLimit, Malformed, parse
 from w2py.frontend.validate import Invalid
 from w2py.targets.pyc import Trap as PycTrap
@@ -17,6 +18,7 @@ from w2py.targets.pyc import load, translate
 from w2py.targets.pyc import runtime as rt
 
 I32, I64, F32, F64 = 0x7F, 0x7E, 0x7D, 0x7C
+FUNCREF, EXTERNREF = 0x70, 0x6F
 _f32_i32 = cast(Callable[[int], float], rt._f32_i32)
 _f64_i64 = cast(Callable[[int], float], rt._f64_i64)
 _i32_f32 = cast(Callable[[float], int], rt._i32_f32)
@@ -52,6 +54,11 @@ class _Instance:
 
 
 def _to_internal(ty: int, v: Value) -> Any:
+    if ty in (
+        FUNCREF,
+        EXTERNREF,
+    ):  # null is None, an ExternRef stays itself, a FuncRef is its function
+        return v.handle if isinstance(v, FuncRef) else v
     if not isinstance(v, int):
         raise NotImplementedError("reference values unsupported")
     if ty == I32:
@@ -66,6 +73,10 @@ def _to_internal(ty: int, v: Value) -> Any:
 
 
 def _from_internal(ty: int, v: Any) -> Value:
+    if ty == FUNCREF:
+        return None if v is None else FuncRef(v)
+    if ty == EXTERNREF:
+        return cast(Value, v)
     if ty == I32:
         return cast(int, v) - ((v & 0x80000000) << 1)
     if ty == I64:

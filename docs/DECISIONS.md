@@ -298,3 +298,12 @@ optimised by its producer. The interface is three-operand, has no flags (compare
 compare-and-set are whole operations), and lets each backend own its register roles, so a second
 architecture does not inherit x86-isms. An allocator over a materialised LIR is added only if a
 measurement on real workloads shows a substantial gain.
+
+### D27. `pyc` caps a table at 10 000 000 elements (deviation from Wasmtime)
+Status: accepted · Date: 2026-10-30 · Supersedes: — · Evidence: wasmtime-py 50.0.1 grew a funcref table by 10 000 001 and then to 120 000 001 elements without failing
+
+`table.grow` on `pyc` returns −1 when the new size would exceed 10 000 000 elements (or the table's
+max, or 2³²−1). A `pyc` table is a Python list (8 bytes per slot plus the objects), so an unbounded
+grow can exhaust the interpreter's memory instead of failing the instruction; Wasmtime has no such
+default cap (measured). The cap becomes a store limit (`StoreLimits.table_elements`) in phase 6; the
+JIT targets will use the same number until then so `pyc` and JIT behave alike (D25).

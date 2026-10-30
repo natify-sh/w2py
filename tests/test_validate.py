@@ -94,3 +94,19 @@ def test_coremark_validates() -> None:
         m = parse(f.read())
     validate(m)
     assert len(m["insns"]) == len(m["codes"])
+
+
+def test_table_ops_are_validated() -> None:
+    # (table 1 funcref) (func (result i32) (table.size 0)) is valid; table.size 1 is not
+    table = sec(4, b"\x01\x70\x00\x01")
+    base = sec(1, b"\x01\x60\x00\x01\x7f") + sec(3, b"\x01\x00") + table
+    ok = b"\0asm\1\0\0\0" + base + sec(10, b"\x01\x05\x00\xfc\x10\x00\x0b")
+    check(ok)
+    with pytest.raises(Invalid):
+        check(b"\0asm\1\0\0\0" + base + sec(10, b"\x01\x05\x00\xfc\x10\x01\x0b"))
+    # table.fill with an i32 where a funcref is expected
+    fill = b"\x41\x00\x41\x00\x41\x00\xfc\x11\x00\x41\x00"
+    with pytest.raises(Invalid):
+        check(
+            b"\0asm\1\0\0\0" + base + sec(10, b"\x01" + bytes([len(fill) + 2, 0]) + fill + b"\x0b")
+        )
