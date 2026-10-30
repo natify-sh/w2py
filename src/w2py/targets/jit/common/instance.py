@@ -6,6 +6,7 @@ Step 3a: an `Instance` is built from code assembled elsewhere (tests; the compil
 
 import ctypes
 import mmap
+import os
 import sys
 import threading
 from collections.abc import Callable, Sequence
@@ -70,18 +71,42 @@ _thread = threading.local()
 def _stack_low() -> int | None:
     """Lowest address of the current thread's native stack (cached per thread), None if unknown."""
     if not hasattr(_thread, "low"):
-        _thread.low = _read_stack_low()
+        _thread.low = _read_stack()[0]
     return _thread.low
 
 
-def _read_stack_low() -> int | None:
+def linux_main_low(high: int, soft: int | None) -> int | None:
+    """Lowest usable address of the Linux main thread's stack, which the kernel grows on demand up
+    to RLIMIT_STACK below its top `high` (glibc's rule for pthread_getattr_np; musl reports only
+    the part mapped so far). `soft` None = unlimited: unknown. One page above the guard is kept
+    clear, as on macOS."""
+    if soft is None or soft <= 0:
+        return None
+    return high - min(soft, PLAUSIBLE_STACK) + mmap.PAGESIZE
+
+
+def _linux_stack_vma_top() -> int | None:
+    """End of the `[stack]` mapping: RLIMIT_STACK counts from there, above the args and
+    environment, so it is higher than the top pthread_getattr_np reports."""
+    try:
+        with open("/proc/self/maps") as f:
+            for line in f:
+                if line.rstrip().endswith("[stack]"):
+                    return int(line.split("-", 1)[1].split()[0], 16)
+    except (OSError, ValueError, IndexError):
+        pass
+    return None
+
+
+def _read_stack() -> tuple[int | None, str]:
+    """(low, the rule that gave it)."""
     vp, size_t = ctypes.c_void_p, ctypes.c_size_t
     try:
         if sys.platform == "win32":
             lo, hi = vp(), vp()
             k32 = ctypes.WinDLL("kernel32")
             k32.GetCurrentThreadStackLimits(ctypes.byref(lo), ctypes.byref(hi))
-            return lo.value
+            return lo.value, "GetCurrentThreadStackLimits"
         libc = ctypes.CDLL(None)
         libc.pthread_self.restype = vp
         me = libc.pthread_self()
@@ -97,17 +122,24 @@ def _read_stack_low() -> int | None:
 
                 soft = resource.getrlimit(resource.RLIMIT_STACK)[0]
                 size = min(size, soft) if soft > 0 else size
-            return top - size + mmap.PAGESIZE if top else None
+            return (top - size + mmap.PAGESIZE if top else None), "pthread_get_stack*_np"
         attr = ctypes.create_string_buffer(256)  # >= sizeof(pthread_attr_t) on glibc and musl
         libc.pthread_getattr_np.argtypes = [vp, ctypes.c_char_p]
         if libc.pthread_getattr_np(me, attr) != 0:
-            return None
+            return None, "pthread_getattr_np failed"
         addr, size = vp(), size_t()
         libc.pthread_attr_getstack(attr, ctypes.byref(addr), ctypes.byref(size))
         libc.pthread_attr_destroy(attr)
-        return addr.value
+        if sys.platform.startswith("linux") and threading.get_native_id() == os.getpid():
+            import resource
+
+            soft = resource.getrlimit(resource.RLIMIT_STACK)[0]
+            finite = None if soft == resource.RLIM_INFINITY else soft
+            high = _linux_stack_vma_top() or (addr.value or 0) + size.value
+            return linux_main_low(high, finite), "linux main thread: top - RLIMIT_STACK"
+        return addr.value, "pthread_getattr_np"
     except (OSError, AttributeError):
-        return None
+        return None, "unavailable"
 
 
 def native_budget(sp: int, low: int | None, budget: int) -> int:

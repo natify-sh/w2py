@@ -66,11 +66,14 @@ def jit_view() -> str:
         t = trampolines()
         ctx, frame = (ctypes.c_uint64 * 18)(), (ctypes.c_uint64 * 1)()
         instance.ENTRY(t.entry)(ctypes.addressof(ctx), ctypes.addressof(frame), t.sp_stub)
-        sp, low = frame[0], instance._read_stack_low()  # pyright: ignore[reportPrivateUsage]
+        sp, (low, rule) = frame[0], instance._read_stack()  # pyright: ignore[reportPrivateUsage]
         budget = instance.native_budget(sp, low, instance.DEFAULT_BUDGET)
         below = "?" if low is None else f"{(sp - low) // KIB} KiB"
         low_s = "None" if low is None else f"{low:#x}"
-        return f"jit: sp {sp:#x} low {low_s} (below sp {below}) native budget {budget // KIB} KiB"
+        return (
+            f"jit: sp {sp:#x} low {low_s} (below sp {below}) native budget {budget // KIB} KiB"
+            f" rule: {rule}"
+        )
     except Exception as e:  # report, never fail: this is a measurement tool
         return f"jit: {e!r}"
 

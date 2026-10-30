@@ -231,4 +231,9 @@ uv run pytest tests/jit -k "entry or trap or reentry or host or interrupt or sta
   default thread 16384 KiB (CPython's own thread size), budget 512 KiB; a 512 KiB thread leaves the
   host 224 KiB, less than this CPython's `repr` of a 900-deep list needs (the test skips that case:
   the host alone crashes there without wasm). Open: the musl main thread could use RLIMIT_STACK.
+* 2026-10-30: on the Linux main thread the stack grows on demand up to RLIMIT_STACK, but musl's
+  `pthread_getattr_np` reports only the part mapped so far (132 KiB measured on python:3.13-alpine), so
+  the JIT takes low = top of the `[stack]` mapping (`/proc/self/maps`) − min(RLIMIT_STACK soft, 1 GiB)
+  + one page, as glibc does; an unlimited rlimit counts as unknown (128 KiB budget); the rule
+  min(max_wasm_stack, (sp − low)/2) applies as for every thread.
 

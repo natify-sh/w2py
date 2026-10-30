@@ -17,7 +17,14 @@ from w2py.runtime.store import StoreState
 from w2py.targets.base import HostFunc, Raw, Trap, TrapCode
 from w2py.targets.jit.common.context import INTERRUPT, TRAP_CODE, Layout
 from w2py.targets.jit.common.execmem import load
-from w2py.targets.jit.common.instance import Instance, Memory, Trampolines
+from w2py.targets.jit.common.instance import (
+    DEFAULT_BUDGET,
+    Instance,
+    Memory,
+    Trampolines,
+    linux_main_low,
+    native_budget,
+)
 from w2py.targets.jit.x86_64 import JitX86_64Target
 from w2py.targets.jit.x86_64.abi import bridge, entry, trampolines
 from w2py.targets.jit.x86_64.backend import Backend, Frame
@@ -445,3 +452,15 @@ def test_memory_reserved_committed_on_grow_never_moves(tramp: Trampolines) -> No
     assert inst.call(1, [1 << 16, 0]) == [M32, 3 << 16] and Memory(1, 2).grow(2) == -1
     with pytest.raises(ValueError):
         mem.res.commit(mem.res.size + 1)
+
+
+def test_linux_main_thread_budget_from_rlimit() -> None:
+    """musl reports only the mapped part of the main stack (132 KiB measured in CI); the kernel
+    grows it to RLIMIT_STACK, so the budget follows the rlimit; unlimited -> unknown (128 KiB)."""
+    high = 0x7FFF_F000_0000
+    sp = high - (8 << 10)
+    reported = high - (132 << 10)
+    assert native_budget(sp, reported, DEFAULT_BUDGET) == 62 << 10  # the old result
+    assert native_budget(sp, linux_main_low(high, 16 << 20), DEFAULT_BUDGET) == 512 << 10
+    assert linux_main_low(high, None) is None
+    assert native_budget(sp, linux_main_low(high, None), DEFAULT_BUDGET) == 128 << 10
