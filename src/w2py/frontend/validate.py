@@ -3,8 +3,8 @@
 
 `validate(mod)` takes the dict of `frontend.binary.parse`, decodes every function body once (stored
 in `mod["insns"]`, so a code generator does not decode again) and raises `Invalid` for a module that
-breaks a validation rule. A valid construct this front end cannot validate (GC heap types, tag
-exports, instructions outside the core set) ends validation of that module without a verdict (it
+breaks a validation rule. A valid construct this front end cannot validate (GC heap types,
+instructions outside the core set) ends validation of that module without a verdict (it
 is left to the code generator as before): never `Invalid`, because a wrong "invalid" on a valid
 module would be a wrong kind. Constructs the reader does not decode (GC, SIMD,
 exceptions, 64-bit memories, some table instructions) are its `NotImplementedError`.
@@ -305,11 +305,14 @@ def _validate(mod: dict) -> None:
                 raise Invalid("type mismatch")
         elif not _match(c.types, _const(c, init, nimpg), t):
             raise Invalid("type mismatch")
+    for ti in mod["tags"]:  # an exception tag: a function type without results
+        if ti >= nt:
+            raise Invalid("unknown type")
+        if types[ti][1]:
+            raise Invalid("non-empty tag result type")
     seen = set()
-    counts = (len(c.funcs), len(c.ttypes), c.nmems, ng)
+    counts = (len(c.funcs), len(c.ttypes), c.nmems, ng, len(mod["tags"]))
     for name, kind, idx in mod["exports"]:
-        if kind == 4:
-            raise _Unsupported("tag export")
         if name in seen:
             raise Invalid("duplicate export name")
         seen.add(name)

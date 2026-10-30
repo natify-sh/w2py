@@ -98,7 +98,7 @@ def counter(log: list[str], name: str) -> tuple[HostFunc, int, list[int]]:
 
 
 def test_trampolines_are_landing_pads(tramp: Trampolines) -> None:
-    for addr in (tramp.entry, tramp.bridge, tramp.sp_stub):
+    for addr in (tramp.entry, tramp.bridge, tramp.sp_stub, tramp.tail_switch):
         assert ctypes.string_at(addr, 4) == ENDBR64
     for win64 in (False, True):  # the Win64 shape assembles everywhere; it runs on Windows CI
         a = Asm()

@@ -343,3 +343,26 @@ reservation per 32-bit memory plus a 32 MiB guard; static offsets beyond the gua
 check. `Config.signals_based_traps = False` selects `explicit` (API.md). Implemented in phase 5 (risks:
 RISKS.md R6); phase 3 is `explicit` only and must not close this path (trap stubs reachable from a
 fault handler, `SAVED_SP` kept, the mode field in the artifact).
+
+### D30. Cross-instance tail calls go through a shared `tail_switch` trampoline (context word 9)
+Status: accepted · Date: 2026-10-30 · Supersedes: — · Evidence: `tests/jit/test_tail.py` (1e5 A↔B hops on a 256 KiB thread; with the restore frame per hop the same test ends in `STACK_OVERFLOW`)
+
+Tail calls between wasm functions compiled by the JIT never grow either stack, as in Wasmtime.
+Deviation (temporary): a `return_call` to a function import is a call plus a return through the host
+bridge, so tail recursion through an imported wasm function grows the stack (A `return_call`s an
+imported `pong` that `return_call_indirect`s back: Wasmtime runs 10⁶ rounds, both w2py targets trap
+`STACK_OVERFLOW` at 10³). It is closed by calling an imported function of another JIT instance of the
+same store directly through its function record. A `return_call*`  moves its arguments to its frame
+base, drops its native frame and jumps. When the callee's function record has another context, r15
+must change, but a direct `call` site in the original caller relies on r15/r13/r14 being its own
+afterwards. The jump therefore goes through `tail_switch`, one trampoline per process whose address is
+in context word 9 `TAIL_SWITCH`. The first switch of a chain pushes the caller's r15 and makes a real
+`call` whose return point (`restore`) pops it and reloads r13/r14. A later switch whose return
+address is already `restore` only changes the context and jumps, so A → B → A → … runs in constant
+stack. Every `ret` returns to its own `call` (CET shadow stacks, R2). This is an amendment of context
+ABI v1 without a version bump: S0003 fixes v1 in phase 5, and word 9 was reserved and zero.
+Rejected: (A) a restore frame (push r15, call, pop, ret) emitted at each cross-instance tail call, with
+no ABI change. It costs 16 bytes of native stack per hop that does not return, so mutual tail recursion
+across instances ends in `STACK_OVERFLOW` after ~32k hops (512 KiB budget). Also rejected: making r15
+caller-saved at every call (Cranelift's `tail` convention), which costs a save/restore at every direct
+call on the hot path.

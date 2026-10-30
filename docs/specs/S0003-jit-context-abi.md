@@ -39,7 +39,8 @@ it is not a new format. The runtime side is [S0002](S0002-target-interface.md).
 | 6 | `NSTACK_LIMIT` | lowest native `rsp` allowed → `STACK_OVERFLOW`; written by the runtime before each entry |
 | 7 | `HOST_ERROR` | **unused**: replaced by the host call's status (below; proposed amendment) |
 | 8 | `HOST_BRIDGE` | **new (proposed)**: address of the host-call bridge for the host's convention |
-| 9–15 | reserved | zero |
+| 9 | `TAIL_SWITCH` | address of the cross-context tail-call trampoline (step 3e, D30) |
+| 10–15 | reserved | zero |
 | 16 … | memory *i*: `base`, `size_bytes` | phase 3: at most one memory |
 | … | table *i*: `base`, `size` | element words (record address / extern handle, 0 = null); step 3d |
 | … | global *i*: 1 word | defined: the value; imported: a pointer to the owner's word (same target, S0002) |
@@ -303,3 +304,19 @@ uv run pytest tests/jit -k "entry or trap or reentry or host or interrupt or sta
 * 2026-10-30: bounds-check mode (D29, maintainer): phase 3 emits `explicit` only; phase 5 adds `guard`
   as the default where the fault handler is verified, recorded in the artifact. Phase-3 code keeps the
   out-of-bounds trap reachable from a future fault handler and `SAVED_SP` reserved.
+* 2026-10-30 (step 3e): tail calls and typed function references; `ready = True` (the expected
+  failures equal `pyc`'s; `tests/spec/test_runner.py` checks this while `ready` is set).
+  `return_call`, `return_call_indirect` and `return_call_ref` run every trap check first (bounds,
+  null, signature). Then they move the arguments from their slots down to the frame base (ascending,
+  which is safe under overlap), drop the native frame as the epilogue does (pad, pins popped), and
+  jump with rsp = 8 mod 16 and r12 unchanged. Both stacks stay constant; the callee's prologue checks
+  both limits and polls INTERRUPT. A record of the same context is jumped to directly. One of another
+  context goes through the `tail_switch` trampoline (context word 9, D30), which leaves one restore
+  frame per chain, so the caller's direct `call` site finds its r15/r13/r14 again. `return_call` of
+  an import is a call and a return. The host thunk reloads r13/r14 after the bridge: as a tail-call
+  target it returns to a caller that does not reload them. `call_ref` is `call_indirect` without the
+  table lookup or the type check; a null gives `NULL_REFERENCE`, as `ref.as_non_null` does (Wasmtime).
+  `br_on_null`/`br_on_non_null` compare the reference's slot with 0. Typed references are the same
+  word as `funcref`. Tags are read and validated (a type index naming a type without results); they
+  have no run-time meaning while tag imports and exception instructions are unsupported on both
+  targets.

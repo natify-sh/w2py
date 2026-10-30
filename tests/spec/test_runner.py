@@ -321,3 +321,30 @@ def test_claims(tmp_path: Path) -> None:
     assert claims.claimed("wasmtime", "gc") and claims.claimed("wasmtime", "simd")
     assert not claims.claimed("pyc", "simd")
     assert not claims.claimed("pyc", "multi-memory") and not claims.claimed("nope", "gc")
+
+
+def _xfail_keys(engine: str, both: Sequence[str]) -> set[str]:
+    """Commands in an engine's expected failures, in the directories both engines claim."""
+    from tests.spec.claims import CORE, claimed
+
+    keys: set[str] = set()
+    path = Path(__file__).parent / "xfail" / f"{engine}.txt"
+    for line in path.read_text().splitlines():
+        if not line.strip() or line.startswith("#"):
+            continue
+        key = line.split()[0]
+        d = key.split("/")[0] if "/" in key else CORE
+        if all(claimed(e, d) for e in both):
+            keys.add(key)
+    return keys
+
+
+def test_a_ready_jit_fails_exactly_what_pyc_fails() -> None:
+    """D25: `auto` may select a JIT (`ready`) only while its expected failures equal pyc's in the
+    directories both claim."""
+    from w2py.targets.jit.x86_64 import JitX86_64Target
+
+    if not getattr(JitX86_64Target, "ready", True):
+        pytest.skip("jit-x86_64 is not ready")
+    both = ("pyc", "jit-x86_64")
+    assert _xfail_keys("jit-x86_64", both) == _xfail_keys("pyc", both)

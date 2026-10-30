@@ -117,7 +117,7 @@ lacks a feature reports it through `Target.supports` and the module runs on anot
 * Exit criterion: the spec suite passes on CPython and PyPy.
 
 ## Phase 3 — `jit-x86_64`: integer core and the backend interface
-*Status: in progress, S0002 step 3: 3a ABI, 3b integer core, 3c SSE2 floats and `memory.grow` done (spec core 18201 pass; CoreMark 16 299 it/s, `w2jit2` 16 411); 3d tables, `call_indirect`, reference types under way; then steps 4 (fallback test), 5 (speed and ISA), 6 (review). The scope went beyond the integer core (floats, tables) because the goal is completeness (D25).*
+*Status: in progress, S0002 step 3: 3a ABI, 3b integer core, 3c SSE2 floats and `memory.grow`, 3d tables, `call_indirect`, reference types, bulk memory, 3e tail calls and typed function references done (spec core 20509 pass, the same xfail set as `pyc`; `auto` selects the JIT; CoreMark 16 299 it/s, `w2jit2` 16 411); then steps 4 (fallback test), 5 (speed and ISA), 6 (review). The scope went beyond the integer core (floats, tables) because the goal is completeness (D25).*
 
 * **Order of work (2026-10-30):** `pyc` has closed the core group and is frozen at that feature set
   (plus typed function references and tail calls); it only gets correctness fixes until the JIT catches up. **Multi-memory is the first proposal after that, on both

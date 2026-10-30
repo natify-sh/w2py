@@ -21,6 +21,7 @@ from w2py.targets.jit.common.context import (
     INTERRUPT,
     NSTACK_LIMIT,
     STATUS_INTERRUPT,
+    TAIL_SWITCH,
     VSTACK_LIMIT,
 )
 from w2py.targets.jit.x86_64.abi import MEM0
@@ -937,23 +938,32 @@ class Backend:
         a.test(RAX, RAX)
         a.jcc("ne", f.unwind)
 
-    def call_indirect(
-        self, f: Frame, table: int, sig: int, index: Operand, shift_slots: int
-    ) -> None:  # fmt: skip
-        """Element `index` of the table: bounds (TABLE_OUT_OF_BOUNDS), null (INDIRECT_CALL_TO_NULL),
-        the record's canonical type id against the context's signature word (BAD_SIGNATURE), in
-        the spec's order. Then the callee runs on the record's context: r15 is saved on the native
-        stack (with a pad: 16-byte alignment holds), r13/r14 come from the callee's context and
-        are reloaded from ours after. As Wasmtime's `call_indirect` lowering (a funcref is a
-        pointer to `{code, type, vmctx}`; crates/cranelift/src/func_environ.rs), written anew."""
+    def _table_record(self, f: Frame, table: int, sig: int, index: Operand) -> None:
+        """rdx = the function record of element `index`: bounds (TABLE_OUT_OF_BOUNDS), null
+        (INDIRECT_CALL_TO_NULL), its canonical type id against the signature word (BAD_SIGNATURE),
+        in the spec's order (Wasmtime's codes)."""
         a = self.a
-        elem = self._element(f, table, index)  # the index is read before r12 moves
+        elem = self._element(f, table, index)
         a.mov(RDX, elem, w=True)
         a.test(RDX, RDX, w=True)
         a.jcc("e", self._stub(f, TrapCode.INDIRECT_CALL_TO_NULL))
         a.mov(RCX, Mem(R15, 8 * sig), w=True)
         a.alu("cmp", RCX, Mem(RDX, 8), w=True)
         a.jcc("ne", self._stub(f, TrapCode.BAD_SIGNATURE))
+
+    def _ref_record(self, f: Frame, ref: Operand) -> None:
+        """rdx = a function reference (call_ref): null traps with NULL_REFERENCE; its type is
+        right by validation."""
+        self.move(Reg(RDX), ref, True)
+        self.a.test(RDX, RDX, w=True)
+        self.a.jcc("e", self._stub(f, TrapCode.NULL_REFERENCE))
+
+    def _call_record(self, f: Frame, shift_slots: int) -> None:
+        """Call the record in rdx on its own context: r15 is saved on the native stack (with a
+        pad: 16-byte alignment holds), r13/r14 come from the callee's context and are reloaded
+        from ours after. As Wasmtime's `call_indirect` lowering (a funcref is a pointer to
+        `{code, type, vmctx}`; crates/cranelift/src/func_environ.rs), written anew."""
+        a = self.a
         if shift_slots:
             a.lea(R12, Mem(R12, 8 * shift_slots))
         a.push(R15)
@@ -971,6 +981,69 @@ class Backend:
         a.test(RAX, RAX)
         a.jcc("ne", f.unwind)
 
+    def call_indirect(
+        self, f: Frame, table: int, sig: int, index: Operand, shift_slots: int
+    ) -> None:  # fmt: skip
+        self._table_record(f, table, sig, index)  # the index is read before r12 moves
+        self._call_record(f, shift_slots)
+
+    def call_ref(self, f: Frame, ref: Operand, shift_slots: int) -> None:
+        self._ref_record(f, ref)
+        self._call_record(f, shift_slots)
+
+    def null_check(self, f: Frame, x: Operand, code: int) -> None:
+        """Trap with `code` if the reference x is null; nothing but rcx is written."""
+        r = x.id if isinstance(x, Reg) else RCX
+        if not isinstance(x, Reg):
+            self.move(Reg(RCX), x, True)
+        self.a.test(r, r, w=True)
+        self.a.jcc("e", self._stub(f, code))
+
+    # ---------------------------------------------------------------- tail calls
+    # The arguments move down to the frame base, the frame is torn down as by the epilogue (pad,
+    # pins popped: the caller's pool registers are back), then `jmp`: rsp is the caller's return
+    # address again (8 mod 16, as after a call) and r12 is unchanged, so both stacks stay
+    # constant and the callee's results land where our caller expects ours. The callee's
+    # prologue checks both stack limits and polls INTERRUPT. Every trap check comes before the
+    # teardown. As Cranelift's `return_call` (callee-saved restore, outgoing arguments copied
+    # over the incoming area, jump) and V8 Liftoff's PrepareTailCall, written anew.
+    def _tail(self, f: Frame, src: int, n: int) -> None:
+        """Slots src.. -> 0..n (src >= 0: ascending is safe under overlap; rcx only), teardown."""
+        for j in range(n):
+            if src:
+                self.move(Slot(j), Slot(src + j), True)
+        if f.pad:
+            self.a.alu_imm("add", RSP, 8, w=True)
+        for r in reversed(f.pins):
+            self.a.pop(r)
+
+    def tail_direct(self, f: Frame, label: Label, src: int, n: int) -> None:
+        self._tail(f, src, n)
+        self.a.jmp(label)
+
+    def _tail_record(self) -> None:
+        """Jump to the record in rdx: directly on our context, else through the tail_switch
+        trampoline (abi.py, D30), which restores the context our caller expects."""
+        a = self.a
+        a.alu("cmp", R15, Mem(RDX, 16), w=True)
+        other = a.label()
+        a.jcc("ne", other, short=True)
+        a.jmp(Mem(RDX))
+        a.bind(other)
+        a.jmp(Mem(R15, 8 * TAIL_SWITCH))
+
+    def tail_indirect(
+        self, f: Frame, table: int, sig: int, index: Operand, src: int, n: int
+    ) -> None:  # fmt: skip
+        self._table_record(f, table, sig, index)
+        self._tail(f, src, n)
+        self._tail_record()
+
+    def tail_ref(self, f: Frame, ref: Operand, src: int, n: int) -> None:
+        self._ref_record(f, ref)
+        self._tail(f, src, n)
+        self._tail_record()
+
     def host_thunk(self, word: int) -> int:
         """The code address a function record of an imported function points to: called like a
         wasm function (frame in r12, context in r15), it calls the import in context word `word`
@@ -983,6 +1056,8 @@ class Backend:
         a.mov_imm(RAX, word)
         a.call(Mem(R15, 8 * HOST_BRIDGE))
         a.alu_imm("add", RSP, 8, w=True)
+        a.mov(R13, Mem(R15, MEM0), w=True)  # as a tail-call target it returns to a caller that
+        a.mov(R14, Mem(R15, MEM0 + 8), w=True)  # does not reload them (memory.grow may have run)
         a.ret()
         return at
 

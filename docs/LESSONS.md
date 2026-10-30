@@ -147,3 +147,15 @@ What went wrong or surprised us while building the PoC, so it is not found again
     register it writes before writing it, and the tests try each operand of each instruction as a
     constant, a local and a computed value (`test_computed_operands_of_table_and_bulk_ops_match_wasmtime`).
     Found: JIT step 3d review, 2026-10-30.
+33. **A tail-call target returns to a caller that never called it.** The host thunk (a host
+    function's record entry) did not reload r13/r14 after the bridge: its only caller had been
+    `call_indirect`, which reloads them itself. Once a `return_call_indirect` jumps to the thunk,
+    it returns to whoever called the tail caller, possibly a direct `call` site that does not
+    reload. After a host function grew the memory through a nested entry, that caller kept the
+    old size and trapped on a valid load (`test_return_call_to_host_functions`). Rule: code that
+    can be jumped to by a tail call must leave every register in the state any caller's call site
+    expects, not only the state its usual caller expects. Found: JIT step 3e, 2026-10-30.
+34. **`--write-xfail` rewrites the reasons, not only the keys.** Regenerating `xfail/pyc.txt` for one
+    xpass replaced the curated reasons ("gap: table import / unknown import kind") with raw error
+    texts. Rule: after a regeneration, diff the file and keep the curated reasons; drop only the
+    lines that now pass. Found: JIT step 3e, 2026-10-30.

@@ -112,4 +112,14 @@ class Backend(Protocol[L, F]):
     def call_indirect(
         self, f: F, table: int, sig: int, index: Operand, shift_slots: int
     ) -> None: ...  # fmt: skip
+    def call_ref(self, f: F, ref: Operand, shift_slots: int) -> None: ...  # null: NULL_REFERENCE
     def host_thunk(self, word: int) -> int: ...  # code offset of an import's record entry
+    def null_check(self, f: F, x: Operand, code: int) -> None: ...  # trap if the reference is 0
+
+    # tail calls: the arguments (slots src..src+n) become the callee's frame at our frame base,
+    # our frame is dropped, the callee returns to our caller (constant stacks)
+    def tail_direct(self, f: F, label: L, src: int, n: int) -> None: ...
+    def tail_indirect(
+        self, f: F, table: int, sig: int, index: Operand, src: int, n: int
+    ) -> None: ...  # fmt: skip
+    def tail_ref(self, f: F, ref: Operand, src: int, n: int) -> None: ...

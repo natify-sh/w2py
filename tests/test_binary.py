@@ -82,3 +82,10 @@ def test_too_many_locals() -> None:
         parse(locals_of(big, 1))
     assert tracemalloc.get_traced_memory()[1] < 1 << 20
     tracemalloc.stop()
+
+
+def test_tag_attribute_must_be_zero() -> None:
+    types = b"\x01\x04\x01\x60\x00\x00"
+    assert parse(b"\0asm\1\0\0\0" + types + b"\x0d\x03\x01\x00\x00")["tags"] == [0]
+    with pytest.raises(Malformed):
+        parse(b"\0asm\1\0\0\0" + types + b"\x0d\x03\x01\x01\x00")

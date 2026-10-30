@@ -129,3 +129,22 @@ def test_typed_references_are_validated() -> None:
     m = parse(set_first)
     validate(m)
     assert m["validated"]
+
+
+def _tags(results: bytes, tags: bytes, exports: bytes = b"") -> bytes:
+    """A module whose type 0 is [] -> results, with a tag section and an export section."""
+    return mod(b"", results, b"\x00", extra=sec(13, tags) + sec(7, exports or b"\x00"))
+
+
+def test_tags_are_validated() -> None:
+    m = parse(_tags(b"", b"\x02\x00\x00\x00\x00", b"\x02\x01a\x04\x00\x01b\x04\x01"))
+    validate(m)
+    assert m["tags"] == [0, 0] and m["validated"]
+    for data in (
+        _tags(b"", b"\x01\x00\x00", b"\x02\x01a\x04\x00\x01a\x04\x00"),  # duplicate export name
+        _tags(b"", b"\x01\x00\x00", b"\x01\x01a\x04\x01"),  # unknown tag
+        _tags(b"", b"\x01\x00\x05"),  # unknown type
+        _tags(I32, b"\x01\x00\x00"),  # non-empty tag result type
+    ):
+        with pytest.raises(Invalid):
+            check(data)

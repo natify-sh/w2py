@@ -32,6 +32,7 @@ from w2py.targets.jit.common.context import (
     STATUS_INTERRUPT,
     TABLE_GROW,
     TABLE_INIT,
+    TAIL_SWITCH,
     VSTACK_LIMIT,
     Layout,
 )
@@ -79,6 +80,7 @@ class Trampolines:
     entry: int
     bridge: int
     sp_stub: int
+    tail_switch: int
     keep: object = None  # the code area
 
 
@@ -339,6 +341,7 @@ class Instance:
         )
         self.ctx = (ctypes.c_uint64 * self.layout.words)()
         self.ctx[HOST_BRIDGE] = tramp.bridge
+        self.ctx[TAIL_SWITCH] = tramp.tail_switch
         st = _stacks(store)  # call_indirect may enter this context without `call`: limits now
         self.ctx[NSTACK_LIMIT], self.ctx[VSTACK_LIMIT] = st.nlimit, st.vtop
         self.code: ExecMem = load(code)

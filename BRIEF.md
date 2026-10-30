@@ -87,8 +87,9 @@ State on branch `phase0-skeleton` (not merged to `main`, the maintainer's choice
   20508 pass, wasmtime oracle 20556). `pyc` is now frozen for new features and gets correctness fixes
   only; multi-memory is the first proposal after the freeze, on both targets.
 * **In progress, phase 3 (`jit-x86_64`, `docs/specs/S0002` step 3):** 3a ABI, 3b integer core and 3c
-  SSE2 floats with `memory.grow` are done (spec core on `jit-x86_64`: 18201 pass; CoreMark 16 299 it/s,
-  PoC `w2jit2` 16 411); 3d (tables, `call_indirect`, reference types) is under way. Phase 3 already
+  SSE2 floats with `memory.grow`, 3d tables, `call_indirect`, reference types and bulk memory, 3e tail
+  calls and typed function references are done: `jit-x86_64` fails exactly what `pyc` fails (spec core
+  20509 pass on both) and `auto` selects it; CoreMark ≈ PoC `w2jit2` (16 299 vs 16 411 it/s). Phase 3 already
   goes beyond the "integer core" (floats, tables) because the goal is completeness (D25).
 * **Next, per `docs/ROADMAP.md`:** S0002 step 4 (fallback test), 5 (speed and ISA), 6 (review); then
   multi-memory on both targets; the second architecture (phase 4) before the opcode set is widened

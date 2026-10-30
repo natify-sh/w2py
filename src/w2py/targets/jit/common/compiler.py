@@ -80,7 +80,29 @@ CONVERTS = {
     **{0xB2 + i + (f == "f64"): f"{f}.convert_{r}_{s}" for i, (r, f, s) in enumerate(_CONVS)},
     0xB6: "f32.demote_f64", 0xBB: "f64.promote_f32",
 }  # fmt: skip
-CONTROL = (0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x1A, 0x1B)
+CONTROL = (
+    0x00,
+    0x01,
+    0x02,
+    0x03,
+    0x04,
+    0x05,
+    0x0B,
+    0x0C,
+    0x0D,
+    0x0E,
+    0x0F,
+    0x10,
+    0x1A,
+    0x1B,
+    0x12,
+    0x13,
+    0x14,
+    0x15,
+    0xD4,
+    0xD5,
+    0xD6,
+)  # tail calls, typed function references
 TABLES = (0x11, 0x25, 0x26, 0xD0, 0xD1, 0xD2, *range(0xFC08, 0xFC12))  # incl. bulk memory
 SUPPORTED = frozenset(
     (*CONTROL, *range(0x20, 0x25), *range(0x41, 0x46), 0x50, *BINOPS, *CMPS, *UNOPS, *LOADS,
@@ -93,10 +115,6 @@ HEAPS = (-16, -17, -13, -14)
 
 def feature(op: int) -> str:
     """The name an `Unsupported` carries for an opcode this core does not compile (yet)."""
-    if 0xD4 <= op <= 0xD6:
-        return "typed function references"
-    if op in (0x12, 0x13):
-        return "tail calls"
     return f"opcode {op:#x}"
 
 
@@ -202,7 +220,7 @@ def compile_module(mod: ValidModule, b: Backend[Any, Any], target: str) -> Compi
     inits += [g[2] for g in mod["globals"]] + [e for e in mod["tinit"] if e is not None]
     refd = {e[1] for e in inits if e[0] == "func"}
     refd |= {i[1] for insns in mod["insns"] for i in insns if i[0] == 0xD2}
-    sigs = sorted({i[1] for insns in mod["insns"] for i in insns if i[0] == 0x11})
+    sigs = sorted({i[1] for insns in mod["insns"] for i in insns if i[0] in (0x11, 0x13)})
     layout = Layout(
         memories=int(has_mem), tables=len(mod["ttypes"]),
         globals=len(gimps) + len(mod["globals"]), imports=len(fimps), sigs=len(sigs),
@@ -475,6 +493,70 @@ class _Func:
         self.st += [SLOTE] * nres
         self.maxh = max(self.maxh, h0 + max(n, nres))
 
+    def call_ref(self, ti: int) -> None:
+        ps, rs = self.m.types[ti]
+        n, nres = len(ps), len(rs)
+        ref = self.pop()  # stays valid across flush, as call_indirect's index
+        self.flush()
+        h0 = len(self.st) - n
+        del self.st[h0:]
+        self.b.call_ref(self.f, ref, self.L + h0)
+        self.st += [SLOTE] * nres
+        self.maxh = max(self.maxh, h0 + max(n, nres))
+
+    def tail_call(self, op: int, ins: Any) -> None:
+        """return_call / return_call_indirect / return_call_ref: the arguments become the
+        callee's frame at our frame base, our native frame is dropped, then a jump (constant
+        stacks, S0003 3e). A host import is called and returned from (a host frame is not wasm's
+        to drop)."""
+        m, b = self.m, self.b
+        if op == 0x12 and ins[1] < m.nimp:
+            self.call(ins[1])
+            self.br(len(self.ctl) - 1)
+            return
+        fi: int = ins[1]
+        ti = m.ftypes[fi] if op == 0x12 else fi
+        n = len(m.types[ti][0])
+        x = None if op == 0x12 else self.pop()  # the index or the reference
+        self.flush()
+        h0 = len(self.st) - n
+        src = self.L + h0
+        if op == 0x12:
+            b.tail_direct(self.f, m.labels[fi - m.nimp], src, n)
+        elif op == 0x13:
+            assert x is not None
+            lay = m.layout
+            b.tail_indirect(self.f, lay.table(ins[2]), lay.sig(m.sigs[ti]), x, src, n)
+        else:
+            assert x is not None
+            b.tail_ref(self.f, x, src, n)
+        del self.st[h0:]
+        self.dead = True
+
+    def br_on_null(self, depth: int, on_null: bool) -> None:
+        """br_on_null: the reference is dropped on the branch, kept otherwise; br_on_non_null:
+        it is the last branch value, dropped otherwise. Values are in slots first (flush)."""
+        b = self.b
+        self.flush()
+        ref = Slot(self.L + len(self.st) - 1)
+        if on_null:
+            self.st.pop()
+        c = self.ctl[-1 - depth]
+        c.used = True
+        cond = "eq" if on_null else "ne"
+        if not self.needs_moves(c):
+            b.cmp_branch(cond, ref, Imm(0), c.label, True)
+        else:
+            skip = b.new_label()
+            b.cmp_branch(NEGATE[cond], ref, Imm(0), skip, True)
+            self.moves(c)
+            b.jump(c.label)
+            b.bind(skip)
+        if on_null:
+            self.st.append(SLOTE)
+        else:
+            self.st.pop()
+
     def service(self, j: int, nargs: int, imms: Sequence[int], nres: int) -> None:
         """A runtime service through the host bridge (D25): its operands, then the immediates,
         in slots; results replace the operands."""
@@ -638,6 +720,14 @@ class _Func:
                 self.dead = True
             elif op == 0x11:
                 self.call_indirect(ins[1], ins[2])
+            elif op in (0x12, 0x13, 0x15):
+                self.tail_call(op, ins)
+            elif op == 0x14:
+                self.call_ref(ins[1])
+            elif op == 0xD4:  # a reference is never a pending compare
+                b.null_check(f, self.opnd(self.st[-1], len(self.st) - 1), TrapCode.NULL_REFERENCE)
+            elif op == 0xD5 or op == 0xD6:
+                self.br_on_null(ins[1], op == 0xD5)
             elif op == 0xD0:
                 push((CONST, 0))
             elif op == 0xD1:

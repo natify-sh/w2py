@@ -95,6 +95,40 @@ def sp_stub(a: Asm) -> None:
     a.ret()
 
 
+def tail_switch(a: Asm) -> None:
+    """A tail call into a function record whose context is not the caller's (D30). Entered by
+    `jmp [r15 + 8 * TAIL_SWITCH]` after the caller has torn down its frame: rdx = the record,
+    the arguments at r12, [rsp] = the caller's return address (rsp = 8 mod 16).
+
+    Only `call` sites into the same instance rely on r15 (and r13/r14) surviving a call, so the
+    first switch of a chain leaves a restore frame: the context to return to, then a real `call`
+    whose return address is `restore`. A later switch whose return address is already `restore`
+    only changes the context and jumps: a chain A -> B -> A -> ... of tail calls stays in
+    constant native stack (Wasmtime: tail calls never grow the stack). Every `ret` still returns
+    to the `call` that pushed its address, so CET shadow stacks stay balanced (R2)."""
+    restore = a.label()
+    hop = a.label()
+    a.endbr64()
+    a.lea_label(RCX, restore)
+    a.alu("cmp", RCX, Mem(RSP), w=True)
+    a.jcc("e", hop, short=True)
+    a.push(R15)  # rsp = 0 mod 16: the callee sees 8 mod 16, as after any call
+    a.mov(R15, Mem(RDX, 16), w=True)
+    a.mov(R13, Mem(R15, MEM0), w=True)
+    a.mov(R14, Mem(R15, MEM0 + 8), w=True)
+    a.call(Mem(RDX))
+    a.bind(restore)  # the status stays in eax
+    a.pop(R15)
+    a.mov(R13, Mem(R15, MEM0), w=True)
+    a.mov(R14, Mem(R15, MEM0 + 8), w=True)
+    a.ret()
+    a.bind(hop)
+    a.mov(R15, Mem(RDX, 16), w=True)
+    a.mov(R13, Mem(R15, MEM0), w=True)
+    a.mov(R14, Mem(R15, MEM0 + 8), w=True)
+    a.jmp(Mem(RDX))
+
+
 @cache
 def trampolines() -> Trampolines:
     """The trampolines for this process's convention, in one sealed code area (kept for the
@@ -102,7 +136,12 @@ def trampolines() -> Trampolines:
     win64 = sys.platform == "win32"
     a = Asm()
     offsets: list[int] = []
-    for emit in (lambda: entry(a, win64), lambda: bridge(a, win64), lambda: sp_stub(a)):
+    for emit in (
+        lambda: entry(a, win64),
+        lambda: bridge(a, win64),
+        lambda: sp_stub(a),
+        lambda: tail_switch(a),
+    ):
         offsets.append(len(a.buf))
         emit()
     mem = load(a.finish())

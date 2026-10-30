@@ -1,121 +1,15 @@
-br_on_non_null.wast:1  unsupported: typed function references
-br_on_non_null.wast:49  unsupported: typed function references
-br_on_non_null.wast:51  unsupported: typed function references
-br_on_non_null.wast:52  unsupported: typed function references
-br_on_non_null.wast:53  unsupported: typed function references
-br_on_non_null.wast:54  unsupported: typed function references
-br_on_non_null.wast:55  unsupported: typed function references
-br_on_non_null.wast:57  unsupported: typed function references
-br_on_non_null.wast:65  unsupported: typed function references
-br_on_non_null.wast:86  unsupported: typed function references
-br_on_non_null.wast:87  unsupported: typed function references
-br_on_null.wast:1  unsupported: typed function references
-br_on_null.wast:32  unsupported: typed function references
-br_on_null.wast:34  unsupported: typed function references
-br_on_null.wast:35  unsupported: typed function references
-br_on_null.wast:36  unsupported: typed function references
-br_on_null.wast:38  unsupported: typed function references
-br_on_null.wast:46  unsupported: typed function references
-br_on_null.wast:65  unsupported: typed function references
-br_on_null.wast:66  unsupported: typed function references
-call_ref.wast:1  unsupported: opcode 0x14
-call_ref.wast:100  unsupported: opcode 0x14
-call_ref.wast:101  unsupported: opcode 0x14
-call_ref.wast:102  unsupported: opcode 0x14
-call_ref.wast:103  unsupported: opcode 0x14
-call_ref.wast:104  unsupported: opcode 0x14
-call_ref.wast:105  unsupported: opcode 0x14
-call_ref.wast:107  unsupported: opcode 0x14
-call_ref.wast:111  unsupported: opcode 0x14
-call_ref.wast:112  unsupported: opcode 0x14
-call_ref.wast:113  unsupported: opcode 0x14
-call_ref.wast:114  unsupported: opcode 0x14
-call_ref.wast:115  unsupported: opcode 0x14
-call_ref.wast:117  unsupported: opcode 0x14
-call_ref.wast:118  unsupported: opcode 0x14
-call_ref.wast:119  unsupported: opcode 0x14
-call_ref.wast:120  unsupported: opcode 0x14
-call_ref.wast:121  unsupported: opcode 0x14
-call_ref.wast:122  unsupported: opcode 0x14
-call_ref.wast:123  unsupported: opcode 0x14
-call_ref.wast:124  unsupported: opcode 0x14
-call_ref.wast:129  unsupported: opcode 0x14
-call_ref.wast:136  unsupported: opcode 0x14
-call_ref.wast:138  unsupported: opcode 0x14
-call_ref.wast:149  unsupported: opcode 0x14
-call_ref.wast:151  unsupported: opcode 0x14
-call_ref.wast:165  unsupported: opcode 0x14
-call_ref.wast:94  unsupported: opcode 0x14
-call_ref.wast:95  unsupported: opcode 0x14
-call_ref.wast:97  unsupported: opcode 0x14
-call_ref.wast:99  unsupported: opcode 0x14
-exports.wast:71  module accepted
-imports.wast:128  unsupported: module not fully validated
-imports.wast:129  unsupported: module not fully validated
-imports.wast:130  unsupported: module not fully validated
-imports.wast:131  unsupported: module not fully validated
-imports.wast:132  unsupported: module not fully validated
-imports.wast:133  unsupported: module not fully validated
-imports.wast:134  unsupported: module not fully validated
-imports.wast:137  unsupported: module not fully validated
-imports.wast:146  unsupported: module not fully validated
-imports.wast:150  unsupported: module not fully validated
-imports.wast:154  unsupported: module not fully validated
-imports.wast:158  unsupported: module not fully validated
-imports.wast:162  unsupported: module not fully validated
-imports.wast:166  unsupported: module not fully validated
-imports.wast:170  unsupported: module not fully validated
-imports.wast:174  unsupported: module not fully validated
-imports.wast:178  unsupported: module not fully validated
-imports.wast:182  unsupported: module not fully validated
-imports.wast:186  unsupported: module not fully validated
-imports.wast:19  unsupported: module not fully validated
-imports.wast:190  unsupported: module not fully validated
-imports.wast:194  unsupported: module not fully validated
-imports.wast:198  unsupported: module not fully validated
-imports.wast:202  unsupported: module not fully validated
-imports.wast:206  unsupported: module not fully validated
-imports.wast:211  unsupported: module not fully validated
-imports.wast:223  unsupported: module not fully validated
 imports.wast:240  LoadError: NotImplementedError: tag import
 imports.wast:244  LoadError: NotImplementedError: tag import
 imports.wast:248  LoadError: NotImplementedError: tag import
 imports.wast:252  LoadError: NotImplementedError: tag import
 imports.wast:256  LoadError: NotImplementedError: tag import
-imports.wast:291  unsupported: module not fully validated
-imports.wast:292  unsupported: module not fully validated
-imports.wast:293  unsupported: module not fully validated
-imports.wast:296  unsupported: module not fully validated
-imports.wast:3  unsupported: module not fully validated
-imports.wast:305  unsupported: module not fully validated
-imports.wast:309  unsupported: module not fully validated
-imports.wast:313  unsupported: module not fully validated
-imports.wast:317  unsupported: module not fully validated
-imports.wast:321  unsupported: module not fully validated
-imports.wast:325  unsupported: module not fully validated
-imports.wast:329  unsupported: module not fully validated
-imports.wast:333  unsupported: module not fully validated
-imports.wast:337  unsupported: module not fully validated
-imports.wast:341  unsupported: module not fully validated
-imports.wast:345  unsupported: module not fully validated
-imports.wast:349  unsupported: module not fully validated
 imports.wast:35  LoadError: NotImplementedError: tag import
-imports.wast:354  unsupported: module not fully validated
-imports.wast:441  unsupported: module not fully validated
-imports.wast:475  unsupported: module not fully validated
-imports.wast:479  unsupported: module not fully validated
-imports.wast:539  unsupported: module not fully validated
-imports.wast:629  unsupported: module not fully validated
-imports.wast:633  unsupported: module not fully validated
 imports.wast:97  LookupError: no exported function print32
 imports.wast:98  LookupError: no exported function print64
-instance.wast:10  unsupported: module not fully validated
 instance.wast:101  no current module
 instance.wast:102  no current module
 instance.wast:103  no current module
 instance.wast:104  no current module
-instance.wast:11  unsupported: module not fully validated
-instance.wast:125  unsupported: module not fully validated
 instance.wast:128  LoadError: NotImplementedError: tag import
 instance.wast:15  LoadError: NotImplementedError: tag import
 instance.wast:167  no current module
@@ -128,12 +22,6 @@ instance.wast:56  no current module
 instance.wast:57  no current module
 instance.wast:62  LoadError: NotImplementedError: tag import
 linking.wast:112  LinkError: incompatible import type Mref_ex.g-const-func
-ref_as_non_null.wast:1  unsupported: typed function references
-ref_as_non_null.wast:25  unsupported: typed function references
-ref_as_non_null.wast:27  unsupported: typed function references
-ref_as_non_null.wast:28  unsupported: typed function references
-ref_as_non_null.wast:29  unsupported: typed function references
-ref_as_non_null.wast:41  unsupported: typed function references
 ref_null.wast:1  LoadError: NotImplementedError: value type 0x6e
 ref_null.wast:16  no current module
 ref_null.wast:17  no current module
@@ -168,136 +56,6 @@ ref_null.wast:78  no current module
 ref_null.wast:79  no current module
 ref_null.wast:80  no current module
 ref_null.wast:81  no current module
-return_call.wast:101  unsupported: tail calls
-return_call.wast:102  unsupported: tail calls
-return_call.wast:103  unsupported: tail calls
-return_call.wast:104  unsupported: tail calls
-return_call.wast:106  unsupported: tail calls
-return_call.wast:107  unsupported: tail calls
-return_call.wast:108  unsupported: tail calls
-return_call.wast:109  unsupported: tail calls
-return_call.wast:111  unsupported: tail calls
-return_call.wast:112  unsupported: tail calls
-return_call.wast:113  unsupported: tail calls
-return_call.wast:114  unsupported: tail calls
-return_call.wast:116  unsupported: tail calls
-return_call.wast:117  unsupported: tail calls
-return_call.wast:118  unsupported: tail calls
-return_call.wast:120  unsupported: tail calls
-return_call.wast:124  unsupported: tail calls
-return_call.wast:125  unsupported: tail calls
-return_call.wast:126  unsupported: tail calls
-return_call.wast:128  unsupported: tail calls
-return_call.wast:129  unsupported: tail calls
-return_call.wast:130  unsupported: tail calls
-return_call.wast:131  unsupported: tail calls
-return_call.wast:132  unsupported: tail calls
-return_call.wast:133  unsupported: tail calls
-return_call.wast:134  unsupported: tail calls
-return_call.wast:135  unsupported: tail calls
-return_call.wast:136  unsupported: tail calls
-return_call.wast:137  unsupported: tail calls
-return_call.wast:138  unsupported: tail calls
-return_call.wast:139  unsupported: tail calls
-return_call.wast:140  unsupported: tail calls
-return_call.wast:141  unsupported: tail calls
-return_call.wast:142  unsupported: tail calls
-return_call.wast:184  unsupported: tail calls
-return_call.wast:189  unsupported: tail calls
-return_call.wast:3  unsupported: tail calls
-return_call_indirect.wast:247  unsupported: tail calls
-return_call_indirect.wast:248  unsupported: tail calls
-return_call_indirect.wast:249  unsupported: tail calls
-return_call_indirect.wast:250  unsupported: tail calls
-return_call_indirect.wast:252  unsupported: tail calls
-return_call_indirect.wast:254  unsupported: tail calls
-return_call_indirect.wast:255  unsupported: tail calls
-return_call_indirect.wast:256  unsupported: tail calls
-return_call_indirect.wast:257  unsupported: tail calls
-return_call_indirect.wast:259  unsupported: tail calls
-return_call_indirect.wast:260  unsupported: tail calls
-return_call_indirect.wast:261  unsupported: tail calls
-return_call_indirect.wast:262  unsupported: tail calls
-return_call_indirect.wast:264  unsupported: tail calls
-return_call_indirect.wast:265  unsupported: tail calls
-return_call_indirect.wast:266  unsupported: tail calls
-return_call_indirect.wast:267  unsupported: tail calls
-return_call_indirect.wast:268  unsupported: tail calls
-return_call_indirect.wast:269  unsupported: tail calls
-return_call_indirect.wast:270  unsupported: tail calls
-return_call_indirect.wast:271  unsupported: tail calls
-return_call_indirect.wast:272  unsupported: tail calls
-return_call_indirect.wast:274  unsupported: tail calls
-return_call_indirect.wast:275  unsupported: tail calls
-return_call_indirect.wast:276  unsupported: tail calls
-return_call_indirect.wast:277  unsupported: tail calls
-return_call_indirect.wast:278  unsupported: tail calls
-return_call_indirect.wast:279  unsupported: tail calls
-return_call_indirect.wast:281  unsupported: tail calls
-return_call_indirect.wast:282  unsupported: tail calls
-return_call_indirect.wast:283  unsupported: tail calls
-return_call_indirect.wast:285  unsupported: tail calls
-return_call_indirect.wast:286  unsupported: tail calls
-return_call_indirect.wast:287  unsupported: tail calls
-return_call_indirect.wast:288  unsupported: tail calls
-return_call_indirect.wast:290  unsupported: tail calls
-return_call_indirect.wast:291  unsupported: tail calls
-return_call_indirect.wast:292  unsupported: tail calls
-return_call_indirect.wast:293  unsupported: tail calls
-return_call_indirect.wast:294  unsupported: tail calls
-return_call_indirect.wast:295  unsupported: tail calls
-return_call_indirect.wast:296  unsupported: tail calls
-return_call_indirect.wast:297  unsupported: tail calls
-return_call_indirect.wast:298  unsupported: tail calls
-return_call_indirect.wast:299  unsupported: tail calls
-return_call_indirect.wast:3  unsupported: tail calls
-return_call_indirect.wast:300  unsupported: tail calls
-return_call_indirect.wast:301  unsupported: tail calls
-return_call_indirect.wast:303  unsupported: tail calls
-return_call_indirect.wast:304  unsupported: tail calls
-return_call_indirect.wast:305  unsupported: tail calls
-return_call_indirect.wast:487  unsupported: tail calls
-return_call_indirect.wast:493  unsupported: tail calls
-return_call_ref.wast:168  unsupported: opcode 0x15
-return_call_ref.wast:169  unsupported: opcode 0x15
-return_call_ref.wast:170  unsupported: opcode 0x15
-return_call_ref.wast:171  unsupported: opcode 0x15
-return_call_ref.wast:173  unsupported: opcode 0x15
-return_call_ref.wast:174  unsupported: opcode 0x15
-return_call_ref.wast:175  unsupported: opcode 0x15
-return_call_ref.wast:176  unsupported: opcode 0x15
-return_call_ref.wast:178  unsupported: opcode 0x15
-return_call_ref.wast:179  unsupported: opcode 0x15
-return_call_ref.wast:180  unsupported: opcode 0x15
-return_call_ref.wast:181  unsupported: opcode 0x15
-return_call_ref.wast:183  unsupported: opcode 0x15
-return_call_ref.wast:185  unsupported: opcode 0x15
-return_call_ref.wast:186  unsupported: opcode 0x15
-return_call_ref.wast:187  unsupported: opcode 0x15
-return_call_ref.wast:189  unsupported: opcode 0x15
-return_call_ref.wast:193  unsupported: opcode 0x15
-return_call_ref.wast:194  unsupported: opcode 0x15
-return_call_ref.wast:195  unsupported: opcode 0x15
-return_call_ref.wast:197  unsupported: opcode 0x15
-return_call_ref.wast:198  unsupported: opcode 0x15
-return_call_ref.wast:199  unsupported: opcode 0x15
-return_call_ref.wast:200  unsupported: opcode 0x15
-return_call_ref.wast:201  unsupported: opcode 0x15
-return_call_ref.wast:202  unsupported: opcode 0x15
-return_call_ref.wast:203  unsupported: opcode 0x15
-return_call_ref.wast:204  unsupported: opcode 0x15
-return_call_ref.wast:205  unsupported: opcode 0x15
-return_call_ref.wast:206  unsupported: opcode 0x15
-return_call_ref.wast:207  unsupported: opcode 0x15
-return_call_ref.wast:208  unsupported: opcode 0x15
-return_call_ref.wast:213  unsupported: opcode 0x15
-return_call_ref.wast:299  unsupported: opcode 0x15
-return_call_ref.wast:3  unsupported: opcode 0x15
-return_call_ref.wast:306  unsupported: opcode 0x15
-return_call_ref.wast:308  unsupported: opcode 0x15
-return_call_ref.wast:319  unsupported: opcode 0x15
-return_call_ref.wast:321  unsupported: opcode 0x15
-return_call_ref.wast:334  unsupported: opcode 0x15
 type-canon.wast:1  LoadError: NotImplementedError: rec / sub / struct / array types
 type-canon.wast:9  LoadError: NotImplementedError: rec / sub / struct / array types
 type-equivalence.wast:136  LoadError: NotImplementedError: rec / sub / struct / array types
@@ -329,14 +87,3 @@ type-rec.wast:39  LoadError: NotImplementedError: rec / sub / struct / array typ
 type-rec.wast:45  LoadError: NotImplementedError: rec / sub / struct / array types
 type-rec.wast:71  LoadError: NotImplementedError: rec / sub / struct / array types
 type-rec.wast:78  LoadError: NotImplementedError: rec / sub / struct / array types
-unreached-valid.wast:1  unsupported: opcode 0x14
-unreached-valid.wast:48  unsupported: opcode 0x14
-unreached-valid.wast:49  unsupported: opcode 0x14
-unreached-valid.wast:50  unsupported: opcode 0x14
-unreached-valid.wast:51  unsupported: opcode 0x14
-unreached-valid.wast:53  unsupported: opcode 0x14
-unreached-valid.wast:54  unsupported: opcode 0x14
-unreached-valid.wast:55  unsupported: opcode 0x14
-unreached-valid.wast:56  unsupported: opcode 0x14
-unreached-valid.wast:58  unsupported: opcode 0x14
-unreached-valid.wast:82  unsupported: typed function references

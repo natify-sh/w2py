@@ -11,7 +11,8 @@ from dataclasses import dataclass
 
 SAVED_SP, TRAP_CODE, INTERRUPT, FUEL, EPOCH_DEADLINE = 0, 1, 2, 3, 4
 VSTACK_LIMIT, NSTACK_LIMIT, HOST_ERROR, HOST_BRIDGE = 5, 6, 7, 8
-FIRST_VAR = 16  # words 9-15 are reserved, zero
+TAIL_SWITCH = 9  # address of the cross-context tail-call trampoline (D30)
+FIRST_VAR = 16  # words 10-15 are reserved, zero
 
 # Status values returned by the entry, the bridge and every function (0 = success).
 STATUS_INTERRUPT = 12

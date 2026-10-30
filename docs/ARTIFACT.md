@@ -146,7 +146,8 @@ the phase-3 meaning of each word and the register roles are in [S0003](specs/S00
 | 6 | `NSTACK_LIMIT` | host → code | lowest native stack address allowed → `STACK_OVERFLOW` |
 | 7 | `HOST_ERROR` | — | unused: a host call reports failure through its status (13) |
 | 8 | `HOST_BRIDGE` | host → code | address of the host-call bridge for the host's calling convention |
-| 9–15 | reserved | | zero |
+| 9 | `TAIL_SWITCH` | host → code | address of the cross-context tail-call trampoline (below; D30) |
+| 10–15 | reserved | | zero |
 | 16 … | per memory *i*: `base`, `size_bytes` (2 words) | host ↔ code | the base never moves (4 GiB reserved, committed on grow); the code reloads the size after every host call |
 | … | per table *i*: `base`, `size` (2 words) | host ↔ code | `base`: the element words (one per element), `size`: elements; `table.grow` may move the elements, so code reads both words at each use and never keeps them across a host call. A `funcref` element (and value) is 0 (null) or the address of a function record (below); an `externref` element is a host handle (0 = null) |
 | … | per global *i*: 1 word (2 for v128) | both | imported globals: a pointer to the owner's word instead |
@@ -162,6 +163,16 @@ Offsets of the variable part follow from the counts in the artifact, in exactly 
 value as for entries; the function writes its results to `slots[0..m)` and returns `0`, a trap code,
 or `13` `HOST_ERROR` (the host keeps the actual exception). Compiled code calls it through the bridge
 (`ctx[HOST_BRIDGE]`), which saves the pool registers the host convention lets a callee clobber.
+
+**Tail calls** (D30). A `return_call*` puts its arguments at its own frame base, drops its native
+frame and jumps, so both stacks stay constant. When the callee's function record names another
+context, the code jumps to `ctx[TAIL_SWITCH]` instead, with the record's address in the scratch
+register the architecture names (x86-64: `rdx`) and the caller's return address on top of the stack.
+The trampoline (one per process and convention, in the host's code area like the bridge) does the
+following. If that return address is its own `restore` point, it loads the record's context and jumps
+to its code. Otherwise it saves the current context, loads the record's context and memory words, and
+calls the code; at `restore` it puts the saved context back, reloads the memory words and returns the
+callee's status. Every return matches its call.
 
 **Trap codes** (keep the PoC's first six numbers; names are Wasmtime's `TrapCode`):
 

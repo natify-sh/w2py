@@ -20,10 +20,13 @@ def test_probe_refuses_other_architectures(monkeypatch: pytest.MonkeyPatch) -> N
     assert why is not None and "aarch64" in why
 
 
-def test_registered_but_not_selected_yet() -> None:
+def test_registered_and_selected_by_auto() -> None:
+    """Ready since step 3e (expected failures equal pyc's, tests/spec/test_runner.py): `auto`
+    selects it where its probe succeeds."""
     target = TARGETS["jit-x86_64"]()
     assert target.name == "jit-x86_64"
-    assert target_order("auto") == ["pyc"]  # the step-2 readiness guard
+    want = "jit-x86_64" if target.probe() is None else "pyc"
+    assert target_order("auto") == [want]
     assert target.supports({}) is not None
     with pytest.raises(Unsupported):
         target.compile({})

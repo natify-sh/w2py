@@ -1,4 +1,3 @@
-exports.wast:71  validator gap: accepted (tag, GC types, non-core construct)
 imports.wast:240  gap: table import / unknown import kind
 imports.wast:244  gap: table import / unknown import kind
 imports.wast:248  gap: table import / unknown import kind

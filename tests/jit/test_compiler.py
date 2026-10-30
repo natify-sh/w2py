@@ -483,11 +483,7 @@ def test_host_exception_and_trap_through_compiled_code() -> None:
 @pytest.mark.parametrize(
     "text,feature",
     [
-        (
-            "(func (param funcref) (result funcref) (ref.as_non_null (local.get 0)))",
-            "typed function references",
-        ),  # fmt: skip
-        ("(func $f (return_call $f))", "tail calls"),
+        ("(memory 1) (memory 1)", "multi-memory"),
     ],
 )
 def test_unsupported_names_the_feature(text: str, feature: str) -> None:

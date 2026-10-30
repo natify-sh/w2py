@@ -192,6 +192,7 @@ def parse(data):
         elem_mode=[],  # "active" / "passive" / "declarative" for every segment
         elem_info=[],  # (table index or None, offset expr or None, reftype, item exprs) of every segment
         data_mem=[],  # memory index of every data segment (None: passive)
+        tags=[],  # type index of every defined tag (tag imports are not read yet)
     )
     datacount = None
     rank = 0
@@ -244,8 +245,13 @@ def parse(data):
             if SECTION_RANK[sid] <= rank:
                 raise Malformed("unexpected content after last section")
             rank = SECTION_RANK[sid]
-        if sid == 13:  # tags: not supported, the section is skipped as before
-            r.p = end
+        if sid == 13:  # tags: attribute 0 (exception), then a type index
+            for _ in range(r.u()):
+                if r.u8() != 0:
+                    raise Malformed(
+                        "zero byte expected"
+                    )  # tag attribute; the reference interpreter's text
+                mod["tags"].append(r.u())
         elif sid == 1:
             for _ in range(r.u()):
                 form = r.u8()

@@ -105,11 +105,12 @@ def _float_module(t: str) -> str:
 class Oracle:
     """Wasmtime, called with and returning raw integers."""
 
-    def __init__(self, wasm: bytes) -> None:
+    def __init__(self, wasm: bytes, config: Any = None) -> None:
+        """`config`: a `wasmtime.Config` (features such as tail calls), else the defaults."""
         import wasmtime
 
         self.w = wasmtime
-        self.store = wasmtime.Store()
+        self.store = wasmtime.Store(wasmtime.Engine(config) if config is not None else None)
         inst = wasmtime.Instance(self.store, wasmtime.Module(self.store.engine, wasm), [])
         self.ex = inst.exports(self.store)
 
