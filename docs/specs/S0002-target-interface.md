@@ -105,14 +105,16 @@ References (`funcref`, `externref`): later, with stage 2 (TARGETS.md).
 
 **Linking.** The runtime, not the target, resolves `(module, field)` to an `Extern` and checks its
 type (today's code in `tests/spec/pyc_engine.py` moves to `src/w2py/runtime/link.py`). Functions
-cross targets freely: a target receives other targets' functions as `HostFunc`. Memories, tables and
-mutable globals are **shared only within one target in phase 3** (ARCHITECTURE.md, "State shared
-across targets"; ROADMAP open question 12): a module importing one of them is compiled with the
-exporting instance's target, and fails with `Unsupported` if that target cannot compile it.
+stay within one target (D25): every instance of a store runs on the store's target, so functions,
+memories, tables and globals are shared only between instances of that target; host functions come
+in as `HostFunc`.
 
-**Fallback (D5).** The default order is `["jit-<arch>", "pyc"]`; a target is skipped if `probe()`
-fails (once per process, cached) or `supports(module)` names a feature; the choice and the reason
-are logged at `DEBUG`. `W2PY_TARGET` overrides the order. A target never special-cases another.
+**Target choice (D25).** The target is fixed per engine (and so per store): `auto` picks
+`jit-<arch>` when `probe()` succeeds (once per process, cached), else `pyc`; the module's content
+never changes the choice. `W2PY_TARGET` overrides it. A module the chosen target cannot compile
+raises `Unsupported` with the feature — there is no per-module fallback; a JIT backend covers what it
+does not implement natively with libcalls (step 4), and a module without a full validator verdict
+(`validated = False`) is `Unsupported` on a JIT. A target never special-cases another.
 
 **Threads and depth.** One thread per store: `StoreState` records the owner on first entry and
 raises `RuntimeError` on entry from another thread; nesting (wasm → host → wasm) on the owner thread
@@ -123,7 +125,7 @@ adapters over `select`/`compile`/`instantiate`/`call`: signed ↔ `Raw` conversi
 S0001 `Trap(TrapCode[code.name])`, front-end errors → `LoadError`. `--engine jit` uses the order
 `["jit-x86_64"]` with **no fallback**: a valid module the JIT does not support fails its commands
 with `unsupported: <feature>`, listed in `xfail/jit.txt`, so the JIT's number is its own.
-`--engine auto` uses the default order and checks the fallback itself.
+`--engine auto` follows the target choice above.
 
 ## Test plan
 Phase-3 steps, each one commit with its acceptance; the reviewer reads every JIT/ABI diff (CLAUDE.md).
@@ -143,9 +145,8 @@ Phase-3 steps, each one commit with its acceptance; the reviewer reads every JIT
    int_exprs left-to-right stack fac forward unwind traps` → every command that passes on `pyc`
    passes on `jit`, command by command (`tools/` diff of the two `--json` outputs), 0 crashes.
 4. **Libcalls and fallback.** A backend hands an op to a Python helper through the host bridge
-   (S0003); `memory.grow`/`memory.size` and float ops not ported go there first. `--engine auto` on
-   the whole suite → pass count ≥ `pyc`'s; a test that a module with an unsupported feature runs on
-   `pyc` and logs the reason; a probe failure (forced) falls back to `pyc` for every module.
+   (S0003); `memory.grow`/`memory.size` and float ops not ported go there first, so the JIT accepts
+   every module `pyc` accepts (D25 parity); a probe failure (forced) selects `pyc` for the engine.
 5. **Speed and ISA level.** CoreMark on the package JIT alternated with `poc/run_jit2.py` in one
    session, row in BENCHMARKS.md: target ≥ 95 % of `w2jit2` (trap-by-return and interrupt polls cost
    something; measured, not assumed). The ISA check: `objdump -D` of the code of every spec module
@@ -168,8 +169,9 @@ host exceptions, i64 arithmetic, explicit checks for `idiv` overflow (x86 faults
   import checks; cross-target calls need pairwise conversions. Rejected.
 * **Python values (signed ints, floats) at the boundary**: loses f32 NaN payloads (S0001) and costs
   the JIT conversions it does not need. Rejected.
-* **One target per store** (no mixing): simpler, but one unsupported feature slows every module of
-  the store (ARCHITECTURE.md). Kept only for memories/tables in phase 3.
+* **Per-module fallback with mixed targets in one store** (D5 as first written): needs a memory
+  representation shared by `pyc` and the JIT (an `mmap` buffer `pyc` cannot rely on where `ctypes`/
+  executable memory are unavailable) and two trap models in one call graph. Rejected by D25.
 * **Silent fallback in `--engine jit`**: the JIT's number would include `pyc`'s passes. Rejected.
 
 ## Proposed decision: the shape of the shared JIT core
@@ -219,9 +221,9 @@ weights itself until then.
 
 ## Open questions
 * Approve (b), recorded as a new decision narrowing D16 as worded above?
-* Memories/tables shared within one target only in phase 3 — acceptable until open question 12?
 * `--engine jit` without fallback (its own xfail file) — agreed?
 * `interrupt` polling on by default in JIT code (cost measured in step 5), as D14 implies?
 
 ## Changes
 * 2026-10-30: created (draft).
+* 2026-10-30: one target per engine/store, no per-module fallback, pyc/JIT parity (D25).

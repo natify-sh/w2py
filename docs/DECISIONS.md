@@ -47,6 +47,7 @@ Status: accepted · Date: 2026-10-26 · Supersedes: — · Evidence: —
 
 `pyc` always; `mpy` on MicroPython; `jit-<arch>` where the architecture matches and executable memory
 works. Architectures are added one by one; a module using a feature a JIT lacks runs on `pyc`.
+*Per-module fallback superseded by D25 (one target per engine/store, parity).*
 
 ### D6. Follow Wasmtime: model, API, features, traps
 Status: accepted · Date: 2026-10-26 · Supersedes: — · Evidence: —
@@ -265,3 +266,18 @@ mandatory. What the PoC already uses above the baseline is kept as such an optio
 than lost (`roundsd` for `f64.trunc`). CI disassembles generated code and fails on any instruction
 above the declared level. With D23 (no OS in the code) this keeps an artifact dependent on the
 architecture and its declared level only.
+
+### D25. One target per engine and store; `pyc` and the JIT at feature parity
+Status: accepted · Date: 2026-10-30 · Supersedes: D5 (per-module fallback) · Evidence: —
+
+Targets are never mixed: the target is chosen per engine, so every module and store of an engine runs
+on it (the Wasmtime model: an engine owns the compiler). `auto` chooses from the environment only —
+`jit-<arch>` where the architecture is supported and executable memory works, otherwise `pyc` — never
+from a module's content. No per-module fallback: memories, tables and globals then never cross two
+representations (a `pyc` memory in an `mmap` buffer would break targets without `ctypes`/executable
+memory), and one call graph has one trap model.
+For this to cost nothing, **`pyc` and every `jit-<arch>` support the same features, 1:1**: a feature
+is complete when it passes on both. A JIT backend covers what it does not implement natively through
+libcalls (S0002) rather than refusing the module; `pyc` closes its own gaps (e.g. NaN payloads) rather
+than relying on the JIT. CI compares the expected-failures files of `pyc` and each JIT; a difference
+is a gap on one side to close, not a permanent state. Tier-3 targets (`mpy`, D22) are exempt.
