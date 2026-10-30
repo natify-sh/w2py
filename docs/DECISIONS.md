@@ -329,3 +329,18 @@ where Wasmtime quiets them: arithmetic, promote/demote (`x*1.0`), floor/ceil/tru
 loads/stores, reinterpret, select, neg/abs/copysign keep bits exactly. f32 arithmetic is computed in
 double and re-rounded to f32 once per operation (proved exact for add/sub/mul/div/sqrt); i64→f32 is
 rounded once (sticky bit). A JIT libcall for an f32 operation reuses the same helpers (D25 parity).
+
+### D29. JIT bounds checks: guard pages by default where the handler is verified; explicit checks as the fallback
+Status: accepted · Date: 2026-10-30 · Supersedes: — · Evidence: BENCHMARKS.md "Guard pages in the JIT" (PoC: explicit ~78 %, guard pages ~91 % of wasmtime on CoreMark)
+
+The bounds-check mode is a compile-time property of JIT code, recorded in the artifact and the cache
+key (`guard` or `explicit`). As in Wasmtime (`signals_based_traps = true` by default), the default is
+`guard` wherever the platform has a verified fault handler; `explicit` is the fallback and the only
+mode of a new architecture, of platforms without a handler table entry yet, and of `memory64`.
+Guard code never runs without its handler: before the first entry the runtime checks that our
+handler is installed and still ours (a cheap `sigaction` query; Windows: the vectored handler) and
+otherwise compiles the module `explicit` (never crash the interpreter). Layout as Wasmtime: 4 GiB
+reservation per 32-bit memory plus a 32 MiB guard; static offsets beyond the guard keep an explicit
+check. `Config.signals_based_traps = False` selects `explicit` (API.md). Implemented in phase 5 (risks:
+RISKS.md R6); phase 3 is `explicit` only and must not close this path (trap stubs reachable from a
+fault handler, `SAVED_SP` kept, the mode field in the artifact).

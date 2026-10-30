@@ -164,8 +164,8 @@ lacks a feature reports it through `Target.supports` and the module runs on anot
 * **Guard pages with a JIT-emitted signal handler** (`poc/w2jit_guard.py`: +20–25 % on CoreMark, the gap
   to Cranelift was mostly the bounds checks), per OS and architecture (Linux/BSD `sigaction` +
   `ucontext` offsets, macOS also SIGBUS, Windows a vectored exception handler), `sigaltstack` per thread
-  for stack overflow; explicit checks stay the fallback and the default of a new architecture; bounds-check
-  elimination where guard pages are not available.
+  for stack overflow; the default where the handler is verified, explicit checks the fallback and the
+  only mode of a new architecture (D29); bounds-check elimination where guard pages are not available.
 * Trap frames, fuel and epoch checks, the interrupt word polled at back-edges (Ctrl+C via the waiting
   main thread).
 * The contract of ARTIFACT.md (format v1, context ABI v1, baseline-ISA sequences, CPU feature

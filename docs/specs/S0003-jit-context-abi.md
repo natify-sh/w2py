@@ -265,3 +265,6 @@ uv run pytest tests/jit -k "entry or trap or reentry or host or interrupt or sta
   and the entry trampoline does not set it, as Wasmtime does not; a host library that changes MXCSR
   changes `nearest` and subnormal results. Tests: float operands in r10/r11
   (`test_operands_in_high_registers`), no xmm6–15 in the float code (`test_isa_check_on_float_code`).
+* 2026-10-30: bounds-check mode (D29, maintainer): phase 3 emits `explicit` only; phase 5 adds `guard`
+  as the default where the fault handler is verified, recorded in the artifact. Phase-3 code keeps the
+  out-of-bounds trap reachable from a future fault handler and `SAVED_SP` reserved.

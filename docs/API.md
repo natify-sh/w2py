@@ -36,7 +36,7 @@ instance.exports(store)["_start"](store)
 
 | wasmtime-py name | members in wasmtime-py 50 | w2py scope |
 |---|---|---|
-| `Config` | `cache`, `consume_fuel`, `epoch_interruption`, `max_wasm_stack`, `memory_reservation`, `memory_guard_size`, `wasm_*` feature switches (see FEATURES.md), `strategy`, `target`, `cranelift_*`, `profiler`, `debug_info`, `parallel_compilation`, … | feature switches, fuel, epoch, stack, cache: yes. `strategy` / `target` map to our target choice. `cranelift_*`, `profiler`, `native_unwind_info`, `signals_based_traps`, `macos_use_mach_ports`: accepted with no effect or rejected (decide once, document) |
+| `Config` | `cache`, `consume_fuel`, `epoch_interruption`, `max_wasm_stack`, `memory_reservation`, `memory_guard_size`, `wasm_*` feature switches (see FEATURES.md), `strategy`, `target`, `cranelift_*`, `profiler`, `debug_info`, `parallel_compilation`, … | feature switches, fuel, epoch, stack, cache: yes. `strategy` / `target` map to our target choice. `signals_based_traps`: `False` selects explicit bounds checks in the JIT (D29). `cranelift_*`, `profiler`, `native_unwind_info`, `macos_use_mach_ports`: accepted with no effect or rejected (decide once, document) |
 | `Engine` | `increment_epoch`, `is_pulley` | yes; plus w2py's `target` (read-only, what was selected) |
 | `Module` | `Module(engine, wasm)`, `from_file`, `validate`, `imports`, `exports`, `serialize`, `deserialize`, `deserialize_file` | yes; `.wat` input through an optional text parser (wasmtime-py accepts text too) |
 | `Store` | `data`, `gc`, `get_fuel`, `set_fuel`, `set_epoch_deadline`, `set_limits`, `set_wasi`, `set_wasi_http` | yes; `set_wasi_http` through the WASI host's `wasi:http` |
