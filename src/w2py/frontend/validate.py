@@ -170,6 +170,13 @@ class _Ctx:
 def _const(c: _Ctx, e: tuple, nglobals: int) -> int:
     """Type of a constant expression (parser tuples); only globals below `nglobals` are visible."""
     k = e[0]
+    if k == "bad":
+        raise Invalid("type mismatch")
+    if k in ("add", "sub", "mul"):
+        t = I32 if e[1] == "i32" else I64
+        if _const(c, e[2], nglobals) != t or _const(c, e[3], nglobals) != t:
+            raise Invalid("type mismatch")
+        return t
     if k == "i32":
         return I32
     if k == "i64":

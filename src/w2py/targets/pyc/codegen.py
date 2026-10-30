@@ -576,7 +576,9 @@ class FuncGen:
         n, nb, sgn = s.n, s.nb, s.sgn
         mg = s.mg
         if op == 0x1A:
-            pop()
+            e = pop()
+            if e.m and not e.k:  # a dropped load can still trap out of bounds
+                s.emit(e.c)
             return
         if op == 0x1B:
             c = s.popc()
@@ -1222,6 +1224,14 @@ class ModGen:
         return "C%d.v" % gi if gi in s.cells else "G%d" % gi
 
     def val(s, init):
+        if init[0] in ("add", "sub", "mul"):
+            o = {"add": "+", "sub": "-", "mul": "*"}[init[0]]
+            return "((%s %s %s) & %#x)" % (
+                s.val(init[2]),
+                o,
+                s.val(init[3]),
+                M32 if init[1] == "i32" else M64,
+            )
         if init[0] == "global":
             return s.gname(init[1])
         if init[0] == "func":
@@ -1256,7 +1266,7 @@ class ModGen:
                 )
                 gl.append("C%d" % i if i in s.cells else "G%d" % i)
                 continue
-            first = init[0] not in ("global", "func")
+            first = init[0] not in ("global", "func", "add", "sub", "mul")
             if i in s.cells:
                 out.append("C%d = _Cell(%s)" % (i, s.val(init) if first else "0"))
             else:

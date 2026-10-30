@@ -109,3 +109,9 @@ What went wrong or surprised us while building the PoC, so it is not found again
     is never an acceptable xfail; verify every step with a run against an empty xfail file and
     `grep -c "wrong kind"` = 0. Range limits (memarg offset ≥ 2³², memory/table sizes, alignment) are
     decoded as u64 and rejected by the validator, not the reader. Found: validator step 1, 2026-10-30.
+28. **A lazy operand stack can drop a trap.** `pyc` builds expressions lazily; `drop` discarded an
+    unevaluated `i32.load` whose address was out of bounds, so the trap never happened (60 commands in
+    `address.wast`). Wasm evaluates every operand: anything that can trap (loads, `div`/`rem`,
+    `trunc`, `call`) must be evaluated even when its value is discarded. Still open: `select`
+    evaluates only the arm it picks, so a trapping operand in the other arm would not trap (no spec
+    test hits it; a differential/fuzz case should). Found: pyc loop, 2026-10-30.

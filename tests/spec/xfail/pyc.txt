@@ -1,31 +1,3 @@
-address.wast:201  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:202  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:203  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:204  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:205  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:207  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:208  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:209  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:210  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:211  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:496  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:497  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:498  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:499  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:500  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:501  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:502  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:504  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:505  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:506  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:507  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:508  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:509  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:510  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:559  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:560  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:609  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:610  gap: no bounds/segment checks (instantiation or table access does not trap)
 align.wast:949  gap: decoder does not support the construct (block type / memarg memory index)
 annotations.wast:129  gap: table import / unknown import kind
 annotations.wast:98  gap: table import / unknown import kind
@@ -256,25 +228,9 @@ conversions.wast:628  wrong result (float NaN payload / conversion)
 conversions.wast:629  wrong result (float NaN payload / conversion)
 conversions.wast:657  wrong result (float NaN payload / conversion)
 conversions.wast:658  wrong result (float NaN payload / conversion)
-data.wast:178  decoder rejects a valid module (unsupported construct)
-data.wast:183  decoder rejects a valid module (unsupported construct)
-data.wast:188  decoder rejects a valid module (unsupported construct)
-data.wast:195  decoder rejects a valid module (unsupported construct)
 data.wast:532  gap: opcode not implemented
 data.wast:542  earlier module of the file did not load (name or export missing)
 data.wast:543  earlier module of the file did not load (name or export missing)
-elem.wast:1057  gap: extended constant expressions / typed references (not table ops)
-elem.wast:1065  earlier module of the file did not load (name or export missing)
-elem.wast:1066  earlier module of the file did not load (name or export missing)
-elem.wast:1068  gap: extended constant expressions / typed references (not table ops)
-elem.wast:1076  earlier module of the file did not load (name or export missing)
-elem.wast:1077  earlier module of the file did not load (name or export missing)
-elem.wast:1079  gap: extended constant expressions / typed references (not table ops)
-elem.wast:1087  earlier module of the file did not load (name or export missing)
-elem.wast:1088  earlier module of the file did not load (name or export missing)
-elem.wast:1092  gap: extended constant expressions / typed references (not table ops)
-elem.wast:1109  earlier module of the file did not load (name or export missing)
-elem.wast:1110  earlier module of the file did not load (name or export missing)
 exports.wast:71  validator gap: accepted (typed references, tag, non-core construct)
 f32.wast:2461  wrong result (float NaN payload / conversion)
 f32.wast:2463  wrong result (float NaN payload / conversion)
@@ -343,69 +299,6 @@ float_misc.wast:647  wrong result (float NaN payload / conversion)
 float_misc.wast:648  wrong result (float NaN payload / conversion)
 float_misc.wast:649  wrong result (float NaN payload / conversion)
 func.wast:660  validator gap: accepted (typed references, tag, non-core construct)
-global.wast:204  earlier module of the file did not load
-global.wast:205  earlier module of the file did not load
-global.wast:206  earlier module of the file did not load
-global.wast:207  earlier module of the file did not load
-global.wast:208  earlier module of the file did not load
-global.wast:209  earlier module of the file did not load
-global.wast:210  earlier module of the file did not load
-global.wast:211  earlier module of the file did not load
-global.wast:212  earlier module of the file did not load
-global.wast:213  earlier module of the file did not load
-global.wast:214  earlier module of the file did not load
-global.wast:215  earlier module of the file did not load
-global.wast:217  earlier module of the file did not load
-global.wast:218  earlier module of the file did not load
-global.wast:219  earlier module of the file did not load
-global.wast:220  earlier module of the file did not load
-global.wast:222  earlier module of the file did not load
-global.wast:223  earlier module of the file did not load
-global.wast:225  earlier module of the file did not load
-global.wast:226  earlier module of the file did not load
-global.wast:228  earlier module of the file did not load
-global.wast:229  earlier module of the file did not load
-global.wast:230  earlier module of the file did not load
-global.wast:231  earlier module of the file did not load
-global.wast:233  earlier module of the file did not load
-global.wast:234  earlier module of the file did not load
-global.wast:235  earlier module of the file did not load
-global.wast:237  earlier module of the file did not load
-global.wast:238  earlier module of the file did not load
-global.wast:239  earlier module of the file did not load
-global.wast:240  earlier module of the file did not load
-global.wast:241  earlier module of the file did not load
-global.wast:243  earlier module of the file did not load
-global.wast:244  earlier module of the file did not load
-global.wast:245  earlier module of the file did not load
-global.wast:247  earlier module of the file did not load
-global.wast:248  earlier module of the file did not load
-global.wast:249  earlier module of the file did not load
-global.wast:251  earlier module of the file did not load
-global.wast:252  earlier module of the file did not load
-global.wast:253  earlier module of the file did not load
-global.wast:255  earlier module of the file did not load
-global.wast:256  earlier module of the file did not load
-global.wast:258  earlier module of the file did not load
-global.wast:259  earlier module of the file did not load
-global.wast:261  earlier module of the file did not load
-global.wast:262  earlier module of the file did not load
-global.wast:263  earlier module of the file did not load
-global.wast:265  earlier module of the file did not load
-global.wast:266  earlier module of the file did not load
-global.wast:267  earlier module of the file did not load
-global.wast:268  earlier module of the file did not load
-global.wast:270  earlier module of the file did not load
-global.wast:272  earlier module of the file did not load
-global.wast:273  earlier module of the file did not load
-global.wast:274  earlier module of the file did not load
-global.wast:276  earlier module of the file did not load
-global.wast:277  earlier module of the file did not load
-global.wast:278  earlier module of the file did not load
-global.wast:280  earlier module of the file did not load
-global.wast:281  earlier module of the file did not load
-global.wast:282  earlier module of the file did not load
-global.wast:3  decoder rejects a valid module (unsupported construct)
 global.wast:675  gap: init expression
 if.wast:667  earlier module of the file did not load
 if.wast:673  earlier module of the file did not load
@@ -689,20 +582,6 @@ traps.wast:54  gap: no bounds/segment checks (instantiation or table access does
 traps.wast:55  gap: no bounds/segment checks (instantiation or table access does not trap)
 traps.wast:56  gap: no bounds/segment checks (instantiation or table access does not trap)
 traps.wast:57  gap: no bounds/segment checks (instantiation or table access does not trap)
-traps.wast:78  gap: no bounds/segment checks (instantiation or table access does not trap)
-traps.wast:79  gap: no bounds/segment checks (instantiation or table access does not trap)
-traps.wast:80  gap: no bounds/segment checks (instantiation or table access does not trap)
-traps.wast:81  gap: no bounds/segment checks (instantiation or table access does not trap)
-traps.wast:82  gap: no bounds/segment checks (instantiation or table access does not trap)
-traps.wast:83  gap: no bounds/segment checks (instantiation or table access does not trap)
-traps.wast:84  gap: no bounds/segment checks (instantiation or table access does not trap)
-traps.wast:85  gap: no bounds/segment checks (instantiation or table access does not trap)
-traps.wast:86  gap: no bounds/segment checks (instantiation or table access does not trap)
-traps.wast:87  gap: no bounds/segment checks (instantiation or table access does not trap)
-traps.wast:88  gap: no bounds/segment checks (instantiation or table access does not trap)
-traps.wast:89  gap: no bounds/segment checks (instantiation or table access does not trap)
-traps.wast:90  gap: no bounds/segment checks (instantiation or table access does not trap)
-traps.wast:91  gap: no bounds/segment checks (instantiation or table access does not trap)
 type-canon.wast:1  decoder rejects a valid module (unsupported construct)
 type-canon.wast:9  decoder rejects a valid module (unsupported construct)
 type-equivalence.wast:136  decoder rejects a valid module (unsupported construct)

@@ -179,27 +179,36 @@ def parse(data):
     rank = 0
 
     def initexpr():
-        op = r.u8()
-        if op == 0x41:
-            v = ("i32", r.s(32) & M32)
-        elif op == 0x42:
-            v = ("i64", r.s(64) & M64)
-        elif op == 0x43:
-            v = ("f32", struct.unpack("<f", r.bytes(4))[0])
-        elif op == 0x44:
-            v = ("f64", struct.unpack("<d", r.bytes(8))[0])
-        elif op == 0x23:
-            v = ("global", r.u())
-        elif op == 0xD2:
-            v = ("func", r.u())
-        elif op == 0xD0:
-            v = ("null", r.ht())
-        else:
-            _illegal(op)
-        end = r.u8()
-        if end != 0x0B:
-            _illegal(end)  # a valid opcode here is an extended constant expression: a gap
-        return v
+        st = []  # operand stack of expression trees; add / sub / mul nodes are (name, type, a, b)
+        bad = False
+        while True:
+            op = r.u8()
+            if op == 0x0B:
+                break
+            if op == 0x41:
+                st.append(("i32", r.s(32) & M32))
+            elif op == 0x42:
+                st.append(("i64", r.s(64) & M64))
+            elif op == 0x43:
+                st.append(("f32", struct.unpack("<f", r.bytes(4))[0]))
+            elif op == 0x44:
+                st.append(("f64", struct.unpack("<d", r.bytes(8))[0]))
+            elif op == 0x23:
+                st.append(("global", r.u()))
+            elif op == 0xD2:
+                st.append(("func", r.u()))
+            elif op == 0xD0:
+                st.append(("null", r.ht()))
+            elif op in (0x6A, 0x6B, 0x6C, 0x7C, 0x7D, 0x7E):  # extended constant expressions
+                if len(st) < 2:
+                    bad = True
+                    continue
+                b2, a2 = st.pop(), st.pop()
+                name = ("add", "sub", "mul")[(op - 0x6A) if op < 0x70 else (op - 0x7C)]
+                st.append((name, "i32" if op < 0x70 else "i64", a2, b2))
+            else:
+                _illegal(op)
+        return st[0] if len(st) == 1 and not bad else ("bad",)
 
     while r.p < len(data):
         sid = r.u8()

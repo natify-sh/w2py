@@ -138,3 +138,21 @@ def test_table_init_get_grow_size_and_bounds() -> None:
     assert ex["grow"](3) == 2
     assert ex["grow"](1) == 0xFFFFFFFF  # above the maximum of 5
     assert ex["size"]() == 5
+
+
+def test_extended_const_global_initializer() -> None:
+    # (global (export "g") i32 (i32.add (i32.const 40) (i32.const 2)))
+    ex = load(
+        bytes.fromhex(HEAD + "060901" + "7f00" + "41284102" + "6a0b" + "07050101" + "6703" + "00"),
+        {},
+    )
+    assert ex["g"].get() == 42
+
+
+def test_dropped_out_of_bounds_load_traps() -> None:
+    # (memory 1) (func (export "f") (param i32)
+    #   (drop (i32.load8_u offset=4294967295 (local.get 0))))
+    mod = HEAD + "0105016001" + "7f00" + "03020100" + "05030100" + "01" + "07050101" + "6600" + "00"
+    mod += "0a0e010c00" + "20002d00ffffffff0f1a0b"
+    with pytest.raises(Trap):
+        load(bytes.fromhex(mod), {})["f"](0)
