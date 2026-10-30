@@ -47,7 +47,7 @@ class Unsupported(Exception):
 
 
 class JitUnavailableWarning(RuntimeWarning):
-    """`auto` fell back to `pyc` because this machine's JIT target cannot run here (D31)."""
+    """`auto` fell back to `pyc`: no JIT target for this machine, or it cannot run here (D31)."""
 
 
 class HostError(Exception):
@@ -109,9 +109,9 @@ TARGETS: dict[str, Callable[[], Target]] = {"pyc": _pyc, "jit-x86_64": _jit_x86_
 
 
 # Which `platform.machine()` values a `jit-*` target is for, so `auto` can tell "no JIT for this
-# machine" (pyc is expected, silent) from "the JIT is here but unusable" (warn), no import needed.
+# machine" from "the JIT is here but unusable" in its warning, with no import needed.
 _MACHINES = {"jit-x86_64": ("x86_64", "amd64")}
-_warned: set[tuple[str, str]] = set()
+_warned: set[str] = set()
 
 
 @cache
@@ -128,17 +128,19 @@ def target_order(choice: str | None = None) -> list[str]:
     choice = choice or os.environ.get("W2PY_TARGET", "auto")
     if choice != "auto":
         return [choice]
+    machine = platform.machine().lower()
+    msg = f"w2py: no JIT target for {machine or 'this machine'}; using pyc"
     for name in TARGETS:
         if not name.startswith("jit-"):
             continue
         why = _probe(name)
         if why is None:
             return [name]
-        if platform.machine().lower() in _MACHINES.get(name, ()) and (name, why) not in _warned:
-            _warned.add((name, why))
-            warnings.warn(
-                f"w2py: {name} unavailable ({why}); using pyc", JitUnavailableWarning, stacklevel=2
-            )
+        if machine in _MACHINES.get(name, ()):
+            msg = f"w2py: {name} unavailable ({why}); using pyc"
+    if msg not in _warned:
+        _warned.add(msg)
+        warnings.warn(msg, JitUnavailableWarning, stacklevel=2)
     return ["pyc"]
 
 

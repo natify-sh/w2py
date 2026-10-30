@@ -370,10 +370,11 @@ call on the hot path.
 ### D31. The JIT fallback warns once (`JitUnavailableWarning`)
 Status: accepted · Date: 2026-10-30 · Supersedes: — · Evidence: tests/test_fallback.py (MDWE), CI `spec` job
 
-When `auto` finds a `jit-*` target for this machine's architecture whose probe fails (executable memory
-forbidden, ...), it selects `pyc` (D25) and says so once per process per target and reason:
-`warnings.warn("w2py: jit-x86_64 unavailable (<reason>); using pyc", JitUnavailableWarning)`, a
-`RuntimeWarning` defined in `targets/base.py` (phase 6 re-exports it). No message on an architecture
-without a JIT target, or when the target was chosen explicitly; an explicit `jit-*` that cannot run is
-an `Unsupported` error. Rejected: `print` to stderr (cannot be filtered or turned into an error, noisy in
+Whenever `auto` selects `pyc` it says so once per process and message (D25):
+`warnings.warn(msg, JitUnavailableWarning)`, a `RuntimeWarning` defined in `targets/base.py` (phase 6
+re-exports it). Two messages: `w2py: jit-x86_64 unavailable (<reason>); using pyc` when the JIT for
+this machine's architecture exists but its probe fails (executable memory forbidden, ...), and
+`w2py: no JIT target for <machine>; using pyc` on an architecture without a JIT target (maintainer:
+the fallback is reported there too). No message when the target was chosen explicitly; an explicit
+`jit-*` that cannot run is an `Unsupported` error. Rejected: `print` to stderr (cannot be filtered or turned into an error, noisy in
 libraries); `logging` (silent by default, so the one case where speed silently drops would go unseen).

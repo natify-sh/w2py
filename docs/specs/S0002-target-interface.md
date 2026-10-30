@@ -159,8 +159,8 @@ Phase-3 steps, each one commit with its acceptance; the reviewer reads every JIT
    * **3d tables, funcref, `call_indirect`** (table services through the bridge). `spec_diff pyc
      jit-x86_64 core` → only `unsupported:` lines remain; second CoreMark checkpoint vs `w2jit2`.
 4. **Fallback test only.** A forced probe failure selects `pyc` for the engine (D25).
-   Done: `auto` warns once (`JitUnavailableWarning`, D31) when the JIT for this machine's architecture
-   cannot run; `tests/test_fallback.py` forbids executable memory for real (`PR_SET_MDWE` in a
+   Done: `auto` warns once (`JitUnavailableWarning`, D31) whenever it falls back to `pyc` (the JIT for
+   this machine's architecture cannot run, or there is no JIT for it); `tests/test_fallback.py` forbids executable memory for real (`PR_SET_MDWE` in a
    subprocess; skipped where the kernel lacks it) and CI runs the spec under `tools/no_exec.py`.
 5. **Speed and ISA level.** CoreMark on the package JIT alternated with `poc/run_jit2.py` in one
    session, row in BENCHMARKS.md: target ≥ 95 % of `w2jit2` (trap-by-return and interrupt polls cost

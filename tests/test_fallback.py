@@ -33,16 +33,22 @@ def test_warns_once_per_target_and_reason(fresh: None) -> None:
         assert base.target_order("auto") == ["pyc"]
 
 
-def test_no_warning_when_chosen_or_no_jit_for_this_machine(
-    fresh: None, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_no_warning_when_chosen(fresh: None, monkeypatch: pytest.MonkeyPatch) -> None:
     with warnings.catch_warnings():
         warnings.simplefilter("error")
         assert base.target_order("pyc") == ["pyc"]
         monkeypatch.setenv("W2PY_TARGET", "pyc")
         assert base.target_order() == ["pyc"]
-        monkeypatch.delenv("W2PY_TARGET")
-        monkeypatch.setattr(base.platform, "machine", lambda: "riscv64")
+
+
+def test_warns_once_when_no_jit_for_this_machine(
+    fresh: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(base.platform, "machine", lambda: "riscv64")
+    with pytest.warns(base.JitUnavailableWarning, match=r"no JIT target for riscv64; using pyc"):
+        assert base.target_order("auto") == ["pyc"]
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
         assert base.target_order("auto") == ["pyc"]
 
 
