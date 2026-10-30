@@ -43,6 +43,9 @@ show what is new; the spec commit moves the same way, in small steps.
 | QEMU user-mode | JIT targets for other architectures in CI |
 
 The runtime package itself declares **no** dependencies; these live in a development group.
+The Python ones are the uv `dev` group in `pyproject.toml` (`uv sync`); wasmtime 50.0.1 needs
+Python ≥ 3.9 and `wabt-package` ≥ 3.11, so tests that need the oracle or `wast2json` skip where they
+are absent (the CPython 3.8 job runs the rest).
 
 ## The spec test suite
 

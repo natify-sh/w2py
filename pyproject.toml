@@ -1,0 +1,44 @@
+[project]
+name = "w2py"
+version = "0.0.0"
+description = "A WebAssembly compiler in pure Python"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = []
+
+[build-system]
+requires = ["uv_build>=0.9,<0.10"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "w2py"
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "ruff",
+    "pyright",
+    "wasmtime==50.0.1; python_version >= '3.9'",
+    "wabt-package; python_version >= '3.11'",
+    "pywasm",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+extend-exclude = ["poc", "*.md"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.pyright]
+include = ["src/w2py", "tests"]
+exclude = ["poc"]
+pythonVersion = "3.8"
+typeCheckingMode = "strict"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff.lint.per-file-ignores]
+"tools/*" = ["UP031"]

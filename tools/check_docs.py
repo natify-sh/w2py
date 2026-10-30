@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Check documents against docs/STANDARDS.md. Stdlib only. Usage: check_docs.py [ROOT]"""
+
 import datetime
 import os
 import re
