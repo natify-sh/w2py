@@ -23,8 +23,10 @@ from tests.spec.engine import (
     SpecEngine,
     Trap,
     TrapCode,
+    Unsupported,
     Value,
 )
+from w2py.targets.base import TARGETS, target_order
 
 CACHE_DIR = fetch.CACHE_DIR
 ROOT = Path(__file__).resolve().parents[2]
@@ -38,13 +40,26 @@ def _wasmtime() -> SpecEngine:
     return WasmtimeEngine()
 
 
-def _pyc() -> SpecEngine:
-    from tests.spec.pyc_engine import PycEngine
+def _target(name: str) -> Callable[[], SpecEngine]:
+    def make() -> SpecEngine:
+        from tests.spec.target_engine import TargetEngine
 
-    return PycEngine()
+        return TargetEngine(name)
+
+    return make
 
 
-ENGINES: dict[str, Callable[[], SpecEngine]] = {"wasmtime": _wasmtime, "pyc": _pyc}
+# every w2py target by its name, and `auto` (the target D25 picks here)
+ENGINES: dict[str, Callable[[], SpecEngine]] = {
+    "wasmtime": _wasmtime,
+    **{name: _target(name) for name in (*TARGETS, "auto")},
+}
+
+
+def target_of(engine: str) -> str:
+    """The name whose claims and xfail file apply: `auto` counts as the target it selects."""
+    return target_order("auto")[0] if engine == "auto" else engine
+
 
 TRAP_CODES = {
     "unreachable": TrapCode.UNREACHABLE,
@@ -160,13 +175,38 @@ def command_ids(stem: str, commands: Sequence[Json]) -> list[str]:
     return ids
 
 
+class _Registry(dict[str, Instance]):
+    """Registered instances; `spectest` is made on its first lookup, so a file whose modules do not
+    import from it does not depend on the engine running it. Engines look imports up by name."""
+
+    def __init__(self, make_spectest: Callable[[], Instance]) -> None:
+        super().__init__()
+        self.make_spectest = make_spectest
+
+    def __missing__(self, key: str) -> Instance:
+        if key != "spectest":
+            raise KeyError(key)
+        self[key] = inst = self.make_spectest()
+        return inst
+
+    def get(self, key: str, default: Any = None) -> Any:  # pyright: ignore[reportIncompatibleMethodOverride]
+        return self[key] if key in self or key == "spectest" else default
+
+
 class _FileRun:
     def __init__(self, engine: SpecEngine, directory: Path, spectest: bytes) -> None:
         self.engine = engine
         self.dir = directory
-        self.registry: dict[str, Instance] = {
-            "spectest": engine.instantiate(engine.load(spectest), {})
-        }
+
+        def make_spectest() -> Instance:
+            try:
+                return engine.instantiate(engine.load(spectest), {})
+            except Unsupported:
+                raise
+            except Exception as e:
+                raise Failure(f"spectest: {_describe(e)}") from None
+
+        self.registry = _Registry(make_spectest)
         self.named: dict[str, Instance] = {}
         self.defs: dict[str, Module] = {}
         self.current: Instance | None = None
@@ -178,7 +218,16 @@ class _FileRun:
         inst = self.named[action["module"]] if "module" in action else self.current
         if inst is None:
             raise Failure("no current module")
+        if isinstance(inst, Unsupported):
+            raise Failure(f"unsupported: {inst}")
         return inst
+
+    def instance(self, module: Module) -> Instance:
+        """An instance, or the `Unsupported` that stands for it: commands using it fail with it."""
+        try:
+            return self.engine.instantiate(module, self.registry)
+        except Unsupported as e:
+            return e
 
     def act(self, action: Json) -> list[Value]:
         inst = self.target(action)
@@ -202,15 +251,15 @@ class _FileRun:
         if c.get("module_type") == "text" and "binary_filename" not in c:
             return "skip"
         if t == "module":
-            self.current = self.engine.instantiate(self.load(c), self.registry)
+            self.current = self.instance(self.load(c))
             if "name" in c:
                 self.named[c["name"]] = self.current
+            self.target({})  # an `Unsupported` placeholder fails this command too
         elif t == "module_definition":
             self.defs[c.get("name", "")] = self.load(c)
         elif t == "module_instance":
-            self.named[c["instance"]] = self.engine.instantiate(
-                self.defs[c["module"]], self.registry
-            )
+            self.named[c["instance"]] = self.instance(self.defs[c["module"]])
+            self.target({"module": c["instance"]})
         elif t == "register":
             self.registry[c["as"]] = self.named[c["name"]] if "name" in c else self.target({})
         elif t == "action":
@@ -257,17 +306,14 @@ def run_file(engine: SpecEngine, directory: Path, stem: str, spectest: bytes) ->
         "commands"
     ]
     ids = command_ids(stem, commands)
-    try:
-        state = _FileRun(engine, directory / stem, spectest)
-    except Exception as e:
-        reason = f"spectest: {_describe(e)}"
-        yield from (Result(i, "fail", reason) for i in ids)
-        return
+    state = _FileRun(engine, directory / stem, spectest)
     for cid, c in zip(ids, commands, strict=True):
         try:
             yield Result(cid, state.execute(c), "")
         except Failure as e:
             yield Result(cid, "fail", str(e))
+        except Unsupported as e:
+            yield Result(cid, "fail", f"unsupported: {e}")
         except Exception as e:  # RecursionError etc. are failures of the engine, not the runner
             yield Result(cid, "fail", _describe(e))
 
@@ -351,20 +397,26 @@ def main(argv: Sequence[str] | None = None) -> int:
     converted: list[str] = manifest["converted"]
     stems: list[str] = []
     for f in args.files or converted:
-        name = f.removesuffix(".wast")  # a file ("i32", "simd/simd_lane") or a directory ("simd")
+        name = f.removesuffix(".wast")  # a file ("i32", "simd/simd_lane"), a directory ("simd")
+        if name == CORE:  # or the top-level files
+            stems += [k for k in converted if "/" not in k]
+            continue
         stems += [k for k in converted if k.startswith(name + "/")] or [name]
+    target = target_of(args.engine)
+    if target != args.engine:
+        print(f"engine {args.engine}: {target}")
     unclaimed: Counter[str] = Counter()  # directory -> commands, for engines not claiming it
     if not args.files:
-        for stem in [s for s in stems if not claimed(args.engine, _dir(s))]:
+        for stem in [s for s in stems if not claimed(target, _dir(s))]:
             unclaimed[_dir(stem)] += len(
                 json.loads((json_dir / f"{stem}.json").read_text(encoding="utf-8"))["commands"]
             )
-        stems = [s for s in stems if claimed(args.engine, _dir(s))]
+        stems = [s for s in stems if claimed(target, _dir(s))]
     unknown = [s for s in stems if s not in converted]
     if unknown:
         print(f"not converted: {', '.join(unknown)}", file=sys.stderr)
         return 2
-    xfail_path: Path = args.xfail or fetch.HERE / "xfail" / f"{args.engine}.txt"
+    xfail_path: Path = args.xfail or fetch.HERE / "xfail" / f"{target}.txt"
     xfail = read_xfail(xfail_path)
 
     types: dict[str, str] = {}

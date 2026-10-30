@@ -40,6 +40,8 @@ class Unsupported(Exception):
 
     def __init__(self, target: str, feature: str) -> None:
         super().__init__(f"{target}: unsupported: {feature}")
+        self.target = target
+        self.feature = feature
 
 
 class HostError(Exception):

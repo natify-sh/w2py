@@ -96,10 +96,18 @@ site check it (`test spl, 15; jnz` → trap) and the encoder tests run with it o
 `r12 + 8·frame_slots ≤ ctx[VSTACK_LIMIT]`. The **native stack** holds only return addresses, pushed
 pins and pads (≤ 80 bytes per frame, never more than one page at once: no stack probes on Windows,
 D23; the SysV red zone is never used). Every prologue checks `rsp ≥ ctx[NSTACK_LIMIT]`. The runtime
-computes that limit at the store's outermost entry on its thread as `sp − budget`, `sp` from a
-two-instruction stub (`mov rax, rsp; ret`) run through the same entry path, budget `max_wasm_stack`
-(default 512 KiB, Wasmtime's, D6), and writes it into each context before entering it; both
-overflows trap with `STACK_OVERFLOW` (D10).
+sets that limit at the first JIT entry of the store on the stack, whatever the store's depth:
+`limit = sp − min(max_wasm_stack, (sp − low) / 2)`, `max_wasm_stack` default 512 KiB (Wasmtime's,
+D6), `low` the thread's lowest stack address (`pthread_getattr_np`; macOS `pthread_get_stackaddr_np
+− stacksize`; Windows `GetCurrentThreadStackLimits`); if `low` cannot be read the budget is
+`min(max_wasm_stack, 128 KiB)`. The wasm part never takes more than half of the stack below the
+entry, so a host function called from the deepest frame has at least as much (a host that needs more
+than its share can still overflow the C stack on CPython < 3.14, which has no C-stack check — as it
+would on so small a thread without wasm; RISKS.md R5). `sp` comes from a stub run through the same
+entry path, `endbr64; mov [r12], rsp; xor eax, eax; ret`: it writes rsp as a wasm function sees it
+to frame[0] (a 32-bit status cannot carry it). The value stack is 1 MiB per store, mapped once,
+limit in word 5; a nested entry starts above the host call's slots. Both overflows trap with
+`STACK_OVERFLOW` (D10).
 
 **Traps return through frames** (R2: CET shadow stacks; no `rsp` reset). A trap point jumps to a
 cold per-function stub `mov eax, code; jmp .unwind`; `.unwind` is the function's epilogue (pops,
@@ -200,3 +208,13 @@ uv run pytest tests/jit -k "entry or trap or reentry or host or interrupt or sta
 * 2026-10-30: created (draft).
 * 2026-10-30: approved by the maintainer (amendments accepted; budget capped by the thread's stack).
 * 2026-10-30: linear memory reserves 4 GiB of address space per 32-bit memory and commits on grow (never moves; Wasmtime `memory_reservation` = 4 GiB, `memory_guard_size` = 32 MiB in crates/environ/src/tunables.rs — the guard comes in phase 5); explicit bounds checks in phase 3; libcalls are runtime services only (maintainer).
+* 2026-10-30 (step 3a, after review): native limit rule above (first JIT entry, half of the stack
+  below the entry, 128 KiB fallback); the rsp stub writes frame[0]; value stack 1 MiB per store.
+  Interrupt: `interrupt()` (any thread, under the store's lock) sets word 2 in every context of the
+  store; a nested entry returning INTERRUPT leaves it set so the frames below stop at their next poll;
+  the outermost JIT entry returning INTERRUPT clears word 2 in every context under the same lock
+  before raising (consuming every request made until then); a request made later, or while no code
+  runs, stays set and stops the next call at its first poll. `TRAP_CODE` (word 1) is written on a
+  non-zero status only. A host callback returns status 0 only after its results are written; an
+  asynchronous exception arriving in the callback's last handler can still escape to ctypes (which
+  then returns 0).

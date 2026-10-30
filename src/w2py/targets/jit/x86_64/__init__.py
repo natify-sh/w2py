@@ -1,4 +1,5 @@
-"""The `jit-x86_64` target (S0002, S0003). Step 2: the probe only; compilation comes in step 3."""
+"""The `jit-x86_64` target (S0002, S0003). Step 3a: the probe and the ABI (abi.py, backend.py,
+common/instance.py); every module is still `Unsupported` until the compiler (3b)."""
 
 import ctypes
 import platform
@@ -11,7 +12,7 @@ from w2py.targets.base import Extern, TargetInstance, Unsupported, ValidModule
 if TYPE_CHECKING:
     from w2py.runtime.store import StoreState
 
-_NOT_YET = "not implemented yet"
+_NOT_YET = "compiler not implemented"
 
 
 class JitX86_64Target:

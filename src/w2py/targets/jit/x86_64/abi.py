@@ -1,0 +1,109 @@
+"""x86-64 trampolines (docs/specs/S0003): the entry and the host bridge for each host calling
+convention (SysV; Win64 per D23), and the stack-pointer stub. All are reached through a pointer, so
+each starts with `endbr64` (CET IBT, R2); every `ret` matches its `call` (CET shadow stacks).
+
+Register roles: r15 context, r12 value-stack frame, r13/r14 memory 0 base/size, eax status.
+Alignment (LESSONS 3): rsp is 8 mod 16 on entry to any of these; each pads to 0 mod 16 before its
+`call`, so wasm code always starts with rsp = 8 mod 16, as a C function does.
+"""
+
+import sys
+from functools import cache
+
+from w2py.targets.jit.common.context import TRAP_CODE, Layout
+from w2py.targets.jit.common.execmem import load
+from w2py.targets.jit.common.instance import Trampolines
+from w2py.targets.jit.x86_64.encoder import (
+    R8,
+    R9,
+    R10,
+    R11,
+    R12,
+    R13,
+    R14,
+    R15,
+    RAX,
+    RBP,
+    RBX,
+    RCX,
+    RDI,
+    RDX,
+    RSI,
+    RSP,
+    Asm,
+    Mem,
+)
+
+MEM0 = 8 * Layout().memory(0)  # byte offset of memory 0's base word; its size word follows
+
+
+def entry(a: Asm, win64: bool) -> None:
+    """int32_t entry(uint64_t *ctx, uint64_t *frame, const void *code): save the registers the host
+    convention calls callee-saved, set up r15/r12/r13/r14, call the code, keep a non-zero status
+    in ctx[TRAP_CODE]. Nothing else is stored in the context, so entries nest (LESSONS 4)."""
+    saved = [RBX, RBP, *((RSI, RDI) if win64 else ()), R12, R13, R14, R15]
+    ctx, frame, code = (RCX, RDX, R8) if win64 else (RDI, RSI, RDX)
+    a.endbr64()
+    for r in saved:
+        a.push(r)
+    a.alu_imm("sub", RSP, 8, w=True)  # 8 (return address) + 8 * even + 8 = 0 mod 16
+    a.mov(R15, ctx, w=True)
+    a.mov(R12, frame, w=True)
+    a.mov(R13, Mem(R15, MEM0), w=True)
+    a.mov(R14, Mem(R15, MEM0 + 8), w=True)
+    a.call(code)
+    a.mov(RAX, RAX)  # the status is 32-bit; a C host may leave the upper half undefined
+    a.test(RAX, RAX)
+    done = a.label()
+    a.jcc("e", done, short=True)
+    a.mov(Mem(R15, 8 * TRAP_CODE), RAX, w=True)
+    a.bind(done)
+    a.alu_imm("add", RSP, 8, w=True)
+    for r in reversed(saved):
+        a.pop(r)
+    a.ret()
+
+
+def bridge(a: Asm, win64: bool) -> None:
+    """Wasm code: eax = context word of the host function, rdx = its slots, then
+    `call [r15 + 8 * HOST_BRIDGE]`. Calls int32_t host(ctx, slots) and returns its status in
+    eax. Saves every pool register the convention lets the host clobber, for all frames above
+    (LESSONS 2); the call site reloads r13/r14. Win64 also reserves the 32-byte shadow space."""
+    saved = [R8, R9, R10, R11] if win64 else [RSI, RDI, R8, R9, R10, R11]
+    pad = 8 + (32 if win64 else 0)  # 8 + 8 * even + 8 (+ 32) = 0 mod 16
+    a.endbr64()
+    for r in saved:
+        a.push(r)
+    a.alu_imm("sub", RSP, pad, w=True)
+    if win64:
+        a.mov(RCX, R15, w=True)  # rdx already holds the slots
+    else:
+        a.mov(RDI, R15, w=True)
+        a.mov(RSI, RDX, w=True)
+    a.call(Mem(R15, 0, RAX, 8))
+    a.alu_imm("add", RSP, pad, w=True)
+    for r in reversed(saved):
+        a.pop(r)
+    a.ret()
+
+
+def sp_stub(a: Asm) -> None:
+    """Run through the entry like a wasm function: frame[0] = rsp as a wasm function sees it."""
+    a.endbr64()
+    a.mov(Mem(R12), RSP, w=True)
+    a.alu("xor", RAX, RAX)
+    a.ret()
+
+
+@cache
+def trampolines() -> Trampolines:
+    """The trampolines for this process's convention, in one sealed code area (kept for the
+    process's lifetime). Both conventions are assembled everywhere (the encoder tests see both)."""
+    win64 = sys.platform == "win32"
+    a = Asm()
+    offsets: list[int] = []
+    for emit in (lambda: entry(a, win64), lambda: bridge(a, win64), lambda: sp_stub(a)):
+        offsets.append(len(a.buf))
+        emit()
+    mem = load(a.finish())
+    return Trampolines(*(mem.addr + o for o in offsets), keep=mem)

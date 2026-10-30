@@ -166,3 +166,4 @@ machine code. Risks and possible answers:
 | the WASI host is undecided | ROADMAP.md, open question 2 |
 | `mpy-cross` 1.29.0 miscompiles very large native functions | LESSONS.md 17 |
 | maintaining several architectures | TARGETS.md, copy-and-patch |
+| a host function on a very small thread (a few hundred KiB) needing more than half its stack can overflow the C stack on CPython < 3.14 (no C-stack check), as it would without wasm | S0003 (native limit), step-3a review |

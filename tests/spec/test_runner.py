@@ -15,6 +15,7 @@ from tests.spec.engine import (
     Module,
     Trap,
     TrapCode,
+    Unsupported,
     Value,
 )
 
@@ -114,7 +115,14 @@ class FakeEngine:
             raise LoadError("bad", self.load_kind)
         return wasm
 
+    made: list[Module] = []
+
     def instantiate(self, module: Module, imports: Mapping[str, Instance]) -> Instance:
+        self.made.append(module)
+        if module == b"imports":
+            imports.get("spectest")
+        if module == b"unsupported":
+            raise Unsupported("feature x")
         if module == b"unlinkable":
             raise LinkError("x")
         if module == b"trap":
@@ -170,6 +178,19 @@ def test_text_commands(tmp_path: Path) -> None:
     files = {"m.wasm": b"ok", "bad.wasm": b"bad"}
     res = run_commands(tmp_path, [MODULE, text, with_bin], files)
     assert [r.status for r in res] == ["pass", "skip", "pass"]
+
+
+def test_spectest_is_lazy_and_unsupported_fails_dependents(tmp_path: Path) -> None:
+    FakeEngine.results = {"a": [1]}
+    files = {"m.wasm": b"ok", "i.wasm": b"imports", "u.wasm": b"unsupported"}
+    cmds = [MODULE, {**MODULE, "line": 2, "filename": "u.wasm"}, invoke("a", 3, expected=[])]
+    FakeEngine.made = []
+    res = run_commands(tmp_path / "a", cmds, files)
+    assert FakeEngine.made == [b"ok", b"unsupported"]  # no spectest: nothing imports from it
+    assert [r.reason for r in res] == ["", *["unsupported: feature x"] * 2]
+    FakeEngine.made = []
+    run_commands(tmp_path / "b", [{**MODULE, "filename": "i.wasm"}], files)
+    assert FakeEngine.made == [b"imports", b"spectest"]
 
 
 def test_load_error_kind(tmp_path: Path) -> None:

@@ -1,6 +1,10 @@
 # pyright: reportUnknownVariableType=false, reportUnknownMemberType=false, reportUnknownArgumentType=false
-"""The `pyc` target as a SpecEngine (docs/specs/S0001): a thin adapter over S0002 (select, compile,
-instantiate, call).
+"""Every w2py target as a SpecEngine (docs/specs/S0001): a thin adapter over S0002 (select, compile,
+instantiate, call). `TargetEngine(name)`: a target name (`pyc`, `jit-x86_64`, ...) or `auto` (D25).
+
+A valid module the target cannot compile (`Unsupported`, D25: no fallback) loads as a placeholder;
+instantiating it raises the S0001 `Unsupported`, so its commands fail `unsupported: <feature>` and
+never pass.
 
 Values: i32/i64 are signed at the interface and unsigned `Raw` below; f32/f64 are bit patterns at
 both. References: null is None, an externref is the runner's ExternRef, a funcref is the function
@@ -8,10 +12,20 @@ object (a `pyc` reference passes through the `Raw` slot as it is until stage 2).
 """
 
 import struct
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from typing import Any, cast
 
-from tests.spec.engine import FuncRef, Instance, LinkError, LoadError, Module, Trap, TrapCode, Value
+from tests.spec.engine import (
+    FuncRef,
+    Instance,
+    LinkError,
+    LoadError,
+    Module,
+    Trap,
+    TrapCode,
+    Unsupported,
+    Value,
+)
 from w2py.frontend.binary import F32, F64, I32, I64, ImplLimit, Malformed, parse
 from w2py.frontend.validate import Invalid, validate
 from w2py.runtime import link
@@ -27,6 +41,26 @@ class _Module:
         self.mod = mod
         self.target = target
         self.compiled = compiled
+
+
+class _Providers(Mapping[str, link.Provider]):
+    """The runner's registry seen as link providers, looked up only by name (the runner makes
+    `spectest` on first lookup)."""
+
+    def __init__(self, imports: Mapping[str, Instance]) -> None:
+        self.imports = imports
+
+    def __getitem__(self, key: str) -> link.Provider:
+        inst = self.imports[key]
+        if isinstance(inst, Unsupported):
+            raise Unsupported(str(inst))
+        return cast(_Instance, inst).provider
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self.imports)
+
+    def __len__(self) -> int:
+        return len(self.imports)
 
 
 class _Instance:
@@ -60,8 +94,9 @@ def _trap(e: base.Trap) -> Exception:
     return Trap(TrapCode[e.code.name], str(e))
 
 
-class PycEngine:
-    def __init__(self) -> None:
+class TargetEngine:
+    def __init__(self, name: str) -> None:
+        self.order = base.target_order(name)
         self.store = StoreState()
 
     def load(self, wasm: bytes) -> Module:
@@ -71,8 +106,11 @@ class PycEngine:
             except (ImplLimit, NotImplementedError) as e:  # not a verdict on the module
                 raise LoadError(f"{type(e).__name__}: {e}") from None
             validate(mod)
-            target = base.select(mod, ["pyc"])
-            compiled = target.compile(mod)  # NotImplementedError is a target gap
+            try:
+                target = base.select(mod, self.order)
+                compiled = target.compile(mod)  # NotImplementedError is a target gap
+            except base.Unsupported as e:
+                return Unsupported(e.feature)
         except Malformed as e:
             raise LoadError(str(e), "malformed") from None
         except Invalid as e:
@@ -82,8 +120,10 @@ class PycEngine:
         return _Module(mod, target, compiled)
 
     def instantiate(self, module: Module, imports: Mapping[str, Instance]) -> Instance:
+        if isinstance(module, Unsupported):
+            raise Unsupported(str(module))
         m = cast(_Module, module)
-        providers = {k: cast(_Instance, v).provider for k, v in imports.items()}
+        providers = _Providers(imports)
         try:
             externs = link.resolve(m.mod, providers)
             return _Instance(m.mod, m.target.instantiate(m.compiled, externs, self.store))

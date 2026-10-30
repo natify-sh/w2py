@@ -57,6 +57,11 @@ class LinkError(EngineError):
     """instantiate(): unknown import, incompatible import type."""
 
 
+class Unsupported(EngineError):
+    """instantiate(): a valid module the engine's target cannot compile (yet, D25); the message is
+    the missing feature. Every command depending on it fails `unsupported: <feature>`."""
+
+
 class Trap(EngineError):
     def __init__(self, code: TrapCode, message: str = "") -> None:
         super().__init__(message or code.name)

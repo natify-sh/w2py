@@ -15,6 +15,9 @@ class StoreState:
         self.depth = 0  # entries into wasm code that are active (wasm -> host -> wasm nests)
         self.max_wasm_stack = max_wasm_stack  # 0: the target's default
         self.instances: list[TargetInstance] = []
+        self.pending: BaseException | None = None  # a host exception unwinding through JIT frames
+        self.target_state: object = None  # the target's per-store data (JIT: the value stack)
+        self.interrupt_lock = threading.Lock()  # interrupt() vs a target consuming the request
 
     def enter(self) -> None:
         me = threading.get_ident()
@@ -26,3 +29,10 @@ class StoreState:
 
     def leave(self) -> None:
         self.depth -= 1
+
+    def interrupt(self) -> None:
+        """Any thread: the store's running code traps with INTERRUPT at its next poll (JIT, S0003;
+        pyc: later)."""
+        with self.interrupt_lock:
+            for inst in list(self.instances):
+                getattr(inst, "interrupt", lambda: None)()
