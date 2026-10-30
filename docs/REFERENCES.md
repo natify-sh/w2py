@@ -30,3 +30,23 @@ against wasmtime, and encodings checked against `objdump` / `llvm-mc` in CI.
 | **CPython's JIT** (`Tools/jit`) | how copy-and-patch is built: stencils, holes, relocations | if copy-and-patch is chosen (TARGETS.md) |
 | **wasm-to-asm** (calebsander, TypeScript) | a small readable wasm → x86-64 compiler: the bottom of the operand stack kept in registers, a calling convention without caller-saved registers (it has no traps: not a sandbox) | register allocation ideas |
 | **pywasm** | a complete pure-Python interpreter (Wasm 2.0, SIMD, WASI p1) and its spec runner | the test harness, a second oracle, WASI p1 |
+
+## Primary sources (normative)
+
+What an instruction means and how a machine instruction is encoded comes from these, not from the
+projects above. Record the edition or revision used in the commit or the spec that relies on it.
+
+| source | what it defines | used for |
+|---|---|---|
+| **WebAssembly Core Specification 3.0** (W3C; `WebAssembly/spec`, rendered at webassembly.github.io/spec/core) | the opcode table, binary format, validation, execution semantics of every instruction | the front end, the validator, every target |
+| **`WebAssembly/spec` `test/core`** at the pinned commit (S0001) | the executable form of the specification | the metric |
+| **Wasmtime documentation** (`TrapCode`, feature tiers, `Config` defaults) | behaviour where the specification leaves room (D6) | traps, features |
+| **Intel 64 and IA-32 Architectures Software Developer's Manual**; **AMD64 Architecture Programmer's Manual** | x86-64 instruction encodings and semantics (flags, `div` faults, `cvt*` rounding, `lzcnt`/`tzcnt` availability) | `jit-x86_64` encoders and ISA levels (ARTIFACT.md) |
+| **Arm Architecture Reference Manual for A-profile** (Arm DDI 0487) | AArch64 encodings and semantics | `jit-aarch64` |
+| **The RISC-V Instruction Set Manual**, Volume I (Unprivileged), ratified extensions | RV64 encodings and semantics | `jit-riscv64` |
+| **System V AMD64 psABI** (`x86-64-abi`) and the **Microsoft x64 calling convention** | argument registers, callee-saved registers, stack alignment, red zone / shadow space | the entry trampolines and host calls of `jit-x86_64-sysv` / `-win64` |
+| **AAPCS64** (`ARM-software/abi-aa`) and Apple's arm64 ABI differences | the same for AArch64 (incl. `x18`, Darwin variadics) | `jit-aarch64` |
+| **RISC-V psABI** (`riscv-non-isa/riscv-elf-psabi-doc`) | the same for RISC-V | `jit-riscv64` |
+
+Encodings written from these are checked against `objdump` / `llvm-mc` in CI; semantics against the
+spec suite and differential runs (TESTING.md).
