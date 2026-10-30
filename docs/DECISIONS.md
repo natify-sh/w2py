@@ -274,8 +274,10 @@ Targets are never mixed: the target is chosen per engine, so every module and st
 on it (the Wasmtime model: an engine owns the compiler). `auto` chooses from the environment only —
 `jit-<arch>` where the architecture is supported and executable memory works, otherwise `pyc` — never
 from a module's content. No per-module fallback: memories, tables and globals then never cross two
-representations (a `pyc` memory in an `mmap` buffer would break targets without `ctypes`/executable
-memory), and one call graph has one trap model.
+representations, and one call graph has one trap model. Inside `pyc`, the memory's backing store
+follows the environment: an `mmap` buffer where `mmap` is available, a `bytearray` where it is not,
+with identical semantics; which one is the default is decided by a measurement (grow without copying,
+access speed through `struct`/`memoryview`).
 For this to cost nothing, **`pyc` and every `jit-<arch>` support the same features, 1:1**: a feature
 is complete when it passes on both. A JIT backend covers what it does not implement natively through
 libcalls (S0002) rather than refusing the module; `pyc` closes its own gaps (e.g. NaN payloads) rather
