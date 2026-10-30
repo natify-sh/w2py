@@ -1,6 +1,8 @@
 """The interface between the runtime and a target (docs/specs/S0002). Stdlib only; internal."""
 
 import os
+import platform
+import warnings
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from enum import IntEnum
@@ -42,6 +44,10 @@ class Unsupported(Exception):
         super().__init__(f"{target}: unsupported: {feature}")
         self.target = target
         self.feature = feature
+
+
+class JitUnavailableWarning(RuntimeWarning):
+    """`auto` fell back to `pyc` because this machine's JIT target cannot run here (D31)."""
 
 
 class HostError(Exception):
@@ -102,6 +108,12 @@ def _jit_x86_64() -> Target:
 TARGETS: dict[str, Callable[[], Target]] = {"pyc": _pyc, "jit-x86_64": _jit_x86_64}
 
 
+# Which `platform.machine()` values a `jit-*` target is for, so `auto` can tell "no JIT for this
+# machine" (pyc is expected, silent) from "the JIT is here but unusable" (warn), no import needed.
+_MACHINES = {"jit-x86_64": ("x86_64", "amd64")}
+_warned: set[tuple[str, str]] = set()
+
+
 @cache
 def _probe(name: str) -> str | None:
     target = TARGETS[name]()
@@ -116,7 +128,18 @@ def target_order(choice: str | None = None) -> list[str]:
     choice = choice or os.environ.get("W2PY_TARGET", "auto")
     if choice != "auto":
         return [choice]
-    return [next((n for n in TARGETS if n.startswith("jit-") and _probe(n) is None), "pyc")]
+    for name in TARGETS:
+        if not name.startswith("jit-"):
+            continue
+        why = _probe(name)
+        if why is None:
+            return [name]
+        if platform.machine().lower() in _MACHINES.get(name, ()) and (name, why) not in _warned:
+            _warned.add((name, why))
+            warnings.warn(
+                f"w2py: {name} unavailable ({why}); using pyc", JitUnavailableWarning, stacklevel=2
+            )
+    return ["pyc"]
 
 
 def select(module: ValidModule, order: Sequence[str]) -> Target:

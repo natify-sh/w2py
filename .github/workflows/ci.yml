@@ -54,6 +54,8 @@ jobs:
       - run: uv run python -m tests.spec.run --engine wasmtime --json spec-wasmtime.json
       - run: uv run python -m tests.spec.run --engine pyc --json spec-pyc.json
       - run: uv run python -m tests.spec.run --engine jit-x86_64 --json spec-jit-x86_64.json
+      # executable memory forbidden (MDWE): `auto` must warn once and give pyc's numbers
+      - run: uv run python tools/no_exec.py -- uv run python -m tests.spec.run --engine auto
   os:
     # Windows x64 and macOS x64 (Intel); arm64 runners come with jit-aarch64. tests/jit runs inside
     # pytest here: llvm-mc/objdump checks skip where the tools are absent (no W2PY_JIT_REQUIRE).

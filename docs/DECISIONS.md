@@ -345,7 +345,7 @@ RISKS.md R6); phase 3 is `explicit` only and must not close this path (trap stub
 fault handler, `SAVED_SP` kept, the mode field in the artifact).
 
 ### D30. Cross-instance tail calls go through a shared `tail_switch` trampoline (context word 9)
-Status: accepted · Date: 2026-10-30 · Supersedes: — · Evidence: `tests/jit/test_tail.py` (1e5 A↔B hops on a 256 KiB thread; with the restore frame per hop the same test ends in `STACK_OVERFLOW`)
+Status: accepted (maintainer, 2026-10-30) · Date: 2026-10-30 · Supersedes: — · Evidence: `tests/jit/test_tail.py` (1e5 A↔B hops on a 256 KiB thread; with the restore frame per hop the same test ends in `STACK_OVERFLOW`)
 
 Tail calls between wasm functions compiled by the JIT never grow either stack, as in Wasmtime.
 Deviation (temporary): a `return_call` to a function import is a call plus a return through the host
@@ -366,3 +366,14 @@ no ABI change. It costs 16 bytes of native stack per hop that does not return, s
 across instances ends in `STACK_OVERFLOW` after ~32k hops (512 KiB budget). Also rejected: making r15
 caller-saved at every call (Cranelift's `tail` convention), which costs a save/restore at every direct
 call on the hot path.
+
+### D31. The JIT fallback warns once (`JitUnavailableWarning`)
+Status: accepted · Date: 2026-10-30 · Supersedes: — · Evidence: tests/test_fallback.py (MDWE), CI `spec` job
+
+When `auto` finds a `jit-*` target for this machine's architecture whose probe fails (executable memory
+forbidden, ...), it selects `pyc` (D25) and says so once per process per target and reason:
+`warnings.warn("w2py: jit-x86_64 unavailable (<reason>); using pyc", JitUnavailableWarning)`, a
+`RuntimeWarning` defined in `targets/base.py` (phase 6 re-exports it). No message on an architecture
+without a JIT target, or when the target was chosen explicitly; an explicit `jit-*` that cannot run is
+an `Unsupported` error. Rejected: `print` to stderr (cannot be filtered or turned into an error, noisy in
+libraries); `logging` (silent by default, so the one case where speed silently drops would go unseen).

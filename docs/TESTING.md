@@ -92,5 +92,7 @@ JIT artifacts: run baseline artifacts on an emulated baseline CPU (e.g. QEMU `-c
 with plain ARMv8.0) and check that a higher-level artifact is refused there; load artifacts with the C
 reference loader as well as from Python; refuse artifacts with an unknown format or context ABI version.
 
-Run with executable memory forbidden too (e.g. a seccomp/SELinux profile or a forced probe failure) to
-prove the fallback to `pyc`.
+The `spec` job also runs `--engine auto` with executable memory forbidden: `tools/no_exec.py` sets
+`PR_SET_MDWE` (`PR_MDWE_REFUSE_EXEC_GAIN`, Linux >= 6.3; the kernel then refuses `mprotect(PROT_EXEC)` on
+written memory, the JIT's W^X path) and `exec`s the runner. `auto` must warn once
+(`JitUnavailableWarning`) and give `pyc`'s numbers. `tests/test_fallback.py` does the same in a subprocess.
