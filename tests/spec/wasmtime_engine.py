@@ -35,7 +35,11 @@ _V128 = ffi.wasmtime_wasm_valtype_v128()
 
 
 def _kind(t: wasmtime.ValType) -> str:
-    """str(t), but v128: wasm_valtype_kind aborts the process on it, so compare before asking."""
+    """str(t), but v128: wasm_valtype_kind aborts the process on it, so compare before asking.
+
+    Upstream: https://github.com/bytecodealliance/wasmtime-py/issues/348,
+    https://github.com/bytecodealliance/wasmtime/issues/15088 — drop this when they are fixed.
+    """
     return "v128" if ffi.wasmtime_wasm_valtype_equal(t.ptr(), _V128) else str(t)
 
 

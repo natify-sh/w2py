@@ -237,7 +237,9 @@ types). `v128` (`simd/`, `relaxed-simd/`): wasmtime-py cannot convert it (`Val`)
 aborts the process on a v128 `valtype` ("support for v128 is not implemented"), which `str(ValType)` and
 `Func.type().params` reach. The adapter tells v128 apart with `wasmtime_wasm_valtype_equal` against
 `wasmtime_wasm_valtype_v128()` first, and reads/writes the 16-byte `of.v128` of the value union
-(`WASMTIME_V128`) as a little-endian `int`. The Config also enables `wasm_simd`, `wasm_relaxed_simd`.
+(`WASMTIME_V128`) as a little-endian `int`. The Config also enables `wasm_simd`, `wasm_relaxed_simd`. Upstream issues (workaround to drop once fixed):
+[wasmtime-py#348](https://github.com/bytecodealliance/wasmtime-py/issues/348),
+[wasmtime#15088](https://github.com/bytecodealliance/wasmtime/issues/15088).
 
 ## Test plan
 A throwaway prototype of this design over Wasmtime (not committed, one process per file) gave
@@ -298,3 +300,4 @@ result and on an xpass).
   `ref_null.wast:1`) are now `pass` (core: pass 20556, xfail 42).
 * 2026-10-30: Wasmtime claims `simd` and `relaxedSimd`: raw v128 path in the adapter, v128 detected
   without `wasm_valtype_kind` (simd: pass 25481, skip 509; relaxed-simd: pass 79; fail 0).
+* 2026-10-30: links to the upstream v128 issues (wasmtime-py#348, wasmtime#15088).
