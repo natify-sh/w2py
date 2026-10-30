@@ -2,12 +2,14 @@
 
 Context and rules for working on w2py with an agent.
 
+**Start with [`BRIEF.md`](BRIEF.md)**: what the project is, what it is not, and the order of work.
+
 ## What this is
-A dependency-free WebAssembly runtime for Python that follows Wasmtime (model, API, CLI, features,
-traps) and replaces its compiler with targets: `pyc` (translation to Python), `mpy` (MicroPython),
-`jit-<arch>` (machine code from Python via `mmap` + `ctypes`). Read `README.md`, then
-`docs/ARCHITECTURE.md`, `docs/TARGETS.md` and `docs/ROADMAP.md` before changing anything. The order of
-the first steps is in `docs/ROADMAP.md`, "Where to start".
+A WebAssembly **compiler in pure Python** that emits machine code at run time (`jit-<arch>`, through
+`mmap` + `ctypes`), with translation to Python (`pyc`) and MicroPython (`mpy`) where machine code is not
+possible, and a thin runtime around it. No native dependency. Wasmtime is the test oracle and, later,
+the shape of the public API — not the starting point. Read `BRIEF.md`, then `docs/BENCHMARKS.md` and
+`docs/ARCHITECTURE.md`; the order of work is in `BRIEF.md`, "Where to start".
 
 The maintainer communicates in Ukrainian; code, comments, commit messages and docs are in English.
 
@@ -15,8 +17,10 @@ The maintainer communicates in Ukrainian; code, comments, commit messages and do
 * **No runtime dependencies.** Only the standard library may be imported by the package. Development
   tools (wasmtime as the test oracle, wabt, wasm-tools, pywasm, meld, MicroPython, QEMU) stay in the
   development group or CI.
-* **Wasmtime decides behaviour.** When the spec leaves room or the API needs a shape, do what
-  wasmtime / wasmtime-py does; record any deliberate deviation in `docs/DECISIONS.md`.
+* **Wasmtime is the oracle, not the goal.** Where the spec leaves room (trap codes, NaN, limits) do
+  what Wasmtime does, and test against it. The public API takes the shape of wasmtime-py in phase 3;
+  API parity is never worked on before the compiler and the spec tests need it. Record deliberate
+  deviations in `docs/DECISIONS.md`.
 * **One interface for all targets**, one test suite for all targets. A target never special-cases
   another; the runtime never special-cases a target beyond `Target` methods.
 * **Never crash the interpreter.** Deep recursion, bad memory accesses and host exceptions become

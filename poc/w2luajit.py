@@ -12,8 +12,8 @@ LuaJIT is Lua 5.1 + goto: numbers are doubles, bit ops come from `bit` and retur
 """
 import re, sys
 from w2py import parse, E, dep, I32, I64, F32, F64, M32, M64
-import w2lua
-from w2lua import LuaFuncGen, LuaModGen, lflit
+import poc.w2lua as w2lua
+from poc.w2lua import LuaFuncGen, LuaModGen, lflit
 
 MOD = '4294967296'
 

@@ -6,8 +6,8 @@ import sys, os, time, collections, traceback
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 from w2py import parse
 import w2py
-from w2jit import Asm, TRAPS
-from w2jit2 import FuncJit2, JitModule2
+from poc.w2jit import Asm, TRAPS
+from poc.w2jit2 import FuncJit2, JitModule2
 
 
 class Probe(JitModule2):

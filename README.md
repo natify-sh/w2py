@@ -1,8 +1,12 @@
 # w2py
 
-A WebAssembly runtime for Python with **no runtime dependencies**: the Python standard library is all it
-needs. Inside it follows the model of Wasmtime (Engine, Store, Module, Linker, Instance, WASI); the
-compiler is its own. Where Wasmtime has Cranelift (or Winch, Pulley), w2py has **targets**: a translator
+> New here? Read [`BRIEF.md`](BRIEF.md) first.
+
+A WebAssembly **compiler and runtime for Python with no runtime dependencies**: the Python standard
+library is all it needs. Its core is a compiler written in Python that emits machine code at run time;
+the public API will take the familiar shape of wasmtime-py (Engine, Store, Module, Linker, Instance,
+WASI), which is also the test oracle. Where Wasmtime has Cranelift (or Winch, Pulley), w2py has
+**targets**: a translator
 to Python code (`pyc`), a translator for MicroPython (`mpy`) and machine-code JITs written in Python
 that run through `mmap` + `ctypes` (`jit-x86_64`, later `jit-aarch64`, `jit-riscv64`, …). A target is
 picked automatically for the machine and the module, and its output can be cached.

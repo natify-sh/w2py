@@ -2,9 +2,9 @@
 import sys, time
 import os
 if os.environ.get("W2PY_GUARD"):
-    from w2jit_guard import JitModuleGuard as JitModule
+    from poc.w2jit_guard import JitModuleGuard as JitModule
 else:
-    from w2jit2 import JitModule2 as JitModule
+    from poc.w2jit2 import JitModule2 as JitModule
 T0 = time.perf_counter()
 jm = None
 def millis(): return int((time.perf_counter() - T0) * 1000) & 0xFFFFFFFF

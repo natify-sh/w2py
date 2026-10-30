@@ -16,7 +16,7 @@ Scratch registers: rax, rcx, rdx. r12 frame, r13 memory base, r14 memory size, r
 import struct
 from collections import Counter
 from w2py import decode, I32, I64, F32, F64
-from w2jit import (Asm, Ent, Ctl, JitModule, Trap, TRAPS, CC, INV, wide,
+from poc.w2jit import (Asm, Ent, Ctl, JitModule, Trap, TRAPS, CC, INV, wide,
                    RAX, RCX, RDX, RBX, RSP, RBP, RSI, RDI, R8, R9, R10, R11, R12, R13, R14, R15,
                    CTX_VSLIMIT, CTX_GLOBALS)
 

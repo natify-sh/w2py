@@ -14,9 +14,9 @@ Linux x86-64 only (offsets of `siginfo_t` and `ucontext_t`, the glibc `struct si
 Same idea as Wasmtime's signal-based traps; here the handler is a few dozen bytes of our own code.
 """
 import ctypes, struct, mmap
-from w2jit import Asm, RAX, RCX, RDX, RSI, RDI, R10
-from w2jit2 import FuncJit2, JitModule2, R14, R13
-import w2jit2
+from poc.w2jit import Asm, RAX, RCX, RDX, RSI, RDI, R10
+from poc.w2jit2 import FuncJit2, JitModule2, R14, R13
+import poc.w2jit2 as w2jit2
 
 RESERVE = 8 << 30                       # covers 0xFFFFFFFF + any offset < 2 GiB + 8 bytes
 SIGSEGV, SIGBUS = 11, 7

@@ -13,7 +13,8 @@ The first goal is not a feature but a **measurement**: every later change should
    Linux x86-64. Minimum Python 3.8 for now (open question 1).
 2. **The spec-suite runner** (phase 1, the most important step): convert `WebAssembly/spec` at a pinned
    commit with `wast2json`; a runner for the commands (`module`, `assert_return`, `assert_trap`,
-   `assert_invalid`, …) over a thin interface — load a module, call an export, read a global.
+   `assert_invalid`, …) over a **tiny internal engine interface** — load a module, instantiate, call an
+   export, read a global — not over a wasmtime-like public API (that is phase 3).
    **Run it against wasmtime first**: this tests the runner itself, and the oracle should pass nearly
    everything.
 3. **Port the PoC front end** into `frontend/` unchanged (reader and decoder from `poc/w2py.py`), connect

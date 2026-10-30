@@ -16,9 +16,9 @@ if mode == 'pyc':
     loader.exec_module(m)
     run = m.instantiate({})['run']
 elif mode in ('jit', 'jit1', 'jitg'):
-    if mode == 'jit': from w2jit2 import JitModule2 as JM
-    elif mode == 'jitg': from w2jit_guard import JitModuleGuard as JM
-    else: from w2jit import JitModule as JM
+    if mode == 'jit': from poc.w2jit2 import JitModule2 as JM
+    elif mode == 'jitg': from poc.w2jit_guard import JitModuleGuard as JM
+    else: from poc.w2jit import JitModule as JM
     jm = JM(open(WASM, 'rb').read(), {})
     run = lambda n: jm.call('run', n)
 else:
