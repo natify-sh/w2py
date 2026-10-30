@@ -15,7 +15,18 @@ from w2py.targets.jit.x86_64.encoder import ALU, BT, CC, RAX, RBP, RSP, SHIFT, U
 
 LLVM_MC = shutil.which("llvm-mc")
 OBJCOPY = shutil.which("llvm-objcopy") or shutil.which("objcopy")
-OBJDUMP = shutil.which("objdump")
+
+
+def _gnu_objdump() -> str | None:
+    """tools/isa_check.py needs GNU objdump (-b binary); macOS's `objdump` is llvm-objdump."""
+    path = shutil.which("objdump")
+    if path is None:
+        return None
+    out = subprocess.run([path, "--version"], capture_output=True, text=True).stdout
+    return path if "GNU objdump" in out else None
+
+
+OBJDUMP = _gnu_objdump()
 ROOT = Path(__file__).resolve().parents[2]
 
 _N = "ax cx dx bx sp bp si di".split()
@@ -330,7 +341,7 @@ ROUNDSD = bytes.fromhex("660f3a0bc103")  # roundsd xmm0, xmm1, 3 (SSE4.1: x86-64
 
 
 def test_isa_check(tmp_path: Path) -> None:
-    need(OBJDUMP, "objdump")
+    need(OBJDUMP, "GNU objdump")
     blob = b"".join(encode(e) for e, _ in forms()) + label_program()[0]
     p = run_isa_check(tmp_path, blob)
     assert p.returncode == 0, p.stdout[:2000] + p.stderr
