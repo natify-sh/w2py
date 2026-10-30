@@ -268,7 +268,7 @@ above the declared level. With D23 (no OS in the code) this keeps an artifact de
 architecture and its declared level only.
 
 ### D25. One target per engine and store; `pyc` and the JIT at feature parity
-Status: accepted · Date: 2026-10-30 · Supersedes: D5 (per-module fallback) · Evidence: —
+Status: accepted · Date: 2026-10-30 (amended 2026-10-30: no computation helpers) · Supersedes: D5 (per-module fallback) · Evidence: —
 
 Targets are never mixed: the target is chosen per engine, so every module and store of an engine runs
 on it (the Wasmtime model: an engine owns the compiler). `auto` chooses from the environment only —
@@ -279,8 +279,13 @@ follows the environment: an `mmap` buffer where `mmap` is available, a `bytearra
 with identical semantics; which one is the default is decided by a measurement (grow without copying,
 access speed through `struct`/`memoryview`).
 For this to cost nothing, **`pyc` and every `jit-<arch>` support the same features, 1:1**: a feature
-is complete when it passes on both. A JIT backend covers what it does not implement natively through
-libcalls (S0002) rather than refusing the module; `pyc` closes its own gaps (e.g. NaN payloads) rather
+is complete when it passes on both. The goal is a complete implementation, not passing tests: a JIT
+computes natively (floats and conversions included, at the ISA baseline, D24) and calls into the
+Python runtime only for runtime **services** that change engine state (`memory.grow`, `table.grow`,
+table/segment initialisation — what Wasmtime's own libcalls do); it never hands a computation it has
+not implemented to a Python helper. What it cannot compile yet is `Unsupported`, visible as
+`unsupported: <feature>` in its expected failures, and `auto` selects a JIT only when its expected
+failures equal `pyc`'s in the claimed groups. `pyc` closes its own gaps (e.g. NaN payloads) rather
 than relying on the JIT. CI compares the expected-failures files of `pyc` and each JIT; a difference
 is a gap on one side to close, not a permanent state. Tier-3 targets (`mpy`, D22) are exempt.
 

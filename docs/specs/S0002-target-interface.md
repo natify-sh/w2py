@@ -114,9 +114,11 @@ in as `HostFunc`.
 **Target choice (D25).** The target is fixed per engine (and so per store): `auto` picks
 `jit-<arch>` when `probe()` succeeds (once per process, cached), else `pyc`; the module's content
 never changes the choice. `W2PY_TARGET` overrides it. A module the chosen target cannot compile
-raises `Unsupported` with the feature — there is no per-module fallback; a JIT backend covers what it
-does not implement natively with libcalls (step 4), and a module without a full validator verdict
-(`validated = False`) is `Unsupported` on a JIT. A target never special-cases another.
+raises `Unsupported` with the feature — there is no per-module fallback and no Python helper for a
+computation the JIT has not implemented (D25); only runtime services (`memory.grow`, `table.grow`,
+table/segment initialisation) are called through the host bridge. A module without a full validator
+verdict (`validated = False`) is `Unsupported` on a JIT. `auto` selects `jit-<arch>` only when its
+expected failures equal `pyc`'s in the claimed groups (until then a readiness guard keeps it off). A target never special-cases another.
 
 **Threads and depth.** One thread per store: `StoreState` records the owner on first entry and
 raises `RuntimeError` on entry from another thread; nesting (wasm → host → wasm) on the owner thread
@@ -140,15 +142,21 @@ Phase-3 steps, each one commit with its acceptance; the reviewer reads every JIT
    (labels and fixups only, LESSONS 6); W^X mapping (RW → RX via ctypes `mprotect`); probe.
    `uv run pytest tests/jit/test_encoder.py`: every form the encoder emits, with registers 0–15 and
    rsp/rbp/r12/r13 bases, equals `llvm-mc --show-encoding` output (dev tool; skipped if absent).
-3. **Shared core + backend interface, integer core** (proposal below): rewrite, not copy, of
-   `w2jit2`'s driver into `jit/common/`; the x86-64 lowering behind the interface; entry,
-   trap-by-return, re-entrancy, stack limits, interrupt poll, host bridge per S0003.
-   `--engine jit` on `i32 i64 local_* global block loop br* if call return memory* address
-   int_exprs left-to-right stack fac forward unwind traps` → every command that passes on `pyc`
-   passes on `jit`, command by command (`tools/` diff of the two `--json` outputs), 0 crashes.
-4. **Libcalls and fallback.** A backend hands an op to a Python helper through the host bridge
-   (S0003); `memory.grow`/`memory.size` and float ops not ported go there first, so the JIT accepts
-   every module `pyc` accepts (D25 parity); a probe failure (forced) selects `pyc` for the engine.
+3. **The JIT runs wasm**, four sub-steps, each one commit and one review (engine names are target
+   names: `--engine jit-x86_64`, never a bare `jit`; one adapter `tests/spec/target_engine.py` for
+   every w2py target; the runner instantiates `spectest` lazily; `tools/spec_diff.py A B` lists
+   commands passing on A and not on B):
+   * **3a ABI**: context, value stack, SysV entry (Win64 shape), trap-by-return, host bridge with
+     nested entries and host exceptions, stack limits, interrupt — tested on hand-built functions;
+     every core command `unsupported` on `jit-x86_64`, run exits 0.
+   * **3b one-pass core + integer backend**: i32/i64, locals, globals, control flow incl. `br_table`,
+     block params, multi-value, direct calls, loads/stores with explicit bounds checks; floats as data
+     only. `spec_diff pyc jit-x86_64` on the files it claims → 0 regressions.
+   * **3c native floats (SSE2 baseline) + `memory.size`/`memory.grow`** (grow is a runtime service:
+     commit pages in the 4 GiB reservation, S0003). First CoreMark checkpoint.
+   * **3d tables, funcref, `call_indirect`** (table services through the bridge). `spec_diff pyc
+     jit-x86_64 core` → only `unsupported:` lines remain; second CoreMark checkpoint vs `w2jit2`.
+4. **Fallback test only.** A forced probe failure selects `pyc` for the engine (D25).
 5. **Speed and ISA level.** CoreMark on the package JIT alternated with `poc/run_jit2.py` in one
    session, row in BENCHMARKS.md: target ≥ 95 % of `w2jit2` (trap-by-return and interrupt polls cost
    something; measured, not assumed). The ISA check: `objdump -D` of the code of every spec module
@@ -230,3 +238,4 @@ weights itself until then.
 * 2026-10-30: interrupt polling on by default (timeouts and Ctrl-C are built on it); fuel is an opt-in, later (maintainer).
 * 2026-10-30: approved by the maintainer; the proposed decision is D26.
 * 2026-10-30: `TargetInstance.limits(name)` for import type checks in `runtime/link.py`; reference values cross the boundary as opaque objects (`None` = null), numbers stay `Raw` (maintainer).
+* 2026-10-30: step 3 split into 3a–3d (tables in 3d, native floats in 3c); no Python helpers for computation, only runtime services (D25 amended); `--engine jit-x86_64`, one target adapter, lazy spectest (maintainer).

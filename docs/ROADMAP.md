@@ -133,9 +133,10 @@ lacks a feature reports it through `Target.supports` and the module runs on anot
   bounds checks, traps. Guard pages are an optional capability of a backend and come in phase 5.
 * Mechanisms every architecture will need are built and tested here, not later: traps unwound by
   returning through frames (CET-safe, RISKS.md R2), re-entrant entry, host exceptions across the
-  boundary, interrupt word, stack limits, the executable-memory probe and per-module fallback to `pyc`.
-* A backend gets a way to hand an operation it does not implement to a Python helper (a libcall through
-  the host-call bridge): slow but correct, so a new architecture runs every module from its first stage.
+  boundary, interrupt word, stack limits, the executable-memory probe and the engine-level fallback to `pyc` when the probe fails (D25).
+* Runtime services (`memory.grow`, `table.grow`, segment initialisation) are called through the host
+  bridge, as Wasmtime's libcalls; computation is never handed to a Python helper (D25): what a backend
+  cannot compile yet is `unsupported`, and the xfail difference to `pyc` measures completeness.
 * The encoder is checked in CI against an external assembler (`llvm-mc` / `objdump`) for every
   instruction form it can emit.
 * **Baseline only** (D24): x86-64-v1 code; `f64.trunc`/`f32.trunc` get the SSE2 sequence, with the
@@ -158,8 +159,8 @@ lacks a feature reports it through `Target.supports` and the module runs on anot
 ## Phase 5 — JIT completion
 * The rest of the opcode set in stages (TARGETS.md) on **every** JIT target in step: floats, `call_indirect`
   and tables, `memory.grow` on a reserved range, bulk memory, reference types, multi-value,
-  multi-memory, memory64, then SIMD and the later proposals. What a backend lacks goes through a libcall
-  until it is written.
+  multi-memory, memory64, then SIMD and the later proposals. What a backend lacks is `unsupported` until it
+  is written (D25).
 * **Guard pages with a JIT-emitted signal handler** (`poc/w2jit_guard.py`: +20–25 % on CoreMark, the gap
   to Cranelift was mostly the bounds checks), per OS and architecture (Linux/BSD `sigaction` +
   `ucontext` offsets, macOS also SIGBUS, Windows a vectored exception handler), `sigaltstack` per thread

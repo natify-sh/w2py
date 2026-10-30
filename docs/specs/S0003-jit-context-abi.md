@@ -22,8 +22,7 @@ it is not a new format. The runtime side is [S0002](S0002-target-interface.md).
 * Goals: every rule LESSONS.md 1–9 and RISKS.md R2/R3 ask for, stated once and testable; an ABI a
   second architecture can follow by filling in its own register table (D23).
 * Non-goals, deferred: the artifact file (ARTIFACT.md part 2: header, sections, `TRAPMAP`,
-  `RELOCS`, thin/fat files) and serialization — phase 5; tables and `call_indirect`, references,
-  v128 slots, multi-memory — stage 2; `FUEL`, `EPOCH_DEADLINE`; guard pages and the signal handler
+  `RELOCS`, thin/fat files) and serialization — phase 5; v128 slots, multi-memory — stage 2 (tables, funcref and `call_indirect` are in step 3d, S0002); `FUEL`, `EPOCH_DEADLINE`; guard pages and the signal handler
   (R6) — phase 5; `Trap.frames`; CPU feature detection (phase 3 emits the baseline only); the C
   reference loader (optional, D18).
 
@@ -45,7 +44,7 @@ it is not a new format. The runtime side is [S0002](S0002-target-interface.md).
 | … | table *i*: `base`, `size` | layout kept; a module that uses a table is `Unsupported` (S0002) |
 | … | global *i*: 1 word | defined: the value; imported: a pointer to the owner's word (same target, S0002) |
 | … | function import *i*: 1 word | address of a host function (signature below) |
-| … | libcall *j*: 1 word | **new (proposed)**: same signature; the helpers the module uses, in a fixed order |
+| … | libcall *j*: 1 word | **new (proposed)**: same signature; the runtime services the module uses (`memory.grow`, `table.grow`, segment init — never computation, D25), in a fixed order |
 
 ### Calling conventions
 ```c
@@ -200,3 +199,4 @@ uv run pytest tests/jit -k "entry or trap or reentry or host or interrupt or sta
 ## Changes
 * 2026-10-30: created (draft).
 * 2026-10-30: approved by the maintainer (amendments accepted; budget capped by the thread's stack).
+* 2026-10-30: linear memory reserves 4 GiB of address space per 32-bit memory and commits on grow (never moves; Wasmtime `memory_reservation` = 4 GiB, `memory_guard_size` = 32 MiB in crates/environ/src/tunables.rs — the guard comes in phase 5); explicit bounds checks in phase 3; libcalls are runtime services only (maintainer).
