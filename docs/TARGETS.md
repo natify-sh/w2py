@@ -109,7 +109,7 @@ with real numbers for both.
 | `mpy` | MicroPython (unix port tested, 1.29.0) | CoreMark | `.mpy` ahead of time or source on device; `@native` (94 it/s); next: viper code, i.e. MicroPython's own emitters as native back ends for every MCU architecture (below) |
 | `jit-x86_64-sysv` | Linux, macOS (Intel), BSDs | CoreMark (`w2jit2`) | 15 337 it/s; needs the rest of the opcode set, `memory.grow`, nested entry |
 | `jit-x86_64-win64` | Windows | — | other argument registers, shadow space, `VirtualAlloc` |
-| `jit-aarch64` | Linux, macOS (Apple Silicon: `MAP_JIT`), Windows on ARM, Android (Termux) | — | the second architecture; proves the split |
+| `jit-aarch64` | Linux, macOS (Apple Silicon: `MAP_JIT`), Windows on ARM, Android (Termux) | — | the second architecture (or `jit-riscv64`, ROADMAP phase 4); its integer core proves the split before the opcode set is widened |
 | `jit-riscv64`, `jit-armv7`, `jit-mips32` (Ingenic X2000, little-endian), `jit-ppc64le`, `jit-loongarch64` | as available | — | QEMU user-mode in CI; candidates for copy-and-patch |
 | `lua` / `luajit` | Lua 5.4, LuaJIT | CoreMark | **not a w2py target**: an experiment showing the IR serves other languages (271 / 1 873 it/s); the shared layers stay language-neutral so such backends remain possible (DECISIONS.md D17) |
 | `mypyc` | CPython + mypyc runtime | CoreMark | **dropped**: needs `librt` at run time (a dependency) and is 9× slower than wasm2c for a native build |

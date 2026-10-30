@@ -13,7 +13,7 @@ Python loader — rely on. It has three parts, each versioned.
 > stays possible because the boundary is neutral, but it is optional.
 
 > The PoC (`poc/w2jit.py`, `w2jit2.py`) predates this contract: its context layout and entry signature
-> are a subset of version 1 below and must be brought in line in phase 4.
+> are a subset of version 1 below and must be brought in line in phase 5.
 
 ## 1. ISA levels
 

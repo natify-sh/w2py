@@ -14,7 +14,7 @@ The first goal is not a feature but a **measurement**: every later change should
 2. **The spec-suite runner** (phase 1, the most important step): convert `WebAssembly/spec` at a pinned
    commit with `wast2json`; a runner for the commands (`module`, `assert_return`, `assert_trap`,
    `assert_invalid`, …) over a **tiny internal engine interface** — load a module, instantiate, call an
-   export, read a global — not over a wasmtime-like public API (that is phase 3).
+   export, read a global — not over a wasmtime-like public API (that is phase 6).
    **Run it against wasmtime first**: this tests the runner itself, and the oracle should pass nearly
    everything.
 3. **Port the PoC front end** into `frontend/` unchanged (reader and decoder from `poc/w2py.py`), connect
@@ -24,27 +24,46 @@ The first goal is not a feature but a **measurement**: every later change should
    parameters, tables, trap conversion come in the order the failures dictate.
 
 Why this order: the spec suite plus the oracle give an objective metric from day one; `pyc` is the
-simplest target and the one every other must match, so semantics are pinned there; the JIT (phase 4)
-then only reproduces checked semantics faster, and the same runner shows at once where it deviates.
+simplest target and the one every other must match, so semantics are pinned there; the JIT (phases
+3–5) then only reproduces checked semantics faster, and the same runner shows at once where it
+deviates. The JIT comes **before** the public runtime API (phase 6): the compiler is the point, the API
+only wraps it. Inside the JIT the backend interface is fixed on **two** architectures (phases 3–4)
+before the opcode set is widened (phase 5): an interface proved on x86-64 alone is an x86-64 interface.
 The open questions below do not block this start — the name, the WASI host and parallelism are needed
-only in phases 2–3.
+only in phases 2 and 6.
 
-## Order of the wasm features
+## Scope and order of the wasm features
 
-Dictated by the modules that exist in practice, and by what fused WASI 0.2 needs:
+**The target is WebAssembly Core Specification 3.0** (TESTING.md): besides 2.0 (mutable globals,
+sign-extension, non-trapping float-to-int, multi-value, bulk memory, reference types, fixed-width SIMD)
+it contains GC, typed function references, exception handling (`exnref`), tail calls, memory64,
+multi-memory, relaxed SIMD and extended constant expressions. Not in 3.0, and so tracked as separate
+proposals: threads, wide arithmetic, custom page sizes (Wasmtime Tier 2), stack switching and the
+other Tier 3 ones.
 
-1. **MVP + Wasm 2.0**: mutable globals, sign-extension, non-trapping float-to-int, multi-value (block
-   parameters too), bulk memory, reference types, SIMD — what clang, rustc and zig emit by default.
-2. **multi-memory** — without it there is no fused WASI 0.2.
+The order below is **staging, not scope**: it follows what the modules that exist in practice need
+(what clang, rustc and zig emit by default comes first) and what fused WASI 0.2 needs. Everything in
+3.0 is in scope; the stages say only what is implemented, and measured against the spec tests, first.
+
+1. **MVP + the 2.0 features** — what toolchains emit by default.
+2. **multi-memory** — without it there is no fused WASI 0.2. Part of 3.0.
 3. The runtime API and **WASI 0.1**, then **fused WASI 0.2**.
-4. **memory64**, **tail-call**, **extended-const**.
+4. **memory64**, **tail calls**, **extended-const**.
 5. **exception handling**.
 6. **function references** and **GC** — needed by Kotlin, Dart, OCaml, Java-to-wasm; less by C/Rust.
-7. **relaxed SIMD**, **wide arithmetic**.
-8. **threads** (shared memory, atomics), **custom page sizes** (Wasmtime Tier 2).
+7. **relaxed SIMD**.
+8. Outside 3.0: **wide arithmetic**, **threads** (shared memory, atomics), **custom page sizes**.
 
 Tier 3 proposals (branch-hinting, stack-switching, compact-imports) after all of these. Sources and
 counters: TESTING.md, "Sources of truth and the completeness counters".
+
+**Staging must not narrow the design.** The 3.0 features change the shapes that every layer shares, and
+those are expensive to retrofit: so the front end, the validator and HIR are designed for all of 3.0
+from phase 1 even where a target does not implement a feature yet — a memory index on every memory
+operation (multi-memory), 64-bit addresses and limits (memory64), the full value-type lattice with
+subtyping and reference types (GC, function references), tags and `try_table` as structured control
+(exceptions), `return_call*` as terminators (tail calls), multi-value block parameters. A target that
+lacks a feature reports it through `Target.supports` and the module runs on another target.
 
 ## Exit criteria in numbers
 
@@ -52,8 +71,10 @@ counters: TESTING.md, "Sources of truth and the completeness counters".
 |---|---|
 | 1 | `assert_invalid` / `assert_malformed` of the pinned spec suite pass (the validator) |
 | 2 | spec suite for features 1–2 above passes on `pyc` (CPython and PyPy); the rest are listed expected failures |
-| 3 | wasmtime-py's own tests pass through the shim, except the listed deviations; the WASI testsuite (p1) passes; the CLI accepts the scraped option list |
-| 4 | the same spec commands pass on `jit-x86_64` as on `pyc` for the stages it claims; differential fuzzing finds no divergence over an agreed number of hours |
+| 3 | the integer-core spec commands (stage 1, TARGETS.md) pass on `jit-x86_64` exactly as on `pyc`; the backend interface is written down and the PoC's x86-64 code is split into the shared core and the backend; compile time and CoreMark are not worse than the PoC (BENCHMARKS.md) |
+| 4 | the same integer-core spec commands pass on the second architecture under QEMU; the size of its backend is recorded; the interface is changed where it leaked x86-64 and then frozen |
+| 5 | the same spec commands pass on every JIT target as on `pyc` for the stages it claims; differential fuzzing finds no divergence over an agreed number of hours |
+| 6 | the public API is covered by tests of its own plus differential runs against wasmtime (its API used as the oracle, not as a goal); the WASI testsuite (p1) passes; the CLI runs the commands of API.md |
 | later | each new proposal enters with its spec tests green on every target that claims it |
 
 ## Phase 0 — repository from the PoC
@@ -66,7 +87,7 @@ counters: TESTING.md, "Sources of truth and the completeness counters".
 ## Phase 1 — frontend complete
 * Full binary reader for every proposal Wasmtime supports (FEATURES.md); the validator (type checking
   of function bodies); constant expressions (extended const).
-* Spec-suite harness over the public API (TESTING.md) running `assert_invalid` / `assert_malformed`.
+* Spec-suite harness over the tiny internal engine interface (TESTING.md) running `assert_invalid` / `assert_malformed`.
 * HIR (ARCHITECTURE.md, "The IR"): trees, structured control, the analyses (bounds/wrap, local
   weights, effect order, trap points, call graph); documented in code.
 
@@ -75,41 +96,73 @@ counters: TESTING.md, "Sources of truth and the completeness counters".
 * Trap conversion at the boundary; stack-depth counter and `STACK_OVERFLOW`; re-entrancy.
 * Long calls: yield points + interrupt word (measure the cost); one-thread-per-store guard.
 * Fuel and epochs (compiled in on demand).
-* Cache and `Module.serialize`/`deserialize`: thin and fat files (DECISIONS.md D18).
+* The compilation cache (DECISIONS.md D9); the public `Module.serialize`/`deserialize` and thin/fat
+  files (D18) wait for phase 6.
 * No embedded runtime: generated code uses the package's runtime (D18); the PoC's emitted `RUNTIME`
   goes away. Regeneration from the wasm on
   any mismatch.
 * Exit criterion: the spec suite passes on CPython and PyPy.
 
-## Phase 3 — runtime API, WASI, CLI
-* wasmtime-py–compatible `Engine`, `Config`, `Store`, `Module`, `Linker`, `Instance`, externs, `Caller`,
-  `Trap`/`TrapCode`, limits.
+## Phase 3 — `jit-x86_64`: integer core and the backend interface
+* **Decide the shape of the shared JIT core before writing it** and record it in DECISIONS.md: LIR with
+  virtual registers and an allocator (Cranelift style), or one pass over HIR driving a small
+  `MacroAssembler`-like backend interface (Winch style; closest to what `w2jit2` already does with its
+  lazy value stack, pinned locals and fused compare+branch). Judge by compile time in Python
+  (BENCHMARKS.md, "Compile time") as well as by code speed.
+* Split `w2jit2` along ARCHITECTURE.md / TARGETS.md: shared core (executable memory, entry and host
+  call bridge, value-stack frames, labels and fixups, trap stubs, interrupt and fuel polling, nested
+  entries) and the x86-64 backend (encoder, ABI, register pools, instruction selection). Two axes
+  stay separate from the start: the ISA and the OS ABI (System V now, Win64 later).
+* Stage 1 of TARGETS.md only: i32/i64, locals, globals, control flow, calls, memory with **explicit**
+  bounds checks, traps. Guard pages are an optional capability of a backend and come in phase 5.
+* Mechanisms every architecture will need are built and tested here, not later: traps unwound by
+  returning through frames (CET-safe, RISKS.md R2), re-entrant entry, host exceptions across the
+  boundary, interrupt word, stack limits, the executable-memory probe and per-module fallback to `pyc`.
+* A backend gets a way to hand an operation it does not implement to a Python helper (a libcall through
+  the host-call bridge): slow but correct, so a new architecture runs every module from its first stage.
+* The encoder is checked in CI against an external assembler (`llvm-mc` / `objdump`) for every
+  instruction form it can emit.
+
+## Phase 4 — the second architecture (integer core) proves the interface
+* `jit-aarch64` or `jit-riscv64` (whichever has the cheaper CI; Python for it runs under QEMU user-mode
+  in a multi-arch container), integer core only: the same stage 1, the same spec commands as phase 3.
+* Record the size of the new backend and what in the shared core or the interface had to change; fix the
+  places where x86-64 leaked (flags, two-operand forms, fixed registers for division and shifts) and
+  **freeze the interface**. Nothing in phase 5 starts before this.
+* After it, decide on copy-and-patch for further architectures with numbers for both approaches.
+* aarch64 on macOS (`MAP_JIT` + `pthread_jit_write_protect_np` via ctypes) and Windows on ARM follow
+  in phase 5.
+
+## Phase 5 — JIT completion
+* The rest of the opcode set in stages (TARGETS.md) on **every** JIT target in step: floats, `call_indirect`
+  and tables, `memory.grow` on a reserved range, bulk memory, reference types, multi-value,
+  multi-memory, memory64, then SIMD and the later proposals. What a backend lacks goes through a libcall
+  until it is written.
+* **Guard pages with a JIT-emitted signal handler** (`poc/w2jit_guard.py`: +20–25 % on CoreMark, the gap
+  to Cranelift was mostly the bounds checks), per OS and architecture (Linux/BSD `sigaction` +
+  `ucontext` offsets, macOS also SIGBUS, Windows a vectored exception handler), `sigaltstack` per thread
+  for stack overflow; explicit checks stay the fallback and the default of a new architecture; bounds-check
+  elimination where guard pages are not available.
+* Trap frames, fuel and epoch checks, the interrupt word polled at back-edges (Ctrl+C via the waiting
+  main thread).
+* The contract of ARTIFACT.md (format v1, context ABI v1, baseline-ISA sequences, CPU feature
+  detection) is **fixed here**, after two architectures have shaped it, together with artifact
+  serialization; the C reference loader stays optional (D18).
+* Win64 after System V (a second entry trampoline in the same artifact); macOS and Windows on ARM.
+* Differential fuzzing against wasmtime (`wasm-smith`) from the first widened stage on.
+
+## Phase 6 — runtime API, WASI, CLI
+* `Engine`, `Config`, `Store`, `Module`, `Linker`, `Instance`, externs, `Caller`, `Trap`/`TrapCode`,
+  limits, in the shape of wasmtime-py (not a drop-in), over the internal engine interface the spec
+  runner has used since phase 1.
 * Choose the WASI host (open question 2); WASI 0.1 and fused 0.2 through it (needs multi-memory from
   phase 2).
+* `Module.serialize`/`deserialize` and the thin/fat files (D18) on top of the cache of phase 2 and the
+  artifacts of phase 5.
 * CLI: `run`, `compile`, `wast`, `settings`/`targets`, `cache`.
 * Differential tests against wasmtime on real programs.
 
-## Phase 4 — `jit-x86_64` complete
-* LIR and the shared JIT core extracted from `w2jit2`; **guard pages with a JIT-emitted signal
-  handler** (`poc/w2jit_guard.py`: +20–25 % on CoreMark, the gap to Cranelift was mostly the bounds
-  checks) per OS (Linux/BSD `sigaction` + `ucontext` offsets per architecture, macOS also SIGBUS,
-  Windows a vectored exception handler), `sigaltstack` per thread for stack overflow; explicit checks
-  as the fallback; then bounds-check elimination only where guard pages are not available.
-* The full opcode set in stages (TARGETS.md), `memory.grow` on a reserved range,
-  `call_indirect` and tables, nested entries, host exceptions across the boundary, trap frames,
-  fuel/epoch checks, the interrupt word polled at back-edges (Ctrl+C via the waiting main thread),
-  artifact serialization.
-* The contract of ARTIFACT.md: format v1, context ABI v1 (re-entrant entry, `HOST_ERROR`, interrupt
-  word), baseline-ISA sequences (no SSE4.1 at x86-64-v1), CPU feature detection, a C reference loader.
-* System V first, then Win64 (a second entry trampoline in the same artifact).
-* Executable-memory probe and per-module fallback to `pyc`.
-
-## Phase 5 — `jit-aarch64`
-* Linux, macOS (`MAP_JIT` + `pthread_jit_write_protect_np` via ctypes), Windows on ARM.
-* Proves the shared JIT core; after it, decide on copy-and-patch for further architectures with
-  numbers for both approaches.
-
-## Phase 6 — `mpy` target
+## Phase 7 — `mpy` target
 * `.mpy` ahead of time and on-device source; `@native` where it helps; avoid the `mpy-cross` large
   function bug (LESSONS.md 17).
 * Research: lower HIR to `@micropython.viper` code (machine-word ints, `ptr8/16/32` memory) so that
@@ -118,9 +171,10 @@ counters: TESTING.md, "Sources of truth and the completeness counters".
   for the hottest functions (TARGETS.md, "MicroPython's own native emitters as JIT back ends").
 * Port the translator to run on MicroPython if on-device compilation is wanted.
 
-## Phase 7 — more architectures
-* riscv64, armv7, mips32el (Ingenic X2000), ppc64le, loongarch64 — by hand or by copy-and-patch, CI
-  under QEMU user-mode.
+## Phase 8 — more architectures
+* armv7, mips32el (Ingenic X2000), ppc64le, loongarch64 and whichever of aarch64 / riscv64 phase 4 did
+  not take — by hand or by copy-and-patch, CI under QEMU user-mode. Each is added by a backend, the
+  encoder test and the integer-core spec commands; the shared core does not change.
 
 ## Open questions
 1. **Minimum Python.** Generated `pyc` code runs on 3.8 (3.4 with `--legacy`); the JIT needs only

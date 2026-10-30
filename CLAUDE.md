@@ -18,7 +18,7 @@ The maintainer communicates in Ukrainian; code, comments, commit messages and do
   tools (wasmtime as the test oracle, wabt, wasm-tools, pywasm, meld, MicroPython, QEMU) stay in the
   development group or CI.
 * **Wasmtime is the oracle, not the goal.** Where the spec leaves room (trap codes, NaN, limits) do
-  what Wasmtime does, and test against it. The public API takes the shape of wasmtime-py in phase 3;
+  what Wasmtime does, and test against it. The public API takes the shape of wasmtime-py in phase 6;
   API parity is never worked on before the compiler and the spec tests need it. Record deliberate
   deviations in `docs/DECISIONS.md`.
 * **One interface for all targets**, one test suite for all targets. A target never special-cases

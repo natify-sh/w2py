@@ -34,7 +34,7 @@ anywhere Python runs, without anyone building anything native.
   1. **the test oracle** — when the spec leaves room, and in differential tests, we behave as Wasmtime
      does (trap codes, NaN rules, limits);
   2. **the shape of the public Python API, later** (Engine/Store/Module/Linker/Instance), so users
-     recognise it. Building that API is phase 3. **Do not start there.** API parity is not a goal by
+     recognise it. Building that API is phase 6. **Do not start there.** API parity is not a goal by
      itself and is never worked on before the compiler and the spec tests need it.
 * **Not an interpreter.** Every target translates the whole module ahead of execution (at load time).
 * **Not a runtime that is embedded into generated code.** The runtime lives in the package; generated
@@ -68,12 +68,13 @@ only what its test programs needed.
   1.5–2.5× faster) — so a cache and, later, lazy per-function compilation matter.
 * Gaps the PoC does not cover: the validator, most of the opcode set in the JIT (`call_indirect`,
   full i64, floats beyond CoreMark, bulk memory, `memory.grow`), block parameters, reference types,
-  SIMD, everything after Wasm 2.0; the runtime objects; WASI.
+  SIMD, the Wasm 3.0 features (GC, exceptions, tail calls, memory64, multi-memory, …); the runtime
+  objects; WASI.
 
 ## Where to start (in this order)
 
 1. **Read** this page, then `docs/BENCHMARKS.md` (the numbers), then `docs/ARCHITECTURE.md`. Skip
-   `docs/API.md` and `docs/FEATURES.md` until phase 3.
+   `docs/API.md` and `docs/FEATURES.md` until phase 6.
 2. **Run the PoC** to see it work (Linux x86-64, any CPython ≥ 3.8):
    ```
    cd poc
@@ -91,10 +92,15 @@ only what its test programs needed.
 5. **Port the PoC front end and `pyc`** behind that interface; record the first number (spec commands
    passing). From then on the work is a loop: take the largest group of failures, fix it, the number
    grows. `pyc` is the semantic floor every other target must match.
-6. **The JIT** (`jit-x86_64`) behind the same interface, compared command by command with `pyc` and
-   Wasmtime; guard pages with explicit checks as the fallback. Then the HIR/LIR split and
-   `jit-aarch64`, which proves the split.
-7. **Only then** the public runtime API in the shape of wasmtime-py, WASI (fusedwasi is the candidate
+6. **The JIT, integer core first** (`jit-x86_64`, ROADMAP phase 3) behind the same interface, compared
+   command by command with `pyc` and Wasmtime, with explicit bounds checks. First decide and record
+   the shape of the shared JIT core (LIR with an allocator, or one pass over HIR into a small
+   `MacroAssembler`-like backend interface), then split `w2jit2` into the shared core and the x86-64
+   backend.
+7. **The second architecture's integer core** (aarch64 or riscv64 under QEMU, phase 4) **before** the
+   opcode set is widened: it is what proves the split, and the interface is frozen after it. Only then
+   the rest of the opcodes, guard pages and the artifact contract on all JIT targets (phase 5).
+8. **Only then** the public runtime API in the shape of wasmtime-py, WASI (fusedwasi is the candidate
    host), the cache and serialized files (thin/fat), the CLI.
 
 Every speed claim goes into `docs/BENCHMARKS.md` with its conditions; every behaviour claim comes with
@@ -122,7 +128,7 @@ a test. "Measure, do not estimate."
 | what went wrong before | `docs/LESSONS.md` |
 | risks and possible answers | `docs/RISKS.md` |
 | the JIT artifact contract | `docs/ARTIFACT.md` |
-| the public API and CLI (phase 3) | `docs/API.md`, `docs/FEATURES.md` |
+| the public API and CLI (phase 6) | `docs/API.md`, `docs/FEATURES.md` |
 | how others did it | `docs/REFERENCES.md` |
 
 The maintainer writes in Ukrainian; code, comments, commits and documents are in English. The name
