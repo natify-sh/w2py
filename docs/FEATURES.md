@@ -28,7 +28,7 @@ directories (`test/core/<dir>/`) count only on a target that claims the feature
 | Acquire-Release Atomics (`acquireReleaseAtomics`) | 2 | - | - | - |
 | JS BigInt to Wasm i64 Integration (`bigInt`) | 5 | - | - | - |
 | Branch Hinting (`branchHinting`) | 5 | flag | - | - |
-| Bulk Memory Operations (`bulkMemory`) | 5 | since 0.20 | partial 7386/7485 | - |
+| Bulk Memory Operations (`bulkMemory`) | 5 | since 0.20 | partial 7482/7485 | - |
 | Compact Import Section (`compactImportSection`) | 4 | - | - | - |
 | Compilation Hints (`compilationHints`) | 2 | - | - | - |
 | Component Model (`componentModel`) | 1 | - | - | - |
@@ -38,7 +38,7 @@ directories (`test/core/<dir>/`) count only on a target that claims the feature
 | ESM Integration (`esmIntegration`) | 3 | - | - | - |
 | Legacy Exception Handling (`exceptions`) | inactive | - | - | - |
 | Exception Handling with exnref (`exceptionsFinal`) | 5 | since 47 | - | - |
-| Extended Constant Expressions (`extendedConst`) | 5 | since 25 | partial 342/346 | - |
+| Extended Constant Expressions (`extendedConst`) | 5 | since 25 | yes 346/346 | - |
 | Extended Name Section (`extendedNameSection`) | 2 | - | - | - |
 | Flexible Vectors (`flexibleVectors`) | 1 | - | - | - |
 | Frozen Values (`frozenValues`) | 1 | - | - | - |
@@ -54,8 +54,8 @@ directories (`test/core/<dir>/`) count only on a target that claims the feature
 | More Array Constructors (`moreArrayConstructors`) | 1 | - | - | - |
 | Multibyte Array Access (`multibyteArrayAccess`) | 2 | - | - | - |
 | Multiple Memories (`multiMemory`) | 5 | since 15 | - | - |
-| Multi-value (`multiValue`) | 5 | since 0.17 | partial 1248/1253 | - |
-| Import/Export of Mutable Globals (`mutableGlobals`) | 5 | yes | partial 429/439 | - |
+| Multi-value (`multiValue`) | 5 | since 0.17 | yes 1253/1253 | - |
+| Import/Export of Mutable Globals (`mutableGlobals`) | 5 | yes | partial 430/439 | - |
 | Numeric Values in WAT Data Segments (`numericValuesInWat`) | 2 | - | - | - |
 | Profiles (`profiles`) | 1 | yes | - | - |
 | Reference Types (`referenceTypes`) | 5 | since 0.20 | partial 397/431 | - |

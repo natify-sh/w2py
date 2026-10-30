@@ -114,8 +114,10 @@ What went wrong or surprised us while building the PoC, so it is not found again
     `address.wast`). Wasm evaluates every operand: anything that can trap (loads, `div`/`rem`,
     `trunc`, `call`) must be evaluated even when its value is discarded. Fixed with an `x` (may trap)
     flag on div/rem/trunc next to `m` (reads memory): `drop` emits such operands as statements and
-    `select` evaluates both operands when either has the flag. Not yet audited: values discarded below
-    the arity of `br_if`/`br_table`/`return` and at unreachable block ends. Found: pyc loop, 2026-10-30.
+    `select` evaluates both operands when either has the flag. Audited later: values discarded below
+    the arity of `br`/`br_if`/`return` and before `unreachable` were also dropped unevaluated (`br_table`
+    already flushed); a branch now materialises whatever has the `m`/`x` flag first
+    (`flush_trapping`; `test_discarded_values_that_may_trap_still_run`). Found: pyc loop, 2026-10-30.
 29. **Never write a float into generated source with `repr`.** `repr(inf)`/`repr(nan)` give `inf`/
     `nan`, undefined names in the generated module, so a module with such a global initialiser failed
     to load (`select.wast`, found while fixing NaN constants). Emit special values through an exact

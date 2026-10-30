@@ -216,6 +216,10 @@ class FuncGen:
     def flush_call(s):
         s.flush(lambda e: e.m or e.g)
 
+    def flush_trapping(s):
+        """a branch, return or unreachable discards the stack below its arity: what may trap runs first"""
+        s.flush(lambda e: e.m or e.x)
+
     def flush_local(s, name):
         s.flush(lambda e: name in e.Ls)
 
@@ -430,6 +434,7 @@ class FuncGen:
             if op == 0x0C:  # br
                 d = x[1]
                 T = s.ctl[-1 - d]
+                s.flush_trapping()
                 if not (d == 0 and T.mode == "nest"):
                     s.br_code(d)
                 s.dead = True
@@ -439,6 +444,7 @@ class FuncGen:
                 cc = s.cond(c)
                 d = x[1]
                 T = s.ctl[-1 - d]
+                s.flush_trapping()
                 if d == 0 and T.mode == "nest":
                     s.nest(T, "if not %s:" % cc)
                     continue
@@ -531,10 +537,12 @@ class FuncGen:
                 s.dead = True
                 continue
             if op == 0x0F:
+                s.flush_trapping()
                 s.emit_return()
                 s.dead = True
                 continue
             if op == 0x00:
+                s.flush_trapping()
                 s.emit('raise Trap(TrapCode.UNREACHABLE, "unreachable")')
                 s.dead = True
                 continue
@@ -590,6 +598,16 @@ class FuncGen:
             s.close(mk)
         if F.kind == "if":
             s.close(F.mark)
+            if F.rv and not F.has_else:  # the implicit else passes the params through
+                m = s.open("else:")
+                s.emit(
+                    "%s = %s"
+                    % (
+                        ", ".join(F.rv),
+                        ", ".join(s.n(v) if v.t in (I32, I64) else v.c for v in F.pin),
+                    )
+                )
+                s.close(m)
         if F.pyloop:
             s.emit("break")
             s.close(F.mark)
@@ -1255,6 +1273,19 @@ class FuncGen:
             s.flush_mem()
             s.emit("_mcopy(M,%s,%s,%s)" % (n(dst), n(src), n(nn)))
             return
+        if op == 0xFC08:
+            nn = pop()
+            src = pop()
+            dst = pop()
+            mg.dused.add(x[1])
+            s.flush_mem()
+            s.emit("_minit(M,D%d,%s,%s,%s)" % (x[1], n(dst), n(src), n(nn)))
+            return
+        if op == 0xFC09:
+            mg.dused.add(x[1])
+            s.globals_set.add("D%d" % x[1])
+            s.emit("D%d = b''" % x[1])
+            return
         if op == 0xFC0B:
             nn = pop()
             v = pop()
@@ -1274,6 +1305,7 @@ class ModGen:
         s.fimports = [i for i in im if i[0] == "func"]
         s.nimp = len(s.fimports)
         s.gimports = [i for i in im if i[0] == "global"]
+        s.dused = set()  # data segments that memory.init / data.drop name
         s.timports = [i for i in im if i[0] == "table"]
         s.mimports = [i for i in im if i[0] == "mem"]
         s.ttypes = mod["ttypes"]
@@ -1403,9 +1435,15 @@ class ModGen:
                 L.append("    S%d = []" % i)
         if gl:
             L.insert(1, "    global " + ", ".join(gl))
-        for off, d in mod["datas"]:
+        dg = []
+        for i, (off, d) in enumerate(mod["datas"]):
             if off is not None:
                 L.append("    _dseg(M, %s, %r)" % (s.val(off), d))
+            if i in s.dused:
+                dg.append("D%d" % i)
+                L.append("    D%d = %r" % (i, d if off is None else b""))
+        if dg:
+            L.insert(1, "    global " + ", ".join(dg))
         if mod["start"] is not None:
             L.append("    %s()" % s.fname(mod["start"]))
         ex = []

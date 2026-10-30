@@ -303,7 +303,7 @@ def _validate(mod: dict) -> None:
         if init is None:
             if t.__class__ is tuple and not t[0]:  # a non-nullable table needs an initializer
                 raise Invalid("type mismatch")
-        elif not _match(c.types, _const(c, init, ng), t):
+        elif not _match(c.types, _const(c, init, nimpg), t):
             raise Invalid("type mismatch")
     seen = set()
     counts = (len(c.funcs), len(c.ttypes), c.nmems, ng)

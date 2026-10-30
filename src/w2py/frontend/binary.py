@@ -440,8 +440,9 @@ def decode(body):
             if al >= 0x80:
                 raise Malformed("malformed memop flags")
             if al & 0x40:
-                r.u()
-                raise NotImplementedError("memory index in memarg")
+                if r.u():
+                    raise NotImplementedError("multi-memory")
+                al &= 0x3F
             off = r.u64()
             out.append((op, off, al))
         elif op in (0x3F, 0x40):

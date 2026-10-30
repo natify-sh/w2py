@@ -288,3 +288,80 @@ def test_typed_function_references() -> None:
         ex["null"]()
     with pytest.raises(Trap, match="null reference"):
         ex["nn"](None)
+
+
+# memory.init / data.drop, and an `if` with params but no else
+# (module (memory 1) (data $p "abcd") (data (i32.const 0) "xy") ... init, drop, dropa, get, pid)
+DATA = bytes.fromhex(
+    "0061736d0100000001160460037f7f7f0060000060017f017f60027f7f027f7f0306050001010202"
+    "050301000107230504696e697400000464726f7000010564726f7061000203676574000303706964"
+    "00040c01020a2f050c00200020012002fc0800000b0500fc09000b0500fc09010b070020002d0000"
+    "0b0c0041014102200004030b6a0b0b0e020104616263640041000b027879000b046e616d65090401"
+    "000170"
+)
+
+
+def test_memory_init_data_drop_and_if_params_without_else() -> None:
+    ex = load(DATA, {})
+    assert ex["get"](0) == ord("x")
+    assert ex["pid"](0) == 3
+    ex["init"](10, 1, 3)
+    assert [ex["get"](i) for i in (10, 11, 12)] == [ord("b"), ord("c"), ord("d")]
+    with pytest.raises(Trap, match="out of bounds memory access"):
+        ex["init"](20, 2, 3)  # source runs past the segment
+    with pytest.raises(Trap):
+        ex["init"](65535, 0, 2)  # destination runs past memory
+    assert ex["get"](65535) == 0  # nothing written before the trap
+    ex["drop"]()
+    ex["init"](30, 0, 0)  # a dropped segment has length 0
+    with pytest.raises(Trap):
+        ex["init"](30, 0, 1)
+    ex["dropa"]()  # an active segment is dropped after instantiation
+    with pytest.raises(Trap):
+        ex["init"](30, 0, 1)
+
+
+# Values below the arity of br / br_if / br_table / return, and before `unreachable`, are discarded
+# but still evaluated: a trapping load or division runs. In order: brif (load), brif2 (div),
+# brtable, ret, ret2, unr, unr2, unr3; each takes one i32.
+DISCARD = bytes.fromhex(
+    "0061736d0100000001060160017f017f03090800000000000000000503010001073b080462726966"
+    "000005627269663200010762727461626c6500020372657400030472657432000403756e72000504"
+    "756e7232000604756e723300070a76081100027f417f280200410520000d000f0b0b1100027f4101"
+    "20006e410520000d006a0b0b1200027f417f280200410520000e0100000b0b0a00417f2802004105"
+    "0f0b0a00410120006e41050f0b0f00027f417f28020041050c006a0b0b0800410120006e000b0e00"
+    "027f410120006e41050c000b0b"
+)
+
+
+@pytest.mark.parametrize(
+    "name, arg, ok",
+    [
+        ("brif", 1, False),
+        ("brif", 0, False),
+        ("brif2", 1, True),
+        ("brif2", 0, False),
+        ("brtable", 0, False),
+        ("brtable", 3, False),
+        ("ret", 0, False),
+        ("ret2", 0, False),
+        ("ret2", 1, True),
+        ("unr", 0, False),
+        ("unr2", 0, False),
+        ("unr3", 0, False),
+        ("unr3", 1, True),
+    ],
+)
+def test_discarded_values_that_may_trap_still_run(name: str, arg: int, ok: bool) -> None:
+    ex = load(DISCARD, {})
+    if ok:
+        assert ex[name](arg) == 5
+    else:
+        with pytest.raises(Trap):
+            ex[name](arg)
+
+
+def test_memory_index_in_memarg_is_not_implemented() -> None:
+    wasm = bytes.fromhex("0061736d010000000104016000000302010005030100010a0b0109004100284201001a0b")
+    with pytest.raises(NotImplementedError, match="multi-memory"):
+        load(wasm, {})

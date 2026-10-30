@@ -114,6 +114,12 @@ def _dseg(M, o, d):
     M[o : o + len(d)] = d
 
 
+def _minit(M, D, d, s, n):
+    if d + n > len(M) or s + n > len(D):
+        raise Trap(TrapCode.MEMORY_OUT_OF_BOUNDS, "out of bounds memory access")
+    M[d : d + n] = D[s : s + n]
+
+
 def _toob():
     raise Trap(TrapCode.TABLE_OUT_OF_BOUNDS, "undefined element")
 
