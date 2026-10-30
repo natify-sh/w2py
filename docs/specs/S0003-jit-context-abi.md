@@ -131,7 +131,8 @@ with its own word after the imports; the helper set is shared by all architectur
 words; the reload after every bridge call picks them up). Memory never moves under running code
 (LESSONS 7): the runtime reserves the maximum up front.
 
-**Interrupt polling** (D14, LESSONS 8). At every function entry and loop header:
+**Interrupt polling** (D14, LESSONS 8; on by default, maintainer 2026-10-30 — timeouts are a runtime
+timer setting this word; fuel is a separate opt-in, later). At every function entry and loop header:
 `cmp qword [r15 + 16], 0; jne` → status 12. `StoreState.interrupt()` sets word 2 in every live
 context of the store; the runtime clears it when it raises the `INTERRUPT` trap.
 
@@ -195,7 +196,6 @@ uv run pytest tests/jit -k "entry or trap or reentry or host or interrupt or sta
   If yes: ARTIFACT.md and DECISIONS.md are updated with the implementation step.
 * Native budget 512 KiB: enough headroom on every supported OS's default thread stack (Windows main
   thread, macOS secondary threads)? Not verified here.
-* Interrupt polls by default (S0002 open question) — their cost is measured in S0002 step 5.
 
 ## Changes
 * 2026-10-30: created (draft).

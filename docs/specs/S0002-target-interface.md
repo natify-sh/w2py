@@ -222,8 +222,8 @@ weights itself until then.
 ## Open questions
 * Approve (b), recorded as a new decision narrowing D16 as worded above?
 * `--engine jit` without fallback (its own xfail file) — agreed?
-* `interrupt` polling on by default in JIT code (cost measured in step 5), as D14 implies?
 
 ## Changes
 * 2026-10-30: created (draft).
 * 2026-10-30: one target per engine/store, no per-module fallback, pyc/JIT parity (D25).
+* 2026-10-30: interrupt polling on by default (timeouts and Ctrl-C are built on it); fuel is an opt-in, later (maintainer).
