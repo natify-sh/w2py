@@ -222,3 +222,13 @@ uv run pytest tests/jit -k "entry or trap or reentry or host or interrupt or sta
   asynchronous exception arriving in the callback's last handler can still escape to ctypes (which
   then returns 0).
 * 2026-10-30: per-OS stack bounds rule with a sanity range and the 128 KiB fallback; `tools/stack_info.py` measures the sizes in CI (Linux glibc: main ≈ 8 MiB, threads 8 MiB, 2 MiB under an unlimited rlimit).
+* 2026-10-30: stack sizes measured by `tools/stack_info.py` in CI run 41087438788 (CPython 3.13):
+  Linux glibc (RLIMIT_STACK 16 MiB): main 16372 KiB, default thread 16384 KiB, budget 512 KiB.
+  Linux musl (python:3.13-alpine): main reported 132 KiB (musl reports only the mapped part of the
+  growing main stack) → budget 62 KiB; default thread 1026 KiB, budget 512 KiB. Windows Server 2025:
+  main and default thread 2944 KiB, budget 512 KiB; host share at the deepest frame 2.4 MiB.
+  macOS 26 x64 (RLIMIT_STACK 8 MiB soft): main reported 16384 KiB, capped to the 8 MiB rlimit;
+  default thread 16384 KiB (CPython's own thread size), budget 512 KiB; a 512 KiB thread leaves the
+  host 224 KiB, less than this CPython's `repr` of a 900-deep list needs (the test skips that case:
+  the host alone crashes there without wasm). Open: the musl main thread could use RLIMIT_STACK.
+
