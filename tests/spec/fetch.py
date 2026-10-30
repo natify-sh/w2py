@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tarfile
 import urllib.request
+from collections import Counter
 from pathlib import Path
 
 SPEC_COMMIT = "6057acdb1a213f85369c64454c078a15f11ac4b1"  # main, 2026-10-28
@@ -40,7 +41,11 @@ def main() -> int:
     manifest_path = CACHE_DIR / "manifest.json"
     if manifest_path.exists():
         old = json.loads(manifest_path.read_text())
-        if old["commit"] == SPEC_COMMIT and old["wasm_tools"] == WASM_TOOLS_VERSION:
+        if (
+            old["commit"] == SPEC_COMMIT
+            and old["wasm_tools"] == WASM_TOOLS_VERSION
+            and old.get("subdirs")
+        ):
             print(f"up to date: {len(old['converted'])} converted, {len(old['failed'])} failed")
             return 0
 
@@ -54,34 +59,49 @@ def main() -> int:
     with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as tar:
         for member in tar:
             parts = member.name.split("/")
-            if len(parts) == 4 and parts[1:3] == ["test", "core"] and parts[3].endswith(".wast"):
-                member.name = parts[3]
+            if (
+                parts[1:3] == ["test", "core"]
+                and 4 <= len(parts) <= 5
+                and parts[-1].endswith(".wast")
+            ):
+                member.name = "/".join(parts[3:])
                 tar.extract(member, wast_dir, filter="data")
 
     converted: list[str] = []
     failed: dict[str, str] = {}
-    for wast in sorted(wast_dir.glob("*.wast")):
-        (json_dir / wast.stem).mkdir()
-        cmd = [tool, "json-from-wast", str(wast), "-o", str(json_dir / f"{wast.stem}.json")]
+    for wast in sorted(wast_dir.rglob("*.wast")):
+        rel = wast.relative_to(wast_dir)
+        key = rel.with_suffix("").as_posix()  # "i32" or "simd/simd_lane"
+        (json_dir / key).mkdir(parents=True)
+        cmd = [tool, "json-from-wast", str(wast), "-o", str(json_dir / f"{key}.json")]
         proc = subprocess.run(
-            [*cmd, "--wasm-dir", str(json_dir / wast.stem)], capture_output=True, text=True
+            [*cmd, "--wasm-dir", str(json_dir / key)], capture_output=True, text=True
         )
         if proc.returncode == 0:
-            converted.append(wast.stem)
+            converted.append(key)
         else:
-            failed[wast.name] = (proc.stderr.strip().splitlines() or [""])[0]
+            failed[rel.as_posix()] = (proc.stderr.strip().splitlines() or [""])[0]
     subprocess.run(
         [tool, "parse", str(HERE / "spectest.wat"), "-o", str(CACHE_DIR / "spectest.wasm")],
         check=True,
     )
+    counts = {
+        k: len(json.loads((json_dir / f"{k}.json").read_text())["commands"]) for k in converted
+    }
+    (HERE / "counts.json").write_text(json.dumps(counts, indent=0, sort_keys=True) + "\n")
     manifest = {
         "commit": SPEC_COMMIT,
         "wasm_tools": WASM_TOOLS_VERSION,
+        "subdirs": True,
         "converted": converted,
         "failed": failed,
     }
     manifest_path.write_text(json.dumps(manifest, indent=1) + "\n")
     print(f"{len(converted)}/{len(converted) + len(failed)} converted")
+    dirs = Counter(k.rpartition("/")[0] or "core" for k in (*converted, *(f[:-5] for f in failed)))
+    for d, n in sorted(dirs.items()):
+        bad = sum(1 for f in failed if (f.rpartition("/")[0] or "core") == d)
+        print(f"  {d}: {n - bad} converted, {bad} unconverted")
     for name, err in failed.items():
         print(f"  failed {name}: {err}")
     return 0

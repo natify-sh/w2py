@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from collections import Counter
@@ -10,6 +11,7 @@ from pathlib import Path
 from typing import Any, NamedTuple
 
 from tests.spec import fetch
+from tests.spec.claims import CORE, claimed
 from tests.spec.engine import (
     ExternRef,
     FuncRef,
@@ -26,6 +28,7 @@ from tests.spec.engine import (
 CACHE_DIR = fetch.CACHE_DIR
 ROOT = Path(__file__).resolve().parents[2]
 Json = dict[str, Any]
+WILDCARD = "reason~="  # a `stem.wast:*` entry: `reason~=<regex>`, searched in each failure reason
 
 
 def _wasmtime() -> SpecEngine:
@@ -266,6 +269,10 @@ def run_file(engine: SpecEngine, directory: Path, stem: str, spectest: bytes) ->
             yield Result(cid, "fail", _describe(e))
 
 
+def _dir(stem: str) -> str:
+    return stem.rpartition("/")[0] or CORE
+
+
 def _describe(e: Exception) -> str:
     return f"{type(e).__name__}: {(str(e).splitlines() or [''])[0]}"
 
@@ -283,6 +290,8 @@ def read_xfail(path: Path) -> dict[str, str]:
         key, _, reason = line.strip().partition("  ")
         if not reason.strip():
             raise ValueError(f"{path}: entry without a reason: {line!r}")
+        if key.endswith(".wast:*") and not reason.strip().startswith(WILDCARD):
+            raise ValueError(f"{path}: wildcard entry needs `{WILDCARD}<regex>`: {line!r}")
         entries[key] = reason.strip()
     return entries
 
@@ -335,8 +344,19 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(json.dumps(r._asdict()), flush=True)
         return 0
 
-    stems: list[str] = [Path(f).stem for f in args.files] or manifest["converted"]
-    unknown = [s for s in stems if s not in manifest["converted"]]
+    converted: list[str] = manifest["converted"]
+    stems: list[str] = []
+    for f in args.files or converted:
+        name = f.removesuffix(".wast")  # a file ("i32", "simd/simd_lane") or a directory ("simd")
+        stems += [k for k in converted if k.startswith(name + "/")] or [name]
+    unclaimed: Counter[str] = Counter()  # directory -> commands, for engines not claiming it
+    if not args.files:
+        for stem in [s for s in stems if not claimed(args.engine, _dir(s))]:
+            unclaimed[_dir(stem)] += len(
+                json.loads((json_dir / f"{stem}.json").read_text())["commands"]
+            )
+        stems = [s for s in stems if claimed(args.engine, _dir(s))]
+    unknown = [s for s in stems if s not in converted]
     if unknown:
         print(f"not converted: {', '.join(unknown)}", file=sys.stderr)
         return 2
@@ -346,42 +366,66 @@ def main(argv: Sequence[str] | None = None) -> int:
     types: dict[str, str] = {}
     results: list[tuple[str, Result, str]] = []  # (stem, result, final status)
     used: set[str] = set()
+    partial: set[str] = set()  # wildcard entries under which a command passed
     per_file: dict[str, Counter[str]] = {}
+    per_dir: dict[str, Counter[str]] = {}
     for stem in stems:
+        directory = _dir(stem)
         commands: list[Json] = json.loads((json_dir / f"{stem}.json").read_text())["commands"]
         ids = command_ids(stem, commands)
         types.update(zip(ids, (c["type"] for c in commands), strict=True))
         whole = f"{stem}.wast:*"
-        if whole in xfail:
-            used.add(whole)
-            raw = (Result(i, "xfail", xfail[whole]) for i in ids)
-        elif args.in_process:
+        pattern = re.compile(xfail[whole].removeprefix(WILDCARD)) if whole in xfail else None
+        if args.in_process:
             raw = run_file(ENGINES[args.engine](), json_dir, stem, spectest)
         else:
             raw = _child_results(args.engine, stem, ids, args.timeout)
         counts = per_file[stem] = Counter()
         for r in raw:
             status = r.status
-            if r.id in xfail:
+            if pattern:  # a wildcard entry: every command must fail with the expected reason
+                used.add(whole)
+                if status == "pass":
+                    status = "xpass"
+                    partial.add(whole)
+                elif status == "fail" and pattern.search(r.reason):
+                    status = "xfail"
+                elif status == "fail":
+                    r = r._replace(reason=f"unexpected reason: {r.reason}")
+            elif r.id in xfail:
                 used.add(r.id)
                 status = {"fail": "xfail", "pass": "xpass"}.get(status, status)
             counts[status] += 1
+            per_dir.setdefault(directory, Counter())[status] += 1
             results.append((stem, r, status))
         print(f"{stem}.wast: " + " ".join(f"{k} {counts[k]}" for k in STATUSES))
 
     stale = sorted(
-        k for k in xfail if k not in used and k.split(".wast:")[0] in stems
+        {k for k in xfail if k not in used and k.split(".wast:")[0] in stems} | partial
     )  # entries of files not in this run are not judged
     totals: Counter[str] = Counter()
     for counts in per_file.values():
         totals.update(counts)
     totals["stale"] = len(stale)
-    print("total: " + " ".join(f"{k} {totals[k]}" for k in (*STATUSES, "stale")))
     unconverted: dict[str, str] = manifest["failed"]
+    bad_files: Counter[str] = Counter(_dir(n.removesuffix(".wast")) for n in unconverted)
+    for d in sorted({*per_dir, *unclaimed, *bad_files}, key=lambda d: (d != CORE, d)):
+        if d in unclaimed:
+            line = f"unclaimed ({unclaimed[d]} commands)"
+        else:
+            c = per_dir.get(d, Counter())
+            line = " ".join(f"{k} {c[k]}" for k in STATUSES)
+        if bad_files[d]:
+            line += f"  INCOMPLETE: unconverted {bad_files[d]} files (commands unknown)"
+        print(f"directory {d}: {line}")
+    print(
+        "all claimed directories, not a metric: "
+        + " ".join(f"{k} {totals[k]}" for k in (*STATUSES, "stale"))
+    )
     for name, err in unconverted.items():
         print(f"unconverted {name}: {err}")
     for k in stale:
-        print(f"stale xfail entry: {k}")
+        print(f"stale{'-partial' if k in partial else ''} xfail entry: {k}")
 
     if args.json:
         report = {
@@ -389,6 +433,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             "spec_commit": fetch.SPEC_COMMIT,
             "wasm_tools": manifest["wasm_tools"],
             "totals": {k: totals[k] for k in (*STATUSES, "stale")},
+            "directories": {
+                **{d: {"claimed": True, **c} for d, c in per_dir.items()},
+                **{d: {"claimed": False, "commands": n} for d, n in unclaimed.items()},
+            },
+            "unconverted_files": dict(bad_files),
             "files": {f"{s}.wast": dict(c) for s, c in per_file.items()},
             "unconverted": unconverted,
             "results": [

@@ -109,3 +109,104 @@ type-rec.wast:39  decoder rejects a valid module (unsupported construct)
 type-rec.wast:45  decoder rejects a valid module (unsupported construct)
 type-rec.wast:71  decoder rejects a valid module (unsupported construct)
 type-rec.wast:78  decoder rejects a valid module (unsupported construct)
+
+# proposal subdirectories (S0001, 2026-10-30): bulk-memory is the only one claimed
+bulk-memory/bulk.wast:115  NotImplementedError: opcode 0xfc08
+bulk-memory/bulk.wast:129  LookupError: no exported function init
+bulk-memory/bulk.wast:130  got [170]
+bulk-memory/bulk.wast:131  got [187]
+bulk-memory/bulk.wast:132  got [204]
+bulk-memory/bulk.wast:135  LookupError: no exported function init
+bulk-memory/bulk.wast:138  LookupError: no exported function init
+bulk-memory/bulk.wast:140  got [0]
+bulk-memory/bulk.wast:141  got [0]
+bulk-memory/bulk.wast:144  LookupError: no exported function init
+bulk-memory/bulk.wast:145  LookupError: no exported function init
+bulk-memory/bulk.wast:148  LookupError: no exported function init
+bulk-memory/bulk.wast:150  LookupError: no exported function init
+bulk-memory/bulk.wast:154  NotImplementedError: opcode 0xfc09
+bulk-memory/bulk.wast:168  LookupError: no exported function init_passive
+bulk-memory/bulk.wast:169  LookupError: no exported function drop_passive
+bulk-memory/bulk.wast:170  LookupError: no exported function drop_passive
+bulk-memory/bulk.wast:171  LookupError: no exported function init_passive
+bulk-memory/bulk.wast:172  LookupError: no exported function init_passive
+bulk-memory/bulk.wast:173  LookupError: no exported function init_passive
+bulk-memory/bulk.wast:174  LookupError: no exported function drop_active
+bulk-memory/bulk.wast:175  LookupError: no exported function init_active
+bulk-memory/bulk.wast:176  LookupError: no exported function init_active
+bulk-memory/bulk.wast:177  LookupError: no exported function init_active
+bulk-memory/bulk.wast:181  NotImplementedError: opcode 0xfc09
+bulk-memory/bulk.wast:196  NotImplementedError: opcode 0xfc09
+bulk-memory/bulk.wast:221  unknown trap text: uninitialized element 2
+bulk-memory/memory_init.wast:122  got [3]
+bulk-memory/memory_init.wast:123  got [6]
+bulk-memory/memory_init.wast:124  got [0]
+bulk-memory/memory_init.wast:138  NotImplementedError: opcode 0xfc08
+bulk-memory/memory_init.wast:166  got [0]
+bulk-memory/memory_init.wast:167  got [0]
+bulk-memory/memory_init.wast:168  got [0]
+bulk-memory/memory_init.wast:169  got [0]
+bulk-memory/memory_init.wast:172  got [5]
+bulk-memory/memory_init.wast:173  got [2]
+bulk-memory/memory_init.wast:174  got [3]
+bulk-memory/memory_init.wast:175  got [6]
+bulk-memory/memory_init.wast:176  got [0]
+bulk-memory/memory_init.wast:178  got [0]
+bulk-memory/memory_init.wast:180  got [0]
+bulk-memory/memory_init.wast:182  got [0]
+bulk-memory/memory_init.wast:183  got [0]
+bulk-memory/memory_init.wast:203  NotImplementedError: opcode 0xfc09
+bulk-memory/memory_init.wast:211  NotImplementedError: opcode 0xfc08
+bulk-memory/memory_init.wast:218  NotImplementedError: opcode 0xfc09
+bulk-memory/memory_init.wast:224  no trap
+bulk-memory/memory_init.wast:226  NotImplementedError: opcode 0xfc09
+bulk-memory/memory_init.wast:234  NotImplementedError: opcode 0xfc09
+bulk-memory/memory_init.wast:240  no trap
+bulk-memory/memory_init.wast:242  NotImplementedError: opcode 0xfc09
+bulk-memory/memory_init.wast:250  NotImplementedError: opcode 0xfc09
+bulk-memory/memory_init.wast:256  no trap
+bulk-memory/memory_init.wast:258  NotImplementedError: opcode 0xfc08
+bulk-memory/memory_init.wast:263  no trap
+bulk-memory/memory_init.wast:279  NotImplementedError: opcode 0xfc08
+bulk-memory/memory_init.wast:287  NotImplementedError: opcode 0xfc08
+bulk-memory/memory_init.wast:292  no trap
+bulk-memory/memory_init.wast:294  NotImplementedError: opcode 0xfc08
+bulk-memory/memory_init.wast:299  no trap
+bulk-memory/memory_init.wast:301  NotImplementedError: opcode 0xfc08
+bulk-memory/memory_init.wast:306  no trap
+bulk-memory/memory_init.wast:308  NotImplementedError: opcode 0xfc08
+bulk-memory/memory_init.wast:313  no trap
+bulk-memory/memory_init.wast:315  NotImplementedError: opcode 0xfc08
+bulk-memory/memory_init.wast:322  NotImplementedError: opcode 0xfc08
+bulk-memory/memory_init.wast:327  no trap
+bulk-memory/memory_init.wast:329  NotImplementedError: opcode 0xfc08
+bulk-memory/memory_init.wast:336  NotImplementedError: opcode 0xfc08
+bulk-memory/memory_init.wast:343  NotImplementedError: opcode 0xfc08
+bulk-memory/memory_init.wast:348  no trap
+bulk-memory/memory_init.wast:50  NotImplementedError: opcode 0xfc08
+bulk-memory/memory_init.wast:70  got [0]
+bulk-memory/memory_init.wast:71  got [0]
+bulk-memory/memory_init.wast:72  got [0]
+bulk-memory/memory_init.wast:73  got [0]
+bulk-memory/memory_init.wast:854  NotImplementedError: opcode 0xfc08
+bulk-memory/memory_init.wast:872  LookupError: no exported function run
+bulk-memory/memory_init.wast:875  LookupError: no exported function checkRange
+bulk-memory/memory_init.wast:877  NotImplementedError: opcode 0xfc08
+bulk-memory/memory_init.wast:895  LookupError: no exported function run
+bulk-memory/memory_init.wast:898  LookupError: no exported function checkRange
+bulk-memory/memory_init.wast:900  NotImplementedError: opcode 0xfc08
+bulk-memory/memory_init.wast:918  LookupError: no exported function run
+bulk-memory/memory_init.wast:921  LookupError: no exported function checkRange
+bulk-memory/memory_init.wast:923  NotImplementedError: opcode 0xfc08
+bulk-memory/memory_init.wast:94  NotImplementedError: opcode 0xfc08
+bulk-memory/memory_init.wast:941  LookupError: no exported function run
+bulk-memory/memory_init.wast:944  LookupError: no exported function checkRange
+bulk-memory/memory_init.wast:946  NotImplementedError: opcode 0xfc08
+bulk-memory/memory_init.wast:964  LookupError: no exported function run
+bulk-memory/memory_init.wast:967  LookupError: no exported function checkRange
+bulk-memory/memory_init.wast:969  NotImplementedError: opcode 0xfc08
+bulk-memory/memory_init.wast:987  LookupError: no exported function run
+bulk-memory/memory_init.wast:990  LookupError: no exported function checkRange
+bulk-memory/memory_init.wast:993  NotImplementedError: opcode 0xfc08
+bulk-memory/table_init.wast:2272  LoadError: NotImplementedError: rec / sub / struct / array types
+bulk-memory/table_init.wast:2286  LookupError: no exported function run

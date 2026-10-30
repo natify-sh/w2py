@@ -199,8 +199,11 @@ def test_traps_and_links(tmp_path: Path) -> None:
 
 def test_xfail_parsing(tmp_path: Path) -> None:
     p = tmp_path / "x.txt"
-    p.write_text("# comment\n\na.wast:5  because\nb.wast:*  whole file\n")
-    assert run.read_xfail(p) == {"a.wast:5": "because", "b.wast:*": "whole file"}
+    p.write_text("# comment\n\na.wast:5  because\nb.wast:*  reason~=whole file\n")
+    assert run.read_xfail(p) == {"a.wast:5": "because", "b.wast:*": "reason~=whole file"}
+    p.write_text("b.wast:*  no pattern\n")
+    with pytest.raises(ValueError, match="wildcard"):
+        run.read_xfail(p)
     p.write_text("a.wast:5\n")
     with pytest.raises(ValueError, match="without a reason"):
         run.read_xfail(p)
@@ -240,8 +243,13 @@ def test_exit_codes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     assert (code, rep["totals"]["xpass"]) == (1, 1)
     code, rep = run_main(tmp_path / "stale", monkeypatch, [MODULE, good], "t.wast:99  gone\n")
     assert (code, rep["totals"]["stale"]) == (1, 1)
-    code, rep = run_main(tmp_path / "whole", monkeypatch, [MODULE, bad], "t.wast:*  all\n")
-    assert (code, rep["totals"]["xfail"]) == (0, 2)
+    code, rep = run_main(tmp_path / "whole", monkeypatch, [MODULE, bad], "t.wast:*  reason~=got\n")
+    assert (code, rep["totals"]["xfail"], rep["totals"]["pass"]) == (1, 1, 0)  # MODULE passes
+    assert rep["totals"]["xpass"] == 1 and rep["totals"]["stale"] == 1
+    code, rep = run_main(tmp_path / "other", monkeypatch, [MODULE, bad], "t.wast:*  reason~=boom\n")
+    assert (code, rep["totals"]["fail"]) == (1, 1)
+    assert rep["results"][-1]["reason"] == "unexpected reason: got [1]"
+    assert rep["directories"]["core"]["claimed"] is True
 
 
 def test_setup_errors(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -277,3 +285,11 @@ def test_wasmtime_adapter() -> None:
         eng.load(b"(module)")
     with pytest.raises(LoadError):
         eng.load(b"\0asm\2\0\0\0")
+
+
+def test_claims(tmp_path: Path) -> None:
+    from tests.spec import claims
+
+    assert claims.claimed("pyc", claims.CORE)
+    assert claims.claimed("wasmtime", "gc") and not claims.claimed("wasmtime", "simd")
+    assert not claims.claimed("pyc", "multi-memory") and not claims.claimed("nope", "gc")

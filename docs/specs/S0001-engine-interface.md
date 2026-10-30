@@ -133,7 +133,8 @@ objects), contents as `interpreter/host/spectest.ml` at the pin; printing is nev
   (global (export "global_f32") f32 (f32.const 666.6))
   (global (export "global_f64") f64 (f64.const 666.6)))
 ```
-`spectest.ml`'s `table64` (i64, 10..20) is imported by no top-level file; it comes with `memory64/`.
+`spectest.ml`'s `table64` (i64, 10..20) is imported by `memory64/table64.wast` only; it is not added
+because `pyc` refuses the whole module then (that one command is an xfail).
 
 ### Runner CLI and output
 ```
@@ -141,22 +142,29 @@ uv run python tests/spec/fetch.py                       # once per pin; idempote
 uv run python -m tests.spec.run --engine NAME [--json PATH] [--xfail PATH] [--write-xfail]
                                 [--in-process] [--timeout 600] [FILE.wast ...]
 ```
-* Input: `.cache/spec/<commit>/json/` (`<stem>.json` + `<stem>/` per file) and `manifest.json`.
+* Input: `.cache/spec/<commit>/json/` (`<stem>.json` + `<stem>/` per file; `<dir>/<stem>` for the
+  proposal subdirectories) and `manifest.json`. A FILE argument is a stem or a directory name (`simd`).
 * Isolation: each file runs in a child (`sys.executable -m tests.spec.run --child FILE`) that prints
   one JSON line per command. If the child dies (abort, segfault) or exceeds `--timeout`, its remaining
   commands fail with `crash: <exit status>` / `timeout`. `--in-process` is for debugging.
-* Command id: `<stem>.wast:<line>`; where several commands share a line (44 cases, e.g.
+* Command id: `<stem>.wast:<line>` (`<dir>/<stem>.wast:<line>` in a subdirectory); where several commands share a line (44 cases, e.g.
   `left-to-right.wast`), every one of them gets `.<k>`, the 0-based order on that line.
 * Status per command: `pass`, `fail`, `xfail` (failed, listed), `xpass` (passed, listed), `skip`.
   Every command counts, including `module`, `module_definition`, `module_instance`, `register`.
-* Console: one line per file with the five counts, then a total line and the unconverted files.
+* Console: one line per file with the five counts; then one line per directory (`core` for the
+  top level), which is the metric, with `INCOMPLETE: unconverted N files` if the manifest lists
+  unconverted files there; a directory whose feature the engine does not claim
+  (`tests/spec/claims.py`) is not run and shows `unclaimed (<n> commands)`; last, a grand total
+  labelled "not a metric", then the unconverted files.
 * `--json PATH`: `{"engine", "spec_commit", "wasm_tools", "totals": {status: n, "stale": n},
-  "files": {name: {status: n}}, "unconverted": {name: error}, "results": [{"id", "type", "status",
+  "directories": {dir: {"claimed": true, status: n} | {"claimed": false, "commands": n}},
+  "unconverted_files": {dir: n}, "files": {name: {status: n}}, "unconverted": {name: error}, "results": [{"id", "type", "status",
   "reason"}]}`, where `results` holds every non-`pass` command.
 * Expected failures, `tests/spec/xfail/<engine>.txt`: UTF-8, sorted, one entry per line,
-  `<id>  <reason>` (reason required); `<stem>.wast:*  <reason>` lists a whole file, which is then not
-  run and all its commands count as `xfail`; `#` starts a comment. An entry matching no command is
-  `stale`. `--write-xfail` rewrites the file from the run (reason = the failure reason).
+  `<id>  <reason>` (reason required); `<stem>.wast:*  reason~=<regex>` is a wildcard: the file runs and every
+  command must fail with a reason matching the regex (else `fail`, "unexpected reason"); a command
+  that passes is `xpass` and the entry is `stale-partial` (counts as stale); `#` starts a comment.
+  An entry matching no command is `stale`. `--write-xfail` rewrites the file from the run (reason = the failure reason).
 * Exit code: 0 iff `fail == 0`, `xpass == 0` and `stale == 0`; else 1; 2 on setup errors (no
   cache, unknown engine).
 
@@ -209,7 +217,10 @@ new texts); verified on Wasmtime for all 541 + 15 + 34 trap commands:
 `RecursionError` out fails the command (the runner does not convert it, so the bug is visible). A
 process crash costs one file, not the run (per-file child; the JIT's crash risk, R3).
 
-**Wasmtime adapter.** Default `wasmtime.Config` (Tier 1 features), one `Store` per adapter object.
+**Wasmtime adapter.** One `wasmtime.Config` for the whole run, switches explicit (`CONFIG_SWITCHES` in
+`wasmtime_engine.py`): `wasm_multi_value`, `wasm_reference_types`, `wasm_bulk_memory`,
+`wasm_tail_call`, `wasm_function_references`, `wasm_gc`, `wasm_exceptions`, `wasm_multi_memory`,
+`wasm_memory64`, all `True`; one `Store` per adapter object.
 `load`: bytes not starting with `b"\0asm"` → `LoadError` without calling Wasmtime (wasmtime-py would
 parse them as WAT: 14 malformed binaries); `WasmtimeError` → `LoadError`. `instantiate`: imports
 looked up in `module.imports` order, `wasmtime.Instance`; `WasmtimeError` → `LinkError`;
@@ -221,7 +232,8 @@ of the wabt conversion).
 References go through `wasmtime.Val`; an `ExternRef` object comes back as itself. The file disables
 pyright's `reportPrivateUsage` (pinned version). Known: wasmtime-py 50.0.1 aborts the process on a
 typed reference in a signature (`(ref extern)`, `anyref`, …: "support for non-externref and
-non-funcref references is not implemented") → `local_init.wast:*`, `ref_null.wast:*` in its xfail.
+non-funcref references is not implemented") → per-command entries in its xfail (the same for the `gc/` and `exceptions/` files that use such
+types). wasmtime-py also aborts on `v128` in a signature, so `simd` / `relaxedSimd` are not claimed.
 
 ## Test plan
 A throwaway prototype of this design over Wasmtime (not committed, one process per file) gave
@@ -271,3 +283,12 @@ result and on an xpass).
   `module_definition` / `module_instance`; signed i32/i64; null reference types; `either` entries;
   text commands with `binary_filename` run; spectest via `wasm-tools parse`.
 * 2026-10-30: approved by the maintainer (the 14 text commands with `binary_filename` run).
+* 2026-10-30: proposal subdirectories (`simd/`, `relaxed-simd/`, `multi-memory/`, `memory64/`,
+  `bulk-memory/`, `exceptions/`, `gc/`): ids `<dir>/<stem>.wast:<line>`; one result group per
+  directory (top level = `core`), a grand total is never the metric; a directory counts only for an
+  engine that claims its feature (`tests/spec/claims.py`, one mapping shared with
+  `tools/features.py`), otherwise it is `unclaimed (<n> commands)` and not run; wildcard xfail
+  entries carry a `reason~=` regex and go `stale-partial` if a command passes; unconverted files
+  mark their directory INCOMPLETE; the Wasmtime Config switches are listed explicitly; the two
+  `core` commands that wasmtime-py passed under the old wildcards (`local_init.wast:3`,
+  `ref_null.wast:1`) are now `pass` (core: pass 20556, xfail 42).

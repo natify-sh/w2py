@@ -13,12 +13,16 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+from tests.spec.claims import CLAIMS  # noqa: E402  (stdlib-only module, shared with the runner)
+
 UPSTREAM_URL = "https://raw.githubusercontent.com/WebAssembly/website/refs/heads/main/features.json"
 BEGIN, END = "<!-- features:begin -->", "<!-- features:end -->"
 TARGETS = ("pyc", "jit-x86_64")  # mpy (tier 3, D22) is left out until it exists
 
-# feature key -> spec stems (top-level test/core of the pinned commit) that exercise it. [] means
-# the spec files are not run yet (bulk-memory, SIMD, exceptions, ... live elsewhere): null.
+# feature key -> spec stems that exercise it: files of the top-level test/core, or "dir/" for a
+# proposal directory (only counted on a target that claims the feature, tests/spec/claims.py).
+# [] means no spec files are run for it: null.
 SPEC = {
     "mutableGlobals": ["global", "imports", "exports"],
     "signExtensions": ["i32", "i64"],
@@ -34,13 +38,14 @@ SPEC = {
         *("call_ref", "br_on_null", "br_on_non_null", "ref_as_non_null", "local_init"),
         "return_call_ref",
     ],
-    **{
-        k: []
-        for k in (
-            *("bulkMemory", "gc", "simd", "relaxedSimd", "memory64", "multiMemory"),
-            *("exceptions", "exceptionsFinal", "threads", "customPageSizes", "wideArithmetic"),
-        )
-    },
+    "simd": ["simd/"],
+    "relaxedSimd": ["relaxed-simd/"],
+    "multiMemory": ["multi-memory/"],
+    "memory64": ["memory64/"],
+    "bulkMemory": ["bulk-memory/"],
+    "exceptionsFinal": ["exceptions/"],
+    "gc": ["gc/"],
+    **{k: [] for k in ("exceptions", "threads", "customPageSizes", "wideArithmetic")},
 }
 
 
@@ -54,24 +59,35 @@ def xfails() -> dict[str, list[str]]:
     return out
 
 
-def pyc_value(key: str, bad: dict[str, list[str]]) -> Any:
+def spec_counts() -> dict[str, int]:
+    """Commands per converted spec file, written by tests/spec/fetch.py (committed)."""
+    return json.loads((ROOT / "tests/spec/counts.json").read_text())
+
+
+def evidence(key: str, target: str, bad: dict[str, list[str]], counts: dict[str, int]) -> Any:
+    """(value, ok, total) over the spec files the target is run on; None if unclaimed / not run."""
     stems = SPEC.get(key)
-    if not stems:  # unmapped, or spec files not run yet: upstream's null has no note
+    if not stems or (any(s.endswith("/") for s in stems) and key not in CLAIMS.get(target, ())):
         return None
-    hit = {s: bad[s] for s in stems if s in bad}
+    files = [k for k in counts if any(k == s or s.endswith("/") and k.startswith(s) for s in stems)]
+    total = sum(counts[k] for k in files)
+    hit = {s: bad[s] for s in files if s in bad}
+    ok = total - sum(map(len, hit.values()))
     if not hit:
-        return True
+        return True, ok, total
     top = Counter(r for rs in hit.values() for r in rs).most_common(1)[0][0]
-    counts = ", ".join(f"{s} {len(r)}" for s, r in hit.items())
-    return ["partial", f"xfail {sum(map(len, hit.values()))} ({counts}); mostly: {top}"]
+    where = ", ".join(f"{s} {len(r)}" for s, r in hit.items())
+    note = f"{ok}/{total} over {'+'.join(stems)}; xfail {total - ok} ({where}); mostly: {top}"
+    return ["partial", note], ok, total
 
 
 def build(upstream: dict[str, Any]) -> dict[str, Any]:
     feats = list(upstream["features"])
-    bad = xfails()
+    bad, counts = xfails(), spec_counts()
     runtimes = {}
     for t in TARGETS:
-        values = {k: (pyc_value(k, bad) if t == "pyc" else None) for k in feats}
+        ev = {k: evidence(k, t, bad, counts) if t == "pyc" else None for k in feats}
+        values = {k: ev[k] and ev[k][0] for k in feats}
         runtimes[f"w2py {t}"] = {
             "url": "https://github.com/natify-sh/w2py",
             "category": "Standalone Runtimes",
@@ -92,11 +108,16 @@ def cell(v: Any) -> str:
 
 
 def table(upstream: dict[str, Any], ours: dict[str, Any]) -> str:
+    bad, counts = xfails(), spec_counts()
     wt = upstream["browsers"]["Wasmtime"]["features"]
     rt = ours["runtimes"]
     rows = ["| feature | phase | Wasmtime | pyc | jit-x86_64 |", "|---|---|---|---|---|"]
     for k, f in upstream["features"].items():
-        mine = [cell(rt[f"w2py {t}"]["features"][k]) for t in TARGETS]
+        mine = []
+        for t in TARGETS:
+            c = cell(rt[f"w2py {t}"]["features"][k])
+            e = evidence(k, t, bad, counts) if t == "pyc" else None
+            mine.append(f"{c} {e[1]}/{e[2]}" if e else c)
         row = [f"{f['description']} (`{k}`)", f["phase"], cell(wt.get(k)), *mine]
         rows.append("| " + " | ".join(map(str, row)) + " |")
     return "\n".join(rows)

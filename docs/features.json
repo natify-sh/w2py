@@ -8,7 +8,10 @@
         "acquireReleaseAtomics": null,
         "bigInt": null,
         "branchHinting": null,
-        "bulkMemory": null,
+        "bulkMemory": [
+          "partial",
+          "7386/7485 over bulk-memory/; xfail 99 (bulk-memory/bulk 27, bulk-memory/memory_init 70, bulk-memory/table_init 2); mostly: NotImplementedError: opcode 0xfc08"
+        ],
         "compactImportSection": null,
         "compilationHints": null,
         "componentModel": null,
@@ -20,7 +23,7 @@
         "exceptionsFinal": null,
         "extendedConst": [
           "partial",
-          "xfail 4 (global 1, data 3); mostly: earlier module of the file did not load (name or export missing)"
+          "342/346 over global+data+elem; xfail 4 (data 3, global 1); mostly: earlier module of the file did not load (name or export missing)"
         ],
         "extendedNameSection": null,
         "flexibleVectors": null,
@@ -39,17 +42,17 @@
         "multiMemory": null,
         "multiValue": [
           "partial",
-          "xfail 5 (if 5); mostly: earlier module of the file did not load"
+          "1248/1253 over block+loop+if+br+br_if+br_table+call+func; xfail 5 (if 5); mostly: earlier module of the file did not load"
         ],
         "mutableGlobals": [
           "partial",
-          "xfail 10 (global 1, imports 8, exports 1); mostly: gap: table import / unknown import kind"
+          "429/439 over global+imports+exports; xfail 10 (exports 1, global 1, imports 8); mostly: gap: table import / unknown import kind"
         ],
         "numericValuesInWat": null,
         "profiles": null,
         "referenceTypes": [
           "partial",
-          "xfail 34 (ref_null 34); mostly: earlier module of the file did not load"
+          "397/431 over ref_func+ref_is_null+ref_null+ref+table_get+table_set+table_grow+table_size+table+select; xfail 34 (ref_null 34); mostly: earlier module of the file did not load"
         ],
         "relaxedDeadCodeValidation": null,
         "relaxedSimd": null,

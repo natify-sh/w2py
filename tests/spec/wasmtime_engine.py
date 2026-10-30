@@ -45,9 +45,20 @@ def _from_raw(store: wasmtime.Store, ty: str, raw: "ffi.wasmtime_val_t") -> Valu
     return FuncRef(v) if isinstance(v, wasmtime.Func) else cast(ExternRef, v)
 
 
+# The one Config of the oracle (S0001): every switch the claimed spec directories need, explicit.
+CONFIG_SWITCHES = (
+    *("wasm_multi_value", "wasm_reference_types", "wasm_bulk_memory", "wasm_tail_call"),
+    *("wasm_function_references", "wasm_gc", "wasm_exceptions"),
+    *("wasm_multi_memory", "wasm_memory64"),
+)
+
+
 class WasmtimeEngine:
     def __init__(self) -> None:
-        self._engine = wasmtime.Engine()
+        config = wasmtime.Config()
+        for name in CONFIG_SWITCHES:
+            setattr(config, name, True)
+        self._engine = wasmtime.Engine(config)
         self._store = wasmtime.Store(self._engine)
 
     def load(self, wasm: bytes) -> Module:
