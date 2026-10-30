@@ -211,3 +211,18 @@ which accepts WAT everywhere). The package keeps no runtime dependency (D1): the
 Tests write modules in WAT and build them with `wasm-tools` at development time. The 662 spec
 commands that test only WAT parsing (text `assert_malformed`, S0001) stay `skip` permanently: with
 the extra they would test wasm-tools, not w2py. This settles D3's "`.wat` may be accepted later".
+Known consequences: wasmtime-py's own tests (the API axis in TESTING.md) write modules in WAT, so
+that CI job installs the extra; the CLI's `run file.wat` and `wast` need it too; text errors come
+from wasm-tools. Where no native wasm-tools wheel runs, a later option is to run `wasm-tools.wasm`
+(wasm-tools built for WASI) on w2py itself once WASI works: native wasm-tools if installed, else the
+wasm build on our own engine (maintainer: a good idea; phase 6 or later).
+
+### D22. Platform tiers: iOS/Pythonista and MicroPython are tier 3
+Status: accepted · Date: 2026-10-30 · Supersedes: — · Evidence: —
+
+The primary platforms are CPython and PyPy on the operating systems of the CI matrix (TESTING.md).
+iOS/Pythonista and MicroPython are **tier 3**: best effort, never a reason to constrain the design
+or to block a step. On iOS/Pythonista wasm runs through the separate PyPI package `wasmhost`
+(JavaScriptCore's `WebAssembly` via JSContext), not through w2py. The `mpy` target (ROADMAP phase 7)
+keeps its place in the order of work at tier 3. D1 is unchanged: no runtime dependencies stays a rule
+for every platform.
