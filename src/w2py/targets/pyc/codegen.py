@@ -814,7 +814,8 @@ class FuncGen:
             if tail:
                 # tail call: a function with tail calls returns a _TC that its wrapper runs (constant stack)
                 tup = "(%s)" % (ac + "," if ac else "")
-                if op in (0x11, 0x14):
+                # indirect or imported callee: its `.t` body if it has one (a host callable has none)
+                if op in (0x11, 0x14) or fi < s.mg.nimp:
                     s.emit('return _TC(getattr(%s, "t", %s), %s)' % (callee, callee, tup))
                 elif fi in s.mg.tc:
                     s.emit("return _TC(%s_b, %s)" % (callee, tup))

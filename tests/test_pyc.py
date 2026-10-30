@@ -3,6 +3,7 @@ import os
 
 import pytest
 
+from w2py.targets.base import TrapCode
 from w2py.targets.pyc import Trap, load, translate
 
 COREMARK = os.path.join(os.path.dirname(__file__), "..", "poc", "in", "core.wasm")
@@ -422,3 +423,66 @@ def test_trap_trunc_precedes_store() -> None:
     with pytest.raises(Trap):
         ex["f"](float("nan"))  # pyright: ignore[reportIndexIssue]
     assert ex["r"]() == 0  # pyright: ignore[reportIndexIssue]
+
+
+def _raw_instance(wat: str, imports: dict[str, dict[str, object]]) -> dict[str, object]:
+    """Instantiate without the `load` entry wrappers, so exports keep their `.t` bodies (as when
+    two modules are linked in one store)."""
+    from wasmtime import wat2wasm
+
+    ns: dict[str, object] = {"__name__": "w2py_pyc_module"}
+    exec(compile(translate(bytes(wat2wasm(wat))), "<w2py-pyc>", "exec"), ns)
+    return ns["instantiate"](imports)  # pyright: ignore[reportCallIssue]
+
+
+def test_return_call_through_import_runs_in_constant_stack() -> None:
+    b = _raw_instance(
+        """(module
+      (type $p (func (param i32) (result i32)))
+      (table $t (export "t") 1 funcref)
+      (func $pong (export "pong") (type $p)
+        (if (result i32) (i32.eqz (local.get 0)) (then (i32.const 222))
+          (else (return_call_indirect $t (type $p) (i32.sub (local.get 0) (i32.const 1))
+                                      (i32.const 0))))))""",
+        {},
+    )
+    a = _raw_instance(
+        """(module
+      (type $p (func (param i32) (result i32)))
+      (import "b" "pong" (func $pong (type $p)))
+      (import "b" "t" (table $t 1 funcref))
+      (elem (table $t) (i32.const 0) func $ping)
+      (func $ping (export "ping") (type $p)
+        (if (result i32) (i32.eqz (local.get 0)) (then (i32.const 111))
+          (else (return_call $pong (i32.sub (local.get 0) (i32.const 1)))))))""",
+        {"b": b},  # pyright: ignore[reportArgumentType]
+    )
+    assert a["ping"](1_000_000) == 111  # pyright: ignore[reportCallIssue]
+
+
+def test_return_call_to_host_import_and_multi_value() -> None:
+    def host(x: int) -> int:
+        if x == 99:
+            raise Trap(TrapCode.UNREACHABLE, "boom")
+        if x == 98:
+            raise KeyError("host")
+        return x + 1
+
+    def mv(a: int, b: float, c: float) -> tuple[int, int, float, float]:
+        return (7, a + 1, b, c * 2)
+
+    ex = _effect_before_trap(
+        """(module
+      (import "h" "inc" (func $inc (param i32) (result i32)))
+      (import "h" "mv" (func $mv (param i64 f32 f64) (result i32 i64 f32 f64)))
+      (func (export "f") (param i32) (result i32) (return_call $inc (local.get 0)))
+      (func (export "g") (param i64 f32 f64) (result i32 i64 f32 f64)
+        (return_call $mv (local.get 0) (local.get 1) (local.get 2))))""",
+        {"h": {"inc": host, "mv": mv}},
+    )
+    assert ex["f"](4) == 5  # pyright: ignore[reportIndexIssue,reportCallIssue]
+    with pytest.raises(Trap, match="boom"):
+        ex["f"](99)  # pyright: ignore[reportIndexIssue,reportCallIssue]
+    with pytest.raises(KeyError):
+        ex["f"](98)  # pyright: ignore[reportIndexIssue,reportCallIssue]
+    assert ex["g"](1, 1.5, 2.0) == (7, 2, 1.5, 4.0)  # pyright: ignore[reportIndexIssue,reportCallIssue]
