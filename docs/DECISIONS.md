@@ -245,3 +245,10 @@ Windows. The code is position-independent and reaches everything through the con
   these rules per architecture.
 Rejected: `jit-x86_64-sysv` / `jit-x86_64-win64` as separate targets (TARGETS.md before this): two
 code generators or two artifacts for one CPU, with no gain.
+Everything platform-specific is resolved by the runtime; the code depends on the architecture (and
+its declared ISA level) only. Letting the OS into the code — e.g. using a register that only some
+OSes leave free — is discussed only when a measurement shows a substantial gain on real workloads,
+and then as an opt-in variant declared in the artifact, the way ISA levels are (ARTIFACT.md): a
+generic variant that runs everywhere on the architecture and a flagged one that runs only where its
+condition holds (as MicroPython's native `.mpy` has a generic RISC-V target and RISC-V with platform
+feature flags).
