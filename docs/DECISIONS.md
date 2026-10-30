@@ -252,3 +252,16 @@ and then as an opt-in variant declared in the artifact, the way ISA levels are (
 generic variant that runs everywhere on the architecture and a flagged one that runs only where its
 condition holds (as MicroPython's native `.mpy` has a generic RISC-V target and RISC-V with platform
 feature flags).
+
+### D24. Baseline ISA first; anything above it is an optional, declared variant
+Status: accepted · Date: 2026-10-30 · Supersedes: — · Evidence: —
+
+JIT code generators target the architecture's minimal baseline (ARTIFACT.md: x86-64-v1, ARMv8.0-A,
+and each new architecture's declared baseline), so one compiled artifact runs on every CPU of the
+architecture — portability comes almost for free. Extensions (SSE4.1, AVX, BMI, LZCNT, LSE, …) are
+added later, operation by operation, only where a measurement shows a substantial gain, and always as
+an optional variant behind a level declared in the artifact, next to a baseline path that stays
+mandatory. What the PoC already uses above the baseline is kept as such an optional variant rather
+than lost (`roundsd` for `f64.trunc`). CI disassembles generated code and fails on any instruction
+above the declared level. With D23 (no OS in the code) this keeps an artifact dependent on the
+architecture and its declared level only.

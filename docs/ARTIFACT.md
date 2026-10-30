@@ -40,8 +40,16 @@ Rules:
   in the PoC: `f64.trunc` was emitted as `roundsd` (SSE4.1, x86-64-v2); at v1 it needs an SSE2
   sequence (convert-truncate for |x| < 2⁵², otherwise x itself, preserving sign and NaN). The same
   applies to `floor`, `ceil`, `nearest`, `popcnt`, `clz`, `ctz`.
-* **Local cache artifacts** may use `isa="native"`: the features of the running CPU, recorded in the
-  artifact and in the cache key, so a cache moved to another machine is recompiled, not executed.
+* **Baseline first (D24).** Every operation is implemented at the baseline first; the baseline path is
+  mandatory and is what every artifact uses by default. A path above the baseline exists only as an
+  **optional, declared variant** next to its baseline twin, added when a measurement shows it pays;
+  an above-baseline instruction the PoC already uses is kept this way, not dropped (known so far:
+  `roundsd`, SSE4.1 / x86-64-v2, for `f64.trunc` in `poc/w2jit.py` and `poc/w2jit2.py`).
+* **Local cache artifacts** may use `isa="native"` once optional variants exist: the features of the
+  running CPU, recorded in the artifact and in the cache key, so a cache moved to another machine is
+  recompiled, not executed.
+* **Checked, not trusted**: CI disassembles generated code (`objdump`) and fails if any instruction is
+  above the level the artifact declares.
 * `Config.isa` (w2py addition): `"baseline"` (default), `"native"`, a level name, or a level plus
   feature names.
 * **Detection at load time, stdlib only**: on x86-64 a small `cpuid` stub run through the same

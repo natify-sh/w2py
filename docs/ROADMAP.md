@@ -129,6 +129,11 @@ lacks a feature reports it through `Target.supports` and the module runs on anot
   the host-call bridge): slow but correct, so a new architecture runs every module from its first stage.
 * The encoder is checked in CI against an external assembler (`llvm-mc` / `objdump`) for every
   instruction form it can emit.
+* **Baseline only** (D24): x86-64-v1 code; `f64.trunc`/`f32.trunc` get the SSE2 sequence, with the
+  PoC's `roundsd` kept as an optional x86-64-v2 variant behind its declared level; later
+  `clz`/`ctz`/`popcnt`, `floor`/`ceil`/`nearest` start as baseline sequences too (`bsr`/`bsf` with the
+  zero case, SSE2 rounding). CI disassembles generated code and fails on any instruction above the
+  declared level.
 
 ## Phase 4 — the second architecture (integer core) proves the interface
 * `jit-aarch64` or `jit-riscv64` (whichever has the cheaper CI; Python for it runs under QEMU user-mode
