@@ -1,3 +1,10 @@
+---
+title: Architecture
+kind: reference
+status: current
+updated: 2026-10-30
+---
+
 # Architecture
 
 ## Principles

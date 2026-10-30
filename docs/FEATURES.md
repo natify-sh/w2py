@@ -1,3 +1,10 @@
+---
+title: Features
+kind: reference
+status: current
+updated: 2026-10-30
+---
+
 # Features
 
 The goal is everything Wasmtime supports for core WebAssembly. The component model is the

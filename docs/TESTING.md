@@ -1,3 +1,10 @@
+---
+title: Testing
+kind: reference
+status: current
+updated: 2026-10-30
+---
+
 # Testing
 
 Every target passes the same tests; a target becomes selectable only when it passes them for the

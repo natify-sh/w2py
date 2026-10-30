@@ -1,3 +1,10 @@
+---
+title: Targets
+kind: reference
+status: current
+updated: 2026-10-30
+---
+
 # Targets
 
 A target turns the IR of a module into something the host can run, and runs it. Targets are added one

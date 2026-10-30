@@ -1,3 +1,10 @@
+---
+title: API and CLI
+kind: reference
+status: current
+updated: 2026-10-30
+---
+
 # API and CLI
 
 ## Python API: after wasmtime-py

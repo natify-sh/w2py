@@ -1,3 +1,10 @@
+---
+title: JIT artifact, ISA levels and the context ABI
+kind: reference
+status: current
+updated: 2026-10-30
+---
+
 # JIT artifact, ISA levels and the context ABI
 
 A JIT target's output is plain machine code with a small, fixed boundary. Nothing in it is

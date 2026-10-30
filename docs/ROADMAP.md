@@ -1,3 +1,10 @@
+---
+title: Roadmap
+kind: reference
+status: current
+updated: 2026-10-30
+---
+
 # Roadmap
 
 Phases in order; each ends with tests green for what it claims. Numbers are measured, never estimated

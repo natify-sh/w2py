@@ -1,3 +1,10 @@
+---
+title: Risks and possible solutions
+kind: log
+status: current
+updated: 2026-10-30
+---
+
 # Risks and possible solutions
 
 Not decisions: what can go wrong, what we know about it, and the options to choose from when the time

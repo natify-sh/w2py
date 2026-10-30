@@ -1,3 +1,10 @@
+---
+title: Briefing: read this first
+kind: guide
+status: current
+updated: 2026-10-30
+---
+
 # Read this first
 
 This page is the briefing for anyone (person or agent) who starts work on this repository. Everything
@@ -130,6 +137,8 @@ a test. "Measure, do not estimate."
 | the JIT artifact contract | `docs/ARTIFACT.md` |
 | the public API and CLI (phase 6) | `docs/API.md`, `docs/FEATURES.md` |
 | how others did it | `docs/REFERENCES.md` |
+| how documents are written and checked | `docs/STANDARDS.md` |
+| component specs (contracts, written before implementation) | `docs/specs/` |
 
 The maintainer writes in Ukrainian; code, comments, commits and documents are in English. The name
 `w2py` is a working name.

@@ -78,6 +78,9 @@ trusted (the JIT), and then always with a plan approved first and a review after
      second real use, no public-API work before its phase, no unrelated edits or reformatting?
    * docs: `docs/BENCHMARKS.md` for any speed claim, `docs/DECISIONS.md` for any decision,
      `docs/LESSONS.md` for a trap found on the way, the expected-failures file updated;
+   * contracts (context ABI, artifact format, Target interface, IR, traps, the engine interface) need an
+     approved spec in `docs/specs/` before implementation; docs follow `docs/STANDARDS.md`; the step's
+     commit message carries goal, acceptance commands and numbers; `python3 tools/check_docs.py` must pass;
    * for JIT, ABI, artifact-format or trap changes: a `reviewer` subagent reads the diff with no access
      to the implementer's reasoning.
 6. **Fix** (orchestrator). A small mistake (≲ 20 lines, obvious) is fixed in the main session. Anything

@@ -1,3 +1,10 @@
+---
+title: README
+kind: guide
+status: current
+updated: 2026-10-30
+---
+
 # w2py
 
 > New here? Read [`BRIEF.md`](BRIEF.md) first.

@@ -1,3 +1,10 @@
+---
+title: Lessons
+kind: log
+status: current
+updated: 2026-10-30
+---
+
 # Lessons
 
 What went wrong or surprised us while building the PoC, so it is not found again the hard way.

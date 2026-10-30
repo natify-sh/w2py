@@ -1,3 +1,10 @@
+---
+title: Benchmarks
+kind: log
+status: current
+updated: 2026-10-30
+---
+
 # Benchmarks
 
 Everything measured during the PoC, with its conditions. Numbers from different sessions differ by up

@@ -1,3 +1,10 @@
+---
+title: References
+kind: reference
+status: current
+updated: 2026-10-30
+---
+
 # References
 
 Projects worth reading to see **how something is done correctly**. We read, understand and write our
