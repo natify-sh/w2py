@@ -104,7 +104,7 @@ only what its test programs needed.
    the shape of the shared JIT core (LIR with an allocator, or one pass over HIR into a small
    `MacroAssembler`-like backend interface), then split `w2jit2` into the shared core and the x86-64
    backend.
-7. **The second architecture's integer core** (aarch64 or riscv64 under QEMU, phase 4) **before** the
+7. **The second architecture's integer core** (aarch64 on native arm64 CI runners, phase 4) **before** the
    opcode set is widened: it is what proves the split, and the interface is frozen after it. Only then
    the rest of the opcodes, guard pages and the artifact contract on all JIT targets (phase 5).
 8. **Only then** the public runtime API in the shape of wasmtime-py, WASI (fusedwasi is the candidate

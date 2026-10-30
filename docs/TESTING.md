@@ -85,7 +85,8 @@ tools installed on CPython 3.11, 3.15 and 3.15t; PyPy 3.11 is first checked in C
 | Python | CPython 3.11, 3.12, 3.13, 3.14, 3.15, 3.15t (free-threaded); PyPy 3.11 (D19) |
 | OS | Linux x86-64, Linux aarch64, macOS arm64 (MAP_JIT), Windows x86-64 |
 | target | `pyc` everywhere; `jit-*` where the machine matches; `mpy` with the MicroPython unix port |
-| emulated | QEMU user-mode for riscv64, armv7, mips32el as JIT targets appear |
+| native arm64 | `jit-aarch64` on GitHub's arm64 runners (Linux; macOS arm64 with `MAP_JIT`) |
+| emulated | QEMU user-mode only for architectures without native runners (riscv64, armv7, mips32el) as JIT targets appear |
 
 JIT artifacts: run baseline artifacts on an emulated baseline CPU (e.g. QEMU `-cpu` without SSE4.1 /
 with plain ARMv8.0) and check that a higher-level artifact is refused there; load artifacts with the C

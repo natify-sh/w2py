@@ -79,7 +79,7 @@ lacks a feature reports it through `Target.supports` and the module runs on anot
 | 1 | `assert_invalid` / `assert_malformed` of the pinned spec suite pass (the validator) |
 | 2 | spec suite for features 1–2 above passes on `pyc` (CPython and PyPy); the rest are listed expected failures |
 | 3 | the integer-core spec commands (stage 1, TARGETS.md) pass on `jit-x86_64` exactly as on `pyc`; the backend interface is written down and the PoC's x86-64 code is split into the shared core and the backend; compile time and CoreMark are not worse than the PoC (BENCHMARKS.md) |
-| 4 | the same integer-core spec commands pass on the second architecture under QEMU; the size of its backend is recorded; the interface is changed where it leaked x86-64 and then frozen |
+| 4 | the same integer-core spec commands pass on the second architecture (aarch64 on native arm64 CI runners); the size of its backend is recorded; the interface is changed where it leaked x86-64 and then frozen |
 | 5 | the same spec commands pass on every JIT target as on `pyc` for the stages it claims; differential fuzzing finds no divergence over an agreed number of hours |
 | 6 | the public API is covered by tests of its own plus differential runs against wasmtime (its API used as the oracle, not as a goal); the WASI testsuite (p1) passes; the CLI runs the commands of API.md |
 | later | each new proposal enters with its spec tests green on every target that claims it |
@@ -145,8 +145,9 @@ lacks a feature reports it through `Target.supports` and the module runs on anot
   declared level.
 
 ## Phase 4 — the second architecture (integer core) proves the interface
-* `jit-aarch64` or `jit-riscv64` (whichever has the cheaper CI; Python for it runs under QEMU user-mode
-  in a multi-arch container), integer core only: the same stage 1, the same spec commands as phase 3.
+* `jit-aarch64`, tested natively on GitHub's arm64 runners (Linux; macOS arm64 with `MAP_JIT`), integer
+  core only: the same stage 1, the same spec commands as phase 3. QEMU user-mode is only for
+  architectures without native runners (riscv64 and later ones).
 * Record the size of the new backend and what in the shared core or the interface had to change; fix the
   places where x86-64 leaked (flags, two-operand forms, fixed registers for division and shifts) and
   **freeze the interface**. Nothing in phase 5 starts before this.
