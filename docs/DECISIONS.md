@@ -283,3 +283,18 @@ is complete when it passes on both. A JIT backend covers what it does not implem
 libcalls (S0002) rather than refusing the module; `pyc` closes its own gaps (e.g. NaN payloads) rather
 than relying on the JIT. CI compares the expected-failures files of `pyc` and each JIT; a difference
 is a gap on one side to close, not a permanent state. Tier-3 targets (`mpy`, D22) are exempt.
+
+### D26. The JIT core is one pass; LIR is the backend's call interface
+Status: accepted · Date: 2026-10-30 · Supersedes: D16 (LIR as a materialised list) · Evidence: S0002, "Proposed decision" (measured)
+
+The shared JIT core reads each validated function body once — lazy value stack, control stack,
+pinned locals, labels — and drives a small per-architecture backend interface (Winch / Liftoff
+style, as `poc/w2jit2.py`). The LIR of D16 is that interface, not a list with virtual registers: an
+extra LIR build + liveness + linear scan costs at least +50–80 % compile time in Python (measured on
+core.wasm, webp_codec.wasm, resvg.wasm; `poc/bench/compile/lir_proto.py`), while what it could buy
+is bounded: `w2jit2` is at 80–86 % of Cranelift on CoreMark and guard pages bring ~91 % — the gap is
+mostly bounds checks, addressed by guard pages and bounds-check elimination, and wasm arrives already
+optimised by its producer. The interface is three-operand, has no flags (compare-and-branch /
+compare-and-set are whole operations), and lets each backend own its register roles, so a second
+architecture does not inherit x86-isms. An allocator over a materialised LIR is added only if a
+measurement on real workloads shows a substantial gain.

@@ -2,7 +2,7 @@
 title: Target interface
 kind: spec
 id: S0002
-status: draft
+status: approved
 superseded_by:
 related: [D5, D6, D10, D16, D17, D18, D23, D24, S0001, S0003]
 owner: maintainer
@@ -220,10 +220,10 @@ consumes its analyses (pin weights, bounds-check elimination) when they exist, c
 weights itself until then.
 
 ## Open questions
-* Approve (b), recorded as a new decision narrowing D16 as worded above?
-* `--engine jit` without fallback (its own xfail file) — agreed?
+* None at approval: (b) accepted as D26; `--engine jit` has no fallback and its own xfail file (D25).
 
 ## Changes
 * 2026-10-30: created (draft).
 * 2026-10-30: one target per engine/store, no per-module fallback, pyc/JIT parity (D25).
 * 2026-10-30: interrupt polling on by default (timeouts and Ctrl-C are built on it); fuel is an opt-in, later (maintainer).
+* 2026-10-30: approved by the maintainer; the proposed decision is D26.

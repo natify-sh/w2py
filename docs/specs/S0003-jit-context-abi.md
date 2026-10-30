@@ -2,7 +2,7 @@
 title: JIT context ABI and entry (phase 3, x86-64)
 kind: spec
 id: S0003
-status: draft
+status: approved
 superseded_by:
 related: [D10, D14, D15, D18, D23, D24, R2, R3, R6, S0002]
 owner: maintainer
@@ -191,11 +191,12 @@ uv run pytest tests/jit -k "entry or trap or reentry or host or interrupt or sta
   for a value that changes only per outermost entry. Rejected.
 
 ## Open questions
-* Accept the amendments to ARTIFACT.md part 3 v1 (uniform `host` signature; word 8 `HOST_BRIDGE`;
-  libcall words; words 0 and 7 unused) without a version bump, since v1 is fixed only in phase 5?
-  If yes: ARTIFACT.md and DECISIONS.md are updated with the implementation step.
-* Native budget 512 KiB: enough headroom on every supported OS's default thread stack (Windows main
-  thread, macOS secondary threads)? Not verified here.
+* None at approval. Resolved: the ARTIFACT.md part 3 v1 amendments are accepted without a version bump
+  (v1 is fixed in phase 5); ARTIFACT.md and DECISIONS.md are updated in the implementation step.
+  The native budget is not a fixed 512 KiB everywhere: it is capped by the real stack size of the
+  entering thread (macOS secondary threads have 512 KiB in total), and CI checks deep recursion on the
+  main and a secondary thread on every OS runner where the JIT runs (Windows x86-64 in phase 3).
 
 ## Changes
 * 2026-10-30: created (draft).
+* 2026-10-30: approved by the maintainer (amendments accepted; budget capped by the thread's stack).
