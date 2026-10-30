@@ -11,38 +11,87 @@ The goal is everything Wasmtime supports for core WebAssembly. The component mod
 exception: components are supported **fused** into one core module (`meld fuse`), with WASI 0.2
 provided by the WASI host (to decide; fusedwasi is the candidate); nothing of `wasmtime.component` is planned.
 
-The checklist below is wasmtime-py 50.0.1's own list of `Config.wasm_*` switches (introspected), plus
-the runtime features around them. Which of them Wasmtime enables by default changes between versions;
-w2py follows the defaults of the wasmtime version pinned as the test oracle (TESTING.md).
+The checklist below is generated: `python3 tools/features.py` writes `features.json` (the format of
+the WebAssembly website's [features.json](https://webassembly.org/features/), pinned in
+`docs/upstream/`) and the table. A feature is "yes" on a target only if its spec tests pass there;
+"partial" lists the failing tests in `features.json`; "-" is not supported or its spec tests are not
+run yet. Wasmtime's column is the upstream data. `pyc` is computed from `tests/spec/xfail/pyc.txt`
+over the top-level `test/core` files only; `jit-x86_64` has not started. `mpy` is not listed yet.
 
-## Proposals (`Config.wasm_*`)
+## Proposals
 
-"In Core 3.0" marks what the WebAssembly Core Specification 3.0 contains (ROADMAP.md, "Scope and order of
-the wasm features"): all of it is in scope and is tested against the pinned spec suite; the rows marked
-"no" are separate proposals tracked after it.
+<!-- features:begin -->
+| feature | phase | Wasmtime | pyc | jit-x86_64 |
+|---|---|---|---|---|
+| Acquire-Release Atomics (`acquireReleaseAtomics`) | 2 | - | - | - |
+| JS BigInt to Wasm i64 Integration (`bigInt`) | 5 | - | - | - |
+| Branch Hinting (`branchHinting`) | 5 | flag | - | - |
+| Bulk Memory Operations (`bulkMemory`) | 5 | since 0.20 | - | - |
+| Compact Import Section (`compactImportSection`) | 4 | - | - | - |
+| Compilation Hints (`compilationHints`) | 2 | - | - | - |
+| Component Model (`componentModel`) | 1 | - | - | - |
+| Custom Text Format Annotations (`customAnnotationSyntaxInTheTextFormat`) | 5 | yes | - | - |
+| Custom Descriptors and JS Interop (`customDescriptors`) | 3 | - | - | - |
+| Custom Page Sizes (`customPageSizes`) | 3 | flag | - | - |
+| ESM Integration (`esmIntegration`) | 3 | - | - | - |
+| Legacy Exception Handling (`exceptions`) | inactive | - | - | - |
+| Exception Handling with exnref (`exceptionsFinal`) | 5 | since 47 | - | - |
+| Extended Constant Expressions (`extendedConst`) | 5 | since 25 | partial | - |
+| Extended Name Section (`extendedNameSection`) | 2 | - | - | - |
+| Flexible Vectors (`flexibleVectors`) | 1 | - | - | - |
+| Frozen Values (`frozenValues`) | 1 | - | - | - |
+| Garbage Collection (`gc`) | 5 | since 47 | - | - |
+| Half Precision (`halfPrecision`) | 1 | - | - | - |
+| Instrument and Tracing Technology (`instrumentAndTracingTechnology`) | inactive | - | - | - |
+| JIT Interface (`jitInterface`) | 1 | - | - | - |
+| JS Primitive Builtins (`jsPrimitiveBuiltins`) | 2 | - | - | - |
+| JS String Builtins (`jsStringBuiltins`) | 5 | - | - | - |
+| JS Promise Integration (`jspi`) | 5 | - | - | - |
+| Memory64 (`memory64`) | 5 | since 30 | - | - |
+| Memory Control (`memoryControl`) | 1 | - | - | - |
+| More Array Constructors (`moreArrayConstructors`) | 1 | - | - | - |
+| Multibyte Array Access (`multibyteArrayAccess`) | 2 | - | - | - |
+| Multiple Memories (`multiMemory`) | 5 | since 15 | - | - |
+| Multi-value (`multiValue`) | 5 | since 0.17 | partial | - |
+| Import/Export of Mutable Globals (`mutableGlobals`) | 5 | yes | partial | - |
+| Numeric Values in WAT Data Segments (`numericValuesInWat`) | 2 | - | - | - |
+| Profiles (`profiles`) | 1 | yes | - | - |
+| Reference Types (`referenceTypes`) | 5 | since 0.20 | partial | - |
+| Relaxed Dead Code Validation (`relaxedDeadCodeValidation`) | 2 | - | - | - |
+| Relaxed SIMD (`relaxedSimd`) | 5 | since 15 | - | - |
+| Rounding Variants (`roundingVariants`) | 2 | - | - | - |
+| Non-trapping float-to-int Conversions (`saturatedFloatToInt`) | 5 | yes | yes | - |
+| Shared-Everything Threads (`sharedEverythingThreads`) | 1 | - | - | - |
+| Sign-extension Operators (`signExtensions`) | 5 | yes | yes | - |
+| Fixed-width SIMD (`simd`) | 5 | since 0.33 | - | - |
+| Stack Switching (`stackSwitching`) | 3 | - | - | - |
+| Reference-Typed Strings (`stringref`) | 1 | - | - | - |
+| Tail Call (`tailCall`) | 5 | since 22 | partial | - |
+| Threads (`threads`) | 4 | since 15 | - | - |
+| Type Imports (`typeImports`) | 1 | - | - | - |
+| Type Reflection for JS API (`typeReflection`) | 1 | - | - | - |
+| Typed Function References (`typedFunctionReferences`) | 5 | since 47 | partial | - |
+| WebAssembly C and C++ API (`wasmCApi`) | 1 | - | - | - |
+| Web Content Security Policy (`webContentSecurityPolicy`) | 5 | - | - | - |
+| Wide Arithmetic (`wideArithmetic`) | 4 | flag | - | - |
+<!-- features:end -->
 
-| switch | proposal | in Core 3.0 | `pyc` PoC | `jit-x86_64` PoC | notes for the implementation |
-|---|---|---|---|---|---|
-| — | MVP + mutable globals | yes | CoreMark subset (no spec run yet) | CoreMark subset | PoC gaps: validator, `call_indirect` signature check, block parameters; the JIT lacks `memory.grow` and full i64 |
-| — | sign-extension ops | yes | yes | i32 forms | |
-| — | non-trapping float-to-int | yes | yes | f64→i32 forms | |
-| `wasm_multi_value` | multi-value | yes | results yes, block params no | no | |
-| `wasm_bulk_memory` | bulk memory | yes | `memory.copy`/`fill` | no | passive segments, `memory.init`, `data.drop`, `table.*` missing |
-| `wasm_reference_types` | reference types | yes | no | no | `funcref`/`externref`, multiple tables |
-| `wasm_simd` | 128-bit SIMD | yes | no | no | `pyc`: v128 as 16 bytes / int, correct first; JIT: SSE2/NEON |
-| `wasm_relaxed_simd` (+ `_deterministic`) | relaxed SIMD | yes | no | no | follow Wasmtime's deterministic choice when asked |
-| `wasm_tail_call` | tail calls | yes | no | no | `pyc`: no TCO in Python → trampoline for `return_call*` |
-| `wasm_multi_memory` | multi-memory | yes | no | no | **needed for fused components** |
-| `wasm_memory64` | 64-bit memories/tables | yes | no | no | addresses are Python ints already in `pyc` |
-| `wasm_custom_page_sizes` | custom page sizes | no | no | no | a property of the `Memory` facade |
-| `wasm_threads` (+ `Config.shared_memory`) | threads and atomics | no | no | no | `SharedMemory`; `pyc` atomics under the GIL, care for free-threaded builds |
-| `wasm_exceptions` | exception handling | yes | no | no | `Tag`, `try_table`, `throw`, `exnref` |
-| `wasm_function_references` | typed function references | yes | no | no | `call_ref`, non-null types |
-| `wasm_gc` (+ `Config.gc_support`) | garbage collection | yes | no | no | structs/arrays: Python objects in `pyc` are natural |
-| `wasm_wide_arithmetic` | 128-bit arithmetic ops | no | no | no | easy in `pyc` (big ints) |
-| `wasm_stack_switching` | stack switching | no | no | no | after everything else |
-| `wasm_component_model*` | component model | no (out of scope) | — | — | out of scope (fused modules only) |
-| extended constant expressions | `i32.add` etc. in const exprs | yes | no | — | frontend only |
+**Implementation notes per proposal** (hand-written; Wasmtime's `Config.wasm_*` switch in brackets):
+
+* multi-memory (`wasm_multi_memory`): **needed for fused components** (D7).
+* memory64 (`wasm_memory64`): addresses are already Python ints in `pyc`.
+* SIMD (`wasm_simd`): `pyc` v128 as an int / 16 bytes, correct first; JIT: SSE2 / NEON at the baseline (D24).
+* relaxed SIMD (`wasm_relaxed_simd`, `_deterministic`): follow Wasmtime's deterministic choice when asked.
+* tail calls (`wasm_tail_call`): `pyc` uses a trampoline for functions with `return_call*`; the JIT replaces the frame.
+* custom page sizes (`wasm_custom_page_sizes`): a property of the `Memory` facade.
+* threads (`wasm_threads`, `Config.shared_memory`): `SharedMemory`; `pyc` atomics under the GIL, care for free-threaded builds.
+* exceptions (`wasm_exceptions`): `Tag`, `try_table`, `throw`, `exnref`.
+* typed function references (`wasm_function_references`): `call_ref`, non-null types.
+* GC (`wasm_gc`, `Config.gc_support`): structs/arrays map naturally to Python objects in `pyc`.
+* wide arithmetic (`wasm_wide_arithmetic`): easy in `pyc` (big ints).
+* stack switching (`wasm_stack_switching`): after everything else.
+* component model: out of scope; fused core modules only (D7).
+
 
 ## Runtime features
 

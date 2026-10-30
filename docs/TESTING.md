@@ -28,7 +28,7 @@ exit criterion of each phase (ROADMAP.md) is a value of them.
 When the pinned wasmtime / wasmtime-py version moves, the API-surface diff and the scraped CLI options
 show what is new; the spec commit moves the same way, in small steps.
 
-`FEATURES.md` becomes generated from the expected-failures files (feature × target), not hand-written.
+`FEATURES.md` is generated from the expected-failures files (feature × target) by `tools/features.py`.
 
 ## Development dependencies (never runtime)
 
