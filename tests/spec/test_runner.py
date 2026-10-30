@@ -71,6 +71,12 @@ def test_v128_lanes() -> None:
     assert run.matches(n, 0x7FC00000 | 0x3F800000 << 32)
     assert not run.matches(n, F32_SNAN | 0x3F800000 << 32)
     assert not run.matches(n, 0x7FC00000)
+    a = {"type": "v128", "lane_type": "f64", "value": ["nan:arithmetic", "nan:canonical"]}
+    assert run.matches(a, 0x7FF8000000000001 | 0x7FF8000000000000 << 64)
+    assert not run.matches(a, 0x7FF8000000000000 | 0x7FF8000000000001 << 64)
+    either = {"type": "either", "values": [v, n]}
+    assert run.matches(either, 0x7FC00000 | 0x3F800000 << 32)
+    assert not run.matches(either, 0)
 
 
 def test_references() -> None:
@@ -291,5 +297,6 @@ def test_claims(tmp_path: Path) -> None:
     from tests.spec import claims
 
     assert claims.claimed("pyc", claims.CORE)
-    assert claims.claimed("wasmtime", "gc") and not claims.claimed("wasmtime", "simd")
+    assert claims.claimed("wasmtime", "gc") and claims.claimed("wasmtime", "simd")
+    assert not claims.claimed("pyc", "simd")
     assert not claims.claimed("pyc", "multi-memory") and not claims.claimed("nope", "gc")

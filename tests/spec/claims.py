@@ -16,8 +16,9 @@ DIR_FEATURE = {
     "gc": "gc",
 }
 CLAIMS: dict[str, frozenset[str]] = {
-    # wasmtime-py cannot pass v128 through a call, so simd / relaxedSimd are not claimed
-    "wasmtime": frozenset({"multiMemory", "memory64", "bulkMemory", "exceptionsFinal", "gc"}),
+    "wasmtime": frozenset(
+        {"simd", "relaxedSimd", "multiMemory", "memory64", "bulkMemory", "exceptionsFinal", "gc"}
+    ),
     "pyc": frozenset({"bulkMemory"}),  # multi-memory, memory64: most of the directory fails
 }
 

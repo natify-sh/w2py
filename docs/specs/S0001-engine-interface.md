@@ -233,7 +233,11 @@ References go through `wasmtime.Val`; an `ExternRef` object comes back as itself
 pyright's `reportPrivateUsage` (pinned version). Known: wasmtime-py 50.0.1 aborts the process on a
 typed reference in a signature (`(ref extern)`, `anyref`, …: "support for non-externref and
 non-funcref references is not implemented") → per-command entries in its xfail (the same for the `gc/` and `exceptions/` files that use such
-types). wasmtime-py also aborts on `v128` in a signature, so `simd` / `relaxedSimd` are not claimed.
+types). `v128` (`simd/`, `relaxed-simd/`): wasmtime-py cannot convert it (`Val`), and `wasm_valtype_kind`
+aborts the process on a v128 `valtype` ("support for v128 is not implemented"), which `str(ValType)` and
+`Func.type().params` reach. The adapter tells v128 apart with `wasmtime_wasm_valtype_equal` against
+`wasmtime_wasm_valtype_v128()` first, and reads/writes the 16-byte `of.v128` of the value union
+(`WASMTIME_V128`) as a little-endian `int`. The Config also enables `wasm_simd`, `wasm_relaxed_simd`.
 
 ## Test plan
 A throwaway prototype of this design over Wasmtime (not committed, one process per file) gave
@@ -292,3 +296,5 @@ result and on an xpass).
   mark their directory INCOMPLETE; the Wasmtime Config switches are listed explicitly; the two
   `core` commands that wasmtime-py passed under the old wildcards (`local_init.wast:3`,
   `ref_null.wast:1`) are now `pass` (core: pass 20556, xfail 42).
+* 2026-10-30: Wasmtime claims `simd` and `relaxedSimd`: raw v128 path in the adapter, v128 detected
+  without `wasm_valtype_kind` (simd: pass 25481, skip 509; relaxed-simd: pass 79; fail 0).

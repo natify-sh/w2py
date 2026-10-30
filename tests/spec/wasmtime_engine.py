@@ -1,7 +1,8 @@
-# pyright: reportPrivateUsage=false, reportUnknownMemberType=false, reportUnknownVariableType=false
+# pyright: reportPrivateUsage=false, reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnknownArgumentType=false
 """Wasmtime as a SpecEngine (docs/specs/S0001, "Wasmtime adapter"). Only file importing wasmtime.
 
-Calls and global reads use wasmtime-py's raw C path: its `float` path quiets f32 signalling NaNs.
+Calls and global reads use wasmtime-py's raw C path: its `float` path quiets f32 signalling NaNs,
+and it cannot convert v128 at all.
 It needs private names of the pinned wasmtime-py, hence the pragma above.
 """
 
@@ -30,6 +31,14 @@ def _first_line(e: Exception) -> str:
     return (str(e).splitlines() or [""])[0]
 
 
+_V128 = ffi.wasmtime_wasm_valtype_v128()
+
+
+def _kind(t: wasmtime.ValType) -> str:
+    """str(t), but v128: wasm_valtype_kind aborts the process on it, so compare before asking."""
+    return "v128" if ffi.wasmtime_wasm_valtype_equal(t.ptr(), _V128) else str(t)
+
+
 def _from_raw(store: wasmtime.Store, ty: str, raw: "ffi.wasmtime_val_t") -> Value:
     if ty == "i32":
         return raw.of.i32
@@ -39,6 +48,8 @@ def _from_raw(store: wasmtime.Store, ty: str, raw: "ffi.wasmtime_val_t") -> Valu
         return raw.of.i32 & 0xFFFFFFFF
     if ty == "f64":
         return raw.of.i64 & 0xFFFFFFFFFFFFFFFF
+    if ty == "v128":
+        return int.from_bytes(bytes(raw.of.v128), "little")
     v = wasmtime.Val._from_raw(store, raw).value
     if v is None:
         return None
@@ -49,7 +60,7 @@ def _from_raw(store: wasmtime.Store, ty: str, raw: "ffi.wasmtime_val_t") -> Valu
 CONFIG_SWITCHES = (
     *("wasm_multi_value", "wasm_reference_types", "wasm_bulk_memory", "wasm_tail_call"),
     *("wasm_function_references", "wasm_gc", "wasm_exceptions"),
-    *("wasm_multi_memory", "wasm_memory64"),
+    *("wasm_multi_memory", "wasm_memory64", "wasm_simd", "wasm_relaxed_simd"),
 )
 
 
@@ -95,8 +106,11 @@ class WasmtimeEngine:
         params = ty.params
         raw_args = (ffi.wasmtime_val_t * len(args))()
         for i, (t, a) in enumerate(zip(params, args, strict=True)):
-            kind = str(t)
-            if kind in ("i32", "f32"):
+            kind = _kind(t)
+            if kind == "v128":
+                raw_args[i].kind = ffi.WASMTIME_V128
+                raw_args[i].of.v128 = (ctypes.c_uint8 * 16)(*cast(int, a).to_bytes(16, "little"))
+            elif kind in ("i32", "f32"):
                 raw_args[i].kind = ffi.WASMTIME_I32 if kind == "i32" else ffi.WASMTIME_F32
                 raw_args[i].of.i32 = ctypes.c_int32(cast(int, a)).value
             elif kind in ("i64", "f64"):
@@ -125,7 +139,7 @@ class WasmtimeEngine:
         finally:
             for i in range(len(args)):
                 ffi.wasmtime_val_unroot(ctypes.byref(raw_args[i]))
-        return [_from_raw(store, str(t), r) for t, r in zip(results, raw_res, strict=True)]
+        return [_from_raw(store, _kind(t), r) for t, r in zip(results, raw_res, strict=True)]
 
     def get_global(self, instance: Instance, name: str) -> Value:
         g = cast(wasmtime.Instance, instance).exports(self._store).get(name)
@@ -133,7 +147,7 @@ class WasmtimeEngine:
             raise LookupError(f"no exported global {name}")
         raw = ffi.wasmtime_val_t()
         ffi.wasmtime_global_get(self._store._context(), ctypes.byref(g._global), ctypes.byref(raw))
-        return _from_raw(self._store, str(g.type(self._store).content), raw)
+        return _from_raw(self._store, _kind(g.type(self._store).content), raw)
 
     @staticmethod
     def _trap(e: wasmtime.Trap) -> Exception:
