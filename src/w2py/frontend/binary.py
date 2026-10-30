@@ -1,57 +1,163 @@
 # pyright: basic, reportArgumentType=false, reportOptionalMemberAccess=false, reportAttributeAccessIssue=false, reportSelfClsParameterName=false
-"""Wasm binary front end: byte reader, section parser, function-body decoder (ported from poc/w2py.py)."""
+"""Wasm binary front end: byte reader, section parser, function-body decoder (ported from poc/w2py.py).
+
+Every binary-format error is `Malformed`. A valid encoding of something unsupported (SIMD, GC,
+exceptions, 64-bit memories, ...) is NotImplementedError, never Malformed: a wrong "malformed" on
+a valid module would be a wrong kind.
+"""
 
 import struct
 
 M32, M64 = 0xFFFFFFFF, 0xFFFFFFFFFFFFFFFF
 I32, I64, F32, F64 = 0x7F, 0x7E, 0x7D, 0x7C
 TN = {I32: "i32", I64: "i64", F32: "f32", F64: "f64", 0x70: "ref", 0x6F: "ref"}
+UNSUPPORTED_TYPES = frozenset(
+    (0x7B, 0x63, 0x64, 0x69, 0x6A, 0x6B, 0x6C, 0x6D, 0x6E, 0x71, 0x72, 0x73, 0x74)
+)
+UNSUPPORTED_OPS = frozenset((*range(6, 11), 0x18, 0x19, 0x1F, 0xFB, 0xFD, 0xFE))
+SIMPLE_OPS = frozenset((0, 1, 5, 0x0B, 0x0F, 0x1A, 0x1B, 0xD1, 0xD3, 0xD4, *range(0x45, 0xC5)))
+# Section id -> position; custom sections (0) go anywhere, the data count (12) sits before code (10).
+SECTION_RANK = {
+    1: 1,
+    2: 2,
+    3: 3,
+    4: 4,
+    5: 5,
+    13: 5.5,
+    6: 6,
+    7: 7,
+    8: 8,
+    9: 9,
+    12: 10,
+    10: 11,
+    11: 12,
+}
+LOCALS_LIMIT = 50000  # Wasmtime's implementation limit (docs/DECISIONS.md D6)
+
+
+class Malformed(Exception):
+    """The binary does not follow the binary format."""
+
+
+class ImplLimit(Exception):
+    """A well-formed module exceeds a limit of this implementation (the same as Wasmtime's)."""
+
+
+def _guard(f):
+    def g(x):
+        try:
+            return f(x)
+        except (IndexError, struct.error, UnicodeDecodeError) as e:
+            raise Malformed(f"{type(e).__name__}: {e}") from None
+
+    return g
+
+
+def _illegal(op):
+    """`op` cannot be decoded here: a known opcode is a gap, anything else is malformed."""
+    if (
+        op in UNSUPPORTED_OPS
+        or op <= 0x15
+        or 0x1A <= op <= 0x1C
+        or 0x20 <= op <= 0xC4
+        or 0xD0 <= op <= 0xD6
+        or op == 0xFC
+    ):
+        raise NotImplementedError("opcode %#x" % op)
+    raise Malformed("illegal opcode %#x" % op)
 
 
 class R:
     def __init__(s, b, p=0):
-        s.b, s.p = b, p
+        s.b, s.p, s.n = b, p, len(b)  # n: end of what may be read (the enclosing section)
 
     def u8(s):
-        v = s.b[s.p]
+        if s.p >= s.n:
+            raise Malformed("unexpected end")
         s.p += 1
-        return v
+        return s.b[s.p - 1]
 
-    def u(s):
-        r = sh = 0
-        while True:
-            x = s.b[s.p]
-            s.p += 1
-            r |= (x & 0x7F) << sh
-            sh += 7
-            if x < 0x80:
-                return r
-
-    def s(s, bits):
-        r = sh = 0
-        while True:
-            x = s.b[s.p]
-            s.p += 1
-            r |= (x & 0x7F) << sh
-            sh += 7
+    def leb(s, bits, signed):
+        r = 0
+        last = (bits + 6) // 7 - 1
+        for i in range(last + 1):
+            x = s.u8()
+            r |= (x & 0x7F) << (7 * i)
             if x < 0x80:
                 break
-        if x & 0x40:
-            r -= 1 << sh
+        else:
+            raise Malformed("integer representation too long")
+        if i == last:  # the unused high bits of the last byte: zero, or the sign if signed
+            used = bits - 7 * i
+            top = (x & 0x7F) >> (used - 1 if signed else used)
+            if top and not (signed and top == 0x7F >> (used - 1)):
+                raise Malformed("integer too large")
+        if signed and x & 0x40:
+            r -= 1 << (7 * (i + 1))
         return r
 
+    def u64(s):  # offsets and limits: the range is checked by the validator, not here
+        return s.leb(64, False)
+
+    def u(s):
+        if s.p < s.n and s.b[s.p] < 0x80:
+            s.p += 1
+            return s.b[s.p - 1]
+        return s.leb(32, False)
+
+    def s(s, bits):
+        return s.leb(bits, True)
+
     def bytes(s, n):
-        v = s.b[s.p : s.p + n]
+        if n > s.n - s.p:
+            raise Malformed("unexpected end")
         s.p += n
+        return s.b[s.p - n : s.p]
+
+    def ht(s):  # heap type: a non-negative index, or a one-byte abstract type
+        p = s.p
+        v = s.s(33)
+        if v < 0 and s.p - p > 1:
+            raise Malformed("integer representation too long")
         return v
 
     def name(s):
         return s.bytes(s.u()).decode()
 
+    def vt(s, refs=False):
+        b = s.u8()
+        if b in (0x70, 0x6F) or (not refs and b in (I32, I64, F32, F64)):
+            return b
+        if b in (0x63, 0x64):  # (ref null? ht): parsed, the type itself is not supported
+            s.ht()
+            return b
+        if b in UNSUPPORTED_TYPES:
+            raise NotImplementedError("value type %#x" % b)
+        raise Malformed("malformed reference type" if refs else "malformed value type")
 
+    def mut(s):
+        m = s.u8()
+        if m > 1:
+            raise Malformed("malformed mutability")
+        return m
+
+    def limits(s):
+        fl = s.u8()
+        if fl > 1:
+            if fl < 8:
+                raise NotImplementedError("limits flags %d (shared / 64-bit)" % fl)
+            raise Malformed("malformed limits flags")
+        mn = s.u64()
+        return mn, (s.u64() if fl else None)
+
+
+@_guard
 def parse(data):
+    if data[:4] != b"\0asm":
+        raise Malformed("magic header not detected")
+    if data[4:8] != b"\1\0\0\0":
+        raise Malformed("unknown binary version")
     r = R(data, 8)
-    assert data[:4] == b"\0asm"
     mod = dict(
         types=[],
         imports=[],
@@ -65,6 +171,8 @@ def parse(data):
         codes=[],
         datas=[],
     )
+    datacount = None
+    rank = 0
 
     def initexpr():
         op = r.u8()
@@ -80,20 +188,42 @@ def parse(data):
             v = ("global", r.u())
         elif op == 0xD2:
             v = ("func", r.u())
+        elif op == 0xD0:
+            v = ("null", r.ht())
         else:
-            raise NotImplementedError("initexpr %x" % op)
-        assert r.u8() == 0x0B
+            _illegal(op)
+        end = r.u8()
+        if end != 0x0B:
+            _illegal(end)  # a valid opcode here is an extended constant expression: a gap
         return v
 
     while r.p < len(data):
         sid = r.u8()
         size = r.u()
         end = r.p + size
-        if sid == 1:
+        if end > len(data):
+            raise Malformed("length out of bounds")
+        r.n = end
+        if sid == 0:
+            r.name()
+            r.p = end
+        else:
+            if sid not in SECTION_RANK:
+                raise Malformed("malformed section id")
+            if SECTION_RANK[sid] <= rank:
+                raise Malformed("unexpected content after last section")
+            rank = SECTION_RANK[sid]
+        if sid == 13:  # tags: not supported, the section is skipped as before
+            r.p = end
+        elif sid == 1:
             for _ in range(r.u()):
-                assert r.u8() == 0x60
-                ps = [r.u8() for _ in range(r.u())]
-                rs = [r.u8() for _ in range(r.u())]
+                form = r.u8()
+                if form in (0x4E, 0x4F, 0x50, 0x5E, 0x5F):
+                    raise NotImplementedError("rec / sub / struct / array types")
+                if form != 0x60:
+                    raise Malformed("malformed function type")
+                ps = [r.vt() for _ in range(r.u())]
+                rs = [r.vt() for _ in range(r.u())]
                 mod["types"].append((ps, rs))
         elif sid == 2:
             for _ in range(r.u()):
@@ -101,48 +231,45 @@ def parse(data):
                 if k == 0:
                     mod["imports"].append(("func", m, n, r.u()))
                 elif k == 1:
-                    r.u8()
-                    fl = r.u8()
-                    mn = r.u()
-                    mx = r.u() if fl & 1 else None
-                    mod["imports"].append(("table", m, n, (mn, mx)))
+                    r.vt(True)
+                    mod["imports"].append(("table", m, n, r.limits()))
                 elif k == 2:
-                    fl = r.u8()
-                    mn = r.u()
-                    mx = r.u() if fl & 1 else None
-                    mod["imports"].append(("mem", m, n, (mn, mx)))
+                    mod["imports"].append(("mem", m, n, r.limits()))
                 elif k == 3:
-                    t = r.u8()
-                    mut = r.u8()
-                    mod["imports"].append(("global", m, n, (t, mut)))
+                    t = r.vt()
+                    mod["imports"].append(("global", m, n, (t, r.mut())))
+                elif k == 4:
+                    raise NotImplementedError("tag import")
                 else:
-                    raise NotImplementedError("import kind %d" % k)
+                    raise Malformed("malformed import kind")
         elif sid == 3:
             mod["funcs"] = [r.u() for _ in range(r.u())]
         elif sid == 4:
             for _ in range(r.u()):
-                t = r.u8()
-                fl = r.u8()
-                mn = r.u()
-                mx = r.u() if fl & 1 else None
-                mod["tables"].append((mn, mx))
+                init = r.p < r.n and r.b[r.p] == 0x40
+                if init:  # 0x40 0x00 reftype limits expr: the initializer is ignored
+                    r.p += 1
+                    if r.u8() != 0:
+                        raise Malformed("malformed table encoding")
+                r.vt(True)
+                mod["tables"].append(r.limits())
+                if init:
+                    initexpr()
         elif sid == 5:
             for _ in range(r.u()):
-                fl = r.u8()
-                mn = r.u()
-                mx = r.u() if fl & 1 else None
-                mod["mems"].append((mn, mx))
+                mod["mems"].append(r.limits())
         elif sid == 6:
             for _ in range(r.u()):
-                t = r.u8()
-                mut = r.u8()
+                t = r.vt()
+                mut = r.mut()
                 mod["globals"].append((t, mut, initexpr()))
         elif sid == 7:
             for _ in range(r.u()):
                 n = r.name()
                 k = r.u8()
-                i = r.u()
-                mod["exports"].append((n, k, i))
+                if k > 4:  # 4: a tag, kept as before
+                    raise Malformed("malformed export kind")
+                mod["exports"].append((n, k, r.u()))
         elif sid == 8:
             mod["start"] = r.u()
         elif sid == 9:
@@ -155,41 +282,67 @@ def parse(data):
                 elif fl == 2:
                     ti = r.u()
                     off = initexpr()
-                    assert r.u8() == 0
+                    if r.u8() != 0:
+                        raise Malformed("malformed element kind")
                     fs = [r.u() for _ in range(r.u())]
                     mod["elems"].append((ti, off, fs))
                 elif fl in (1, 3):
-                    assert r.u8() == 0
+                    if r.u8() != 0:
+                        raise Malformed("malformed element kind")
                     [r.u() for _ in range(r.u())]  # passive/declarative: ignore
-                else:
+                elif fl in (5, 7):  # passive/declarative with expressions: ignore
+                    r.vt(True)
+                    [initexpr() for _ in range(r.u())]
+                elif fl < 8:
                     raise NotImplementedError("elem flags %d" % fl)
+                else:
+                    raise Malformed("malformed element segment kind")
         elif sid == 10:
             for _ in range(r.u()):
                 sz = r.u()
                 e = r.p + sz
+                if e > end:
+                    raise Malformed("unexpected end of section or function")
+                r.n = e
+                groups = [(r.u(), r.vt()) for _ in range(r.u())]
+                total = sum(n for n, _ in groups)  # counted before anything is allocated
+                if total > M32:
+                    raise Malformed("too many locals")
+                if total > LOCALS_LIMIT:
+                    raise ImplLimit("too many locals: %d" % total)
                 locs = []
-                for _ in range(r.u()):
-                    n = r.u()
-                    t = r.u8()
+                for n, t in groups:
                     locs += [t] * n
-                mod["codes"].append((locs, data[r.p : e]))
+                body = data[r.p : e]
+                if datacount is None and b"\xfc" in body:  # memory.init / data.drop need the count
+                    if any(i[0] in (0xFC08, 0xFC09) for i in decode(body)):
+                        raise Malformed("data count section required")
+                mod["codes"].append((locs, body))
                 r.p = e
+                r.n = end
         elif sid == 11:
             for _ in range(r.u()):
                 fl = r.u()
                 if fl == 0:
                     off = initexpr()
-                    d = r.bytes(r.u())
-                    mod["datas"].append((off, d))
+                    mod["datas"].append((off, r.bytes(r.u())))
                 elif fl == 1:
-                    d = r.bytes(r.u())
-                    mod["datas"].append((None, d))
+                    mod["datas"].append((None, r.bytes(r.u())))
                 elif fl == 2:
                     r.u()
                     off = initexpr()
-                    d = r.bytes(r.u())
-                    mod["datas"].append((off, d))
-        r.p = end
+                    mod["datas"].append((off, r.bytes(r.u())))
+                else:
+                    raise Malformed("malformed data segment kind")
+        elif sid == 12:
+            datacount = r.u()
+        if r.p != end:
+            raise Malformed("section size mismatch")
+        r.n = len(data)
+    if len(mod["funcs"]) != len(mod["codes"]):
+        raise Malformed("function and code section have inconsistent lengths")
+    if datacount is not None and datacount != len(mod["datas"]):
+        raise Malformed("data count and data section have inconsistent lengths")
     return mod
 
 
@@ -197,12 +350,17 @@ def parse(data):
 MEMOPS = set(range(0x28, 0x3F))
 
 
+@_guard
 def decode(body):
     r = R(body)
     out = []
+    depth = 1  # open blocks, the function body itself included
     while r.p < len(body):
+        if depth == 0:
+            raise Malformed("operators remaining after end of function")
         op = r.u8()
         if op in (0x02, 0x03, 0x04):
+            depth += 1
             b = body[r.p]
             if b == 0x40:
                 r.p += 1
@@ -211,20 +369,49 @@ def decode(body):
                 r.p += 1
                 bt = ([], [b])
             else:
-                bt = ("idx", r.s(33))
+                idx = r.s(33)
+                if idx < 0:
+                    raise (
+                        NotImplementedError("block type")
+                        if (idx & 0x7F) in UNSUPPORTED_TYPES
+                        else Malformed("malformed block type")
+                    )
+                bt = ("idx", idx)
             out.append((op, bt))
-        elif op in (0x0C, 0x0D, 0x10, 0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0xD2):
+        elif op in (
+            0x0C,
+            0x0D,
+            0x10,
+            0x12,
+            0x14,
+            0x15,
+            0xD5,
+            0xD6,
+            0x20,
+            0x21,
+            0x22,
+            0x23,
+            0x24,
+            0x25,
+            0x26,
+            0xD2,
+        ):
             out.append((op, r.u()))
         elif op == 0x0E:
             ls = [r.u() for _ in range(r.u())]
             out.append((op, ls, r.u()))
-        elif op == 0x11:
+        elif op in (0x11, 0x13):
             ti = r.u()
             tb = r.u()
             out.append((op, ti, tb))
         elif op in MEMOPS:
             al = r.u()
-            off = r.u()
+            if al >= 0x80:
+                raise Malformed("malformed memop flags")
+            if al & 0x40:
+                r.u()
+                raise NotImplementedError("memory index in memarg")
+            off = r.u64()
             out.append((op, off, al))
         elif op in (0x3F, 0x40):
             r.u8()
@@ -238,10 +425,10 @@ def decode(body):
         elif op == 0x44:
             out.append((op, struct.unpack("<d", r.bytes(8))[0]))
         elif op == 0x1C:
-            [r.u8() for _ in range(r.u())]
+            [r.vt() for _ in range(r.u())]
             out.append((0x1B,))
         elif op == 0xD0:
-            r.u8()
+            r.ht()
             out.append((op,))
         elif op == 0xFC:
             sub = r.u()
@@ -260,8 +447,16 @@ def decode(body):
             elif sub == 11:
                 r.u8()
                 out.append((0xFC0B,))
-            else:
+            elif sub < 18:
                 raise NotImplementedError("0xFC %d" % sub)
-        else:
+            else:
+                raise Malformed("illegal opcode 0xfc %d" % sub)
+        elif op in SIMPLE_OPS:
+            if op == 0x0B:
+                depth -= 1
             out.append((op,))
+        else:
+            _illegal(op)
+    if depth:
+        raise Malformed("END opcode expected")
     return out

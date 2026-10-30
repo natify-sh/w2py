@@ -102,3 +102,10 @@ What went wrong or surprised us while building the PoC, so it is not found again
     `if`/`else`: clang/zig never emitted it for CoreMark, binaryen does.
 26. **Precompiled Lua (`string.dump`) only saves load time** (130 KB source 2–3 ms → 76 KB bytecode
     0.1 ms); the speed is the same VM's.
+27. **An expected-failures file can hide a contract violation.** The strict reader rejected 13
+    well-formed but invalid modules as *malformed* (range limits read as encoding errors; `ref.eq`/
+    `ref.as_non_null`/`br_on_*` opcodes mis-numbered), and `--write-xfail` filed them as `wrong kind`
+    so the run stayed green. Symptom: `wrong kind` reasons in `xfail/pyc.txt`. Rule: a `wrong kind`
+    is never an acceptable xfail; verify every step with a run against an empty xfail file and
+    `grep -c "wrong kind"` = 0. Range limits (memarg offset ≥ 2³², memory/table sizes, alignment) are
+    decoded as u64 and rejected by the validator, not the reader. Found: validator step 1, 2026-10-30.

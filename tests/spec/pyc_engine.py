@@ -10,7 +10,7 @@ from collections.abc import Callable, Mapping, Sequence
 from typing import Any, cast
 
 from tests.spec.engine import Instance, LinkError, LoadError, Module, Trap, TrapCode, Value
-from w2py.frontend.binary import parse
+from w2py.frontend.binary import ImplLimit, Malformed, parse
 from w2py.targets.pyc import Trap as PycTrap
 from w2py.targets.pyc import load, translate
 from w2py.targets.pyc import runtime as rt
@@ -85,13 +85,16 @@ def _trap(e: PycTrap) -> Exception:
 
 class PycEngine:
     def load(self, wasm: bytes) -> Module:
-        if not wasm.startswith(b"\0asm"):
-            raise LoadError("bad magic", "malformed")
         try:
-            parsed = parse(wasm)
+            try:
+                parsed = parse(wasm)
+            except (ImplLimit, NotImplementedError) as e:  # not a verdict on the module
+                raise LoadError(f"{type(e).__name__}: {e}") from None
+            translate(wasm)  # decode errors surface here; NotImplementedError is a target gap
+        except Malformed as e:
+            raise LoadError(str(e), "malformed") from None
         except _PARSE_ERRORS as e:
             raise LoadError(f"{type(e).__name__}: {e}") from None
-        translate(wasm)  # a NotImplementedError here is a gap of the target, not a LoadError
         return _Module(wasm, parsed)
 
     def instantiate(self, module: Module, imports: Mapping[str, Instance]) -> Instance:

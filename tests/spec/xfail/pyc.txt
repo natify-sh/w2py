@@ -71,61 +71,9 @@ align.wast:892  no validator yet
 align.wast:911  no validator yet
 align.wast:930  no validator yet
 align.wast:949  no validator yet
-align.wast:968  no validator yet
-align.wast:987  no validator yet
 annotations.wast:129  gap: table import / unknown import kind
 annotations.wast:98  gap: table import / unknown import kind
-binary-leb128.wast:218  no validator yet
-binary-leb128.wast:226  no validator yet
-binary-leb128.wast:235  no validator yet
-binary-leb128.wast:246  no validator yet
-binary-leb128.wast:257  no validator yet
-binary-leb128.wast:268  no validator yet
-binary-leb128.wast:279  no validator yet
-binary-leb128.wast:291  no validator yet
-binary-leb128.wast:303  no validator yet
-binary-leb128.wast:318  no validator yet
-binary-leb128.wast:333  no validator yet
-binary-leb128.wast:348  no validator yet
-binary-leb128.wast:360  no validator yet
-binary-leb128.wast:376  no validator yet
-binary-leb128.wast:392  no validator yet
-binary-leb128.wast:405  translator crashes on an invalid or unsupported module (no validator)
-binary-leb128.wast:424  no validator yet
-binary-leb128.wast:443  no validator yet
-binary-leb128.wast:483  no validator yet
-binary-leb128.wast:493  no validator yet
-binary-leb128.wast:504  no validator yet
-binary-leb128.wast:514  no validator yet
-binary-leb128.wast:526  no validator yet
-binary-leb128.wast:534  no validator yet
-binary-leb128.wast:542  no validator yet
-binary-leb128.wast:551  no validator yet
-binary-leb128.wast:560  no validator yet
-binary-leb128.wast:571  gap: element segment flags
-binary-leb128.wast:582  no validator yet
-binary-leb128.wast:593  no validator yet
-binary-leb128.wast:658  no validator yet
-binary-leb128.wast:673  translator crashes on an invalid or unsupported module (no validator)
-binary-leb128.wast:702  translator crashes on an invalid or unsupported module (no validator)
-binary-leb128.wast:731  translator crashes on an invalid or unsupported module (no validator)
-binary-leb128.wast:750  translator crashes on an invalid or unsupported module (no validator)
-binary-leb128.wast:769  no validator yet
-binary-leb128.wast:787  no validator yet
-binary-leb128.wast:806  no validator yet
-binary-leb128.wast:825  no validator yet
-binary-leb128.wast:844  translator crashes on an invalid or unsupported module (no validator)
-binary-leb128.wast:863  translator crashes on an invalid or unsupported module (no validator)
-binary-leb128.wast:883  no validator yet
-binary-leb128.wast:893  no validator yet
-binary-leb128.wast:903  no validator yet
-binary-leb128.wast:913  no validator yet
-binary-leb128.wast:924  no validator yet
-binary-leb128.wast:934  no validator yet
-binary-leb128.wast:944  no validator yet
-binary-leb128.wast:954  no validator yet
-binary-leb128.wast:985  no validator yet
-binary.wast:*  child killed (-9): module with too many locals allocates without bound
+binary.wast:1238  no validator yet: unknown type index in a type (step 2)
 block.wast:1001  no validator yet
 block.wast:1008  no validator yet
 block.wast:1014  no validator yet
@@ -168,29 +116,6 @@ block.wast:1252  no validator yet
 block.wast:1260  no validator yet
 block.wast:1268  no validator yet
 block.wast:1276  no validator yet
-block.wast:1285  translator crashes on an invalid or unsupported module (no validator)
-block.wast:1291  translator crashes on an invalid or unsupported module (no validator)
-block.wast:1297  translator crashes on an invalid or unsupported module (no validator)
-block.wast:1303  translator crashes on an invalid or unsupported module (no validator)
-block.wast:1309  translator crashes on an invalid or unsupported module (no validator)
-block.wast:1316  translator crashes on an invalid or unsupported module (no validator)
-block.wast:1322  translator crashes on an invalid or unsupported module (no validator)
-block.wast:1328  translator crashes on an invalid or unsupported module (no validator)
-block.wast:1334  translator crashes on an invalid or unsupported module (no validator)
-block.wast:1340  translator crashes on an invalid or unsupported module (no validator)
-block.wast:1347  translator crashes on an invalid or unsupported module (no validator)
-block.wast:1353  translator crashes on an invalid or unsupported module (no validator)
-block.wast:1359  translator crashes on an invalid or unsupported module (no validator)
-block.wast:1365  translator crashes on an invalid or unsupported module (no validator)
-block.wast:1371  translator crashes on an invalid or unsupported module (no validator)
-block.wast:1377  translator crashes on an invalid or unsupported module (no validator)
-block.wast:1383  translator crashes on an invalid or unsupported module (no validator)
-block.wast:1389  translator crashes on an invalid or unsupported module (no validator)
-block.wast:1395  translator crashes on an invalid or unsupported module (no validator)
-block.wast:1401  translator crashes on an invalid or unsupported module (no validator)
-block.wast:1407  translator crashes on an invalid or unsupported module (no validator)
-block.wast:1413  translator crashes on an invalid or unsupported module (no validator)
-block.wast:1419  translator crashes on an invalid or unsupported module (no validator)
 block.wast:1426  gap: block parameters
 block.wast:1432  gap: block parameters
 block.wast:1438  gap: block parameters
@@ -351,17 +276,6 @@ br.wast:598  no validator yet
 br.wast:610  no validator yet
 br.wast:622  no validator yet
 br.wast:634  no validator yet
-br.wast:647  translator crashes on an invalid or unsupported module (no validator)
-br.wast:651  translator crashes on an invalid or unsupported module (no validator)
-br.wast:655  translator crashes on an invalid or unsupported module (no validator)
-br_if.wast:481  translator crashes on an invalid or unsupported module (no validator)
-br_if.wast:485  translator crashes on an invalid or unsupported module (no validator)
-br_if.wast:489  translator crashes on an invalid or unsupported module (no validator)
-br_if.wast:493  translator crashes on an invalid or unsupported module (no validator)
-br_if.wast:498  translator crashes on an invalid or unsupported module (no validator)
-br_if.wast:502  translator crashes on an invalid or unsupported module (no validator)
-br_if.wast:506  translator crashes on an invalid or unsupported module (no validator)
-br_if.wast:510  translator crashes on an invalid or unsupported module (no validator)
 br_if.wast:515  no validator yet
 br_if.wast:521  no validator yet
 br_if.wast:527  no validator yet
@@ -370,19 +284,12 @@ br_if.wast:540  no validator yet
 br_if.wast:546  no validator yet
 br_if.wast:552  no validator yet
 br_if.wast:560  no validator yet
-br_if.wast:569  translator crashes on an invalid or unsupported module (no validator)
-br_if.wast:575  translator crashes on an invalid or unsupported module (no validator)
 br_if.wast:581  no validator yet
 br_if.wast:587  no validator yet
 br_if.wast:593  no validator yet
 br_if.wast:599  no validator yet
-br_if.wast:606  translator crashes on an invalid or unsupported module (no validator)
-br_if.wast:618  translator crashes on an invalid or unsupported module (no validator)
-br_if.wast:630  translator crashes on an invalid or unsupported module (no validator)
 br_if.wast:641  no validator yet
-br_if.wast:654  translator crashes on an invalid or unsupported module (no validator)
-br_if.wast:658  translator crashes on an invalid or unsupported module (no validator)
-br_if.wast:662  translator crashes on an invalid or unsupported module (no validator)
+br_if.wast:668  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
 br_on_non_null.wast:1  decoder rejects a valid module (unsupported construct)
 br_on_non_null.wast:49  earlier module of the file did not load
 br_on_non_null.wast:51  earlier module of the file did not load
@@ -394,6 +301,7 @@ br_on_non_null.wast:57  decoder rejects a valid module (unsupported construct)
 br_on_non_null.wast:65  decoder rejects a valid module (unsupported construct)
 br_on_non_null.wast:86  earlier module of the file did not load
 br_on_non_null.wast:87  earlier module of the file did not load
+br_on_non_null.wast:92  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
 br_on_null.wast:1  decoder rejects a valid module (unsupported construct)
 br_on_null.wast:32  earlier module of the file did not load
 br_on_null.wast:34  earlier module of the file did not load
@@ -403,6 +311,7 @@ br_on_null.wast:38  decoder rejects a valid module (unsupported construct)
 br_on_null.wast:46  gap: opcode not implemented
 br_on_null.wast:65  earlier module of the file did not load
 br_on_null.wast:66  earlier module of the file did not load
+br_on_null.wast:82  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
 br_table.wast:1068  earlier module of the file did not load
 br_table.wast:1069  earlier module of the file did not load
 br_table.wast:1070  earlier module of the file did not load
@@ -565,69 +474,32 @@ br_table.wast:1262  earlier module of the file did not load
 br_table.wast:1263  earlier module of the file did not load
 br_table.wast:1264  earlier module of the file did not load
 br_table.wast:1267  no validator yet
-br_table.wast:1274  translator crashes on an invalid or unsupported module (no validator)
 br_table.wast:1281  no validator yet
 br_table.wast:1287  no validator yet
 br_table.wast:1295  no validator yet
 br_table.wast:1306  no validator yet
-br_table.wast:1317  translator crashes on an invalid or unsupported module (no validator)
 br_table.wast:1323  no validator yet
 br_table.wast:1329  no validator yet
 br_table.wast:1335  no validator yet
 br_table.wast:1341  no validator yet
 br_table.wast:1350  no validator yet
-br_table.wast:1357  translator crashes on an invalid or unsupported module (no validator)
-br_table.wast:1369  translator crashes on an invalid or unsupported module (no validator)
-br_table.wast:1381  translator crashes on an invalid or unsupported module (no validator)
 br_table.wast:1392  no validator yet
 br_table.wast:1404  no validator yet
 br_table.wast:1416  no validator yet
-br_table.wast:1430  translator crashes on an invalid or unsupported module (no validator)
-br_table.wast:1436  translator crashes on an invalid or unsupported module (no validator)
-br_table.wast:1442  translator crashes on an invalid or unsupported module (no validator)
-br_table.wast:1449  translator crashes on an invalid or unsupported module (no validator)
-br_table.wast:1455  translator crashes on an invalid or unsupported module (no validator)
-br_table.wast:1461  translator crashes on an invalid or unsupported module (no validator)
 br_table.wast:3  gap: element segment flags
-call.wast:381  translator crashes on an invalid or unsupported module (no validator)
 call.wast:388  no validator yet
-call.wast:396  translator crashes on an invalid or unsupported module (no validator)
-call.wast:403  translator crashes on an invalid or unsupported module (no validator)
 call.wast:410  no validator yet
 call.wast:417  no validator yet
-call.wast:425  translator crashes on an invalid or unsupported module (no validator)
-call.wast:432  translator crashes on an invalid or unsupported module (no validator)
 call.wast:439  no validator yet
 call.wast:446  no validator yet
-call.wast:454  translator crashes on an invalid or unsupported module (no validator)
-call.wast:463  translator crashes on an invalid or unsupported module (no validator)
-call.wast:472  translator crashes on an invalid or unsupported module (no validator)
-call.wast:481  translator crashes on an invalid or unsupported module (no validator)
-call.wast:490  translator crashes on an invalid or unsupported module (no validator)
-call.wast:499  translator crashes on an invalid or unsupported module (no validator)
-call.wast:512  translator crashes on an invalid or unsupported module (no validator)
-call.wast:516  translator crashes on an invalid or unsupported module (no validator)
-call_indirect.wast:1006  translator crashes on an invalid or unsupported module (no validator)
-call_indirect.wast:1013  translator crashes on an invalid or unsupported module (no validator)
-call_indirect.wast:1022  translator crashes on an invalid or unsupported module (no validator)
 call_indirect.wast:1038  no validator yet
 call_indirect.wast:791  no validator yet
-call_indirect.wast:799  translator crashes on an invalid or unsupported module (no validator)
 call_indirect.wast:807  no validator yet
-call_indirect.wast:816  translator crashes on an invalid or unsupported module (no validator)
-call_indirect.wast:824  translator crashes on an invalid or unsupported module (no validator)
 call_indirect.wast:832  no validator yet
 call_indirect.wast:840  no validator yet
-call_indirect.wast:851  translator crashes on an invalid or unsupported module (no validator)
 call_indirect.wast:859  no validator yet
-call_indirect.wast:868  translator crashes on an invalid or unsupported module (no validator)
-call_indirect.wast:878  translator crashes on an invalid or unsupported module (no validator)
 call_indirect.wast:888  no validator yet
 call_indirect.wast:898  no validator yet
-call_indirect.wast:909  translator crashes on an invalid or unsupported module (no validator)
-call_indirect.wast:922  translator crashes on an invalid or unsupported module (no validator)
-call_indirect.wast:935  translator crashes on an invalid or unsupported module (no validator)
-call_indirect.wast:948  translator crashes on an invalid or unsupported module (no validator)
 call_indirect.wast:961  no validator yet
 call_indirect.wast:977  no validator yet
 call_indirect.wast:995  no validator yet
@@ -697,13 +569,6 @@ conversions.wast:699  no validator yet
 conversions.wast:700  no validator yet
 conversions.wast:701  no validator yet
 conversions.wast:702  no validator yet
-custom.wast:102  no validator yet
-custom.wast:115  no validator yet
-custom.wast:123  no validator yet
-custom.wast:69  no validator yet
-custom.wast:77  no validator yet
-custom.wast:85  no validator yet
-custom.wast:93  no validator yet
 data.wast:178  decoder rejects a valid module (unsupported construct)
 data.wast:183  decoder rejects a valid module (unsupported construct)
 data.wast:188  decoder rejects a valid module (unsupported construct)
@@ -716,9 +581,6 @@ data.wast:374  no validator yet
 data.wast:396  no validator yet
 data.wast:415  no validator yet
 data.wast:423  gap: init expression
-data.wast:431  gap: init expression
-data.wast:473  gap: init expression
-data.wast:481  gap: init expression
 data.wast:497  no validator yet
 data.wast:506  no validator yet
 data.wast:514  no validator yet
@@ -760,26 +622,14 @@ elem.wast:320  gap: element segment flags
 elem.wast:331  gap: element segment flags
 elem.wast:336  gap: element segment flags
 elem.wast:348  gap: element segment flags
-elem.wast:353  gap: element segment flags
 elem.wast:364  gap: element segment flags
-elem.wast:369  gap: element segment flags
 elem.wast:381  gap: element segment flags
 elem.wast:386  gap: element segment flags
 elem.wast:397  gap: element segment flags
 elem.wast:4  gap: element segment flags
 elem.wast:402  gap: element segment flags
-elem.wast:414  gap: element segment flags
-elem.wast:419  gap: element segment flags
-elem.wast:430  gap: element segment flags
-elem.wast:435  gap: element segment flags
-elem.wast:517  gap: element segment flags
-elem.wast:525  gap: element segment flags
-elem.wast:539  gap: element segment flags
-elem.wast:544  gap: element segment flags
 elem.wast:556  gap: element segment flags
 elem.wast:561  gap: element segment flags
-elem.wast:573  gap: element segment flags
-elem.wast:578  gap: element segment flags
 elem.wast:698  gap: opcode not implemented
 elem.wast:706  earlier module of the file did not load (name or export missing)
 elem.wast:708  gap: opcode not implemented
@@ -787,23 +637,12 @@ elem.wast:716  earlier module of the file did not load (name or export missing)
 elem.wast:722  no validator yet
 elem.wast:733  no validator yet
 elem.wast:741  gap: init expression
-elem.wast:749  gap: init expression
-elem.wast:792  gap: init expression
 elem.wast:80  gap: element segment flags
-elem.wast:800  gap: init expression
 elem.wast:816  no validator yet
 elem.wast:825  no validator yet
 elem.wast:833  no validator yet
 elem.wast:842  no validator yet
-elem.wast:854  gap: element segment flags
-elem.wast:862  gap: element segment flags
-elem.wast:870  gap: element segment flags
-elem.wast:878  gap: element segment flags
-elem.wast:886  gap: element segment flags
 elem.wast:979  no validator yet
-elem.wast:984  gap: element segment flags
-elem.wast:989  gap: element segment flags
-elem.wast:998  gap: element segment flags
 exports.wast:100  translator crashes on an invalid or unsupported module (no validator)
 exports.wast:104  translator crashes on an invalid or unsupported module (no validator)
 exports.wast:108  translator crashes on an invalid or unsupported module (no validator)
@@ -950,8 +789,6 @@ float_misc.wast:646  wrong result (float NaN payload / conversion)
 float_misc.wast:647  wrong result (float NaN payload / conversion)
 float_misc.wast:648  wrong result (float NaN payload / conversion)
 float_misc.wast:649  wrong result (float NaN payload / conversion)
-func.wast:436  translator crashes on an invalid or unsupported module (no validator)
-func.wast:631  translator crashes on an invalid or unsupported module (no validator)
 func.wast:635  gap: opcode not implemented
 func.wast:647  no validator yet
 func.wast:651  no validator yet
@@ -1005,8 +842,6 @@ func.wast:928  no validator yet
 func_ptrs.wast:32  no validator yet
 func_ptrs.wast:33  no validator yet
 func_ptrs.wast:36  no validator yet
-func_ptrs.wast:44  gap: init expression
-func_ptrs.wast:48  translator crashes on an invalid or unsupported module (no validator)
 func_ptrs.wast:49  no validator yet
 global.wast:204  earlier module of the file did not load
 global.wast:205  earlier module of the file did not load
@@ -1073,39 +908,21 @@ global.wast:282  earlier module of the file did not load
 global.wast:285  no validator yet
 global.wast:290  no validator yet
 global.wast:3  decoder rejects a valid module (unsupported construct)
-global.wast:304  gap: init expression
-global.wast:324  gap: init expression
 global.wast:329  no validator yet
-global.wast:339  gap: init expression
 global.wast:344  no validator yet
 global.wast:359  no validator yet
 global.wast:364  no validator yet
 global.wast:369  no validator yet
 global.wast:377  no validator yet
-global.wast:385  no validator yet
-global.wast:398  no validator yet
-global.wast:415  no validator yet
-global.wast:427  no validator yet
-global.wast:441  translator crashes on an invalid or unsupported module (no validator)
-global.wast:446  translator crashes on an invalid or unsupported module (no validator)
-global.wast:454  translator crashes on an invalid or unsupported module (no validator)
-global.wast:462  translator crashes on an invalid or unsupported module (no validator)
 global.wast:472  no validator yet
 global.wast:477  no validator yet
 global.wast:485  no validator yet
 global.wast:493  no validator yet
-global.wast:503  translator crashes on an invalid or unsupported module (no validator)
 global.wast:512  no validator yet
 global.wast:522  no validator yet
 global.wast:532  no validator yet
 global.wast:542  no validator yet
 global.wast:552  no validator yet
-global.wast:562  translator crashes on an invalid or unsupported module (no validator)
-global.wast:572  translator crashes on an invalid or unsupported module (no validator)
-global.wast:582  translator crashes on an invalid or unsupported module (no validator)
-global.wast:591  translator crashes on an invalid or unsupported module (no validator)
-global.wast:600  translator crashes on an invalid or unsupported module (no validator)
-global.wast:610  translator crashes on an invalid or unsupported module (no validator)
 global.wast:634  gap: element segment flags
 global.wast:659  earlier module of the file did not load (name or export missing)
 global.wast:660  earlier module of the file did not load (name or export missing)
@@ -1114,7 +931,6 @@ global.wast:663  earlier module of the file did not load (name or export missing
 global.wast:664  earlier module of the file did not load (name or export missing)
 global.wast:667  no validator yet
 global.wast:675  gap: init expression
-i32.wast:444  translator crashes on an invalid or unsupported module (no validator)
 i32.wast:452  no validator yet
 i32.wast:461  no validator yet
 i32.wast:470  no validator yet
@@ -1122,18 +938,6 @@ i32.wast:479  no validator yet
 i32.wast:488  no validator yet
 i32.wast:497  no validator yet
 i32.wast:506  no validator yet
-i32.wast:515  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:523  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:531  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:540  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:556  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:565  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:574  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:583  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:592  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:601  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:611  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:619  translator crashes on an invalid or unsupported module (no validator)
 i32.wast:627  no validator yet
 i32.wast:636  no validator yet
 i32.wast:645  no validator yet
@@ -1141,33 +945,12 @@ i32.wast:654  no validator yet
 i32.wast:663  no validator yet
 i32.wast:672  no validator yet
 i32.wast:681  no validator yet
-i32.wast:691  translator crashes on an invalid or unsupported module (no validator)
 i32.wast:701  no validator yet
 i32.wast:710  no validator yet
 i32.wast:719  no validator yet
 i32.wast:728  no validator yet
 i32.wast:737  no validator yet
 i32.wast:746  no validator yet
-i32.wast:755  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:763  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:771  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:779  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:787  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:796  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:805  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:821  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:837  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:846  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:855  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:864  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:873  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:882  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:891  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:900  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:909  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:918  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:927  translator crashes on an invalid or unsupported module (no validator)
-i32.wast:936  translator crashes on an invalid or unsupported module (no validator)
 i32.wast:948  no validator yet
 i32.wast:949  no validator yet
 i32.wast:950  no validator yet
@@ -1263,24 +1046,11 @@ if.wast:1257  no validator yet
 if.wast:1266  no validator yet
 if.wast:1275  no validator yet
 if.wast:1285  no validator yet
-if.wast:1296  translator crashes on an invalid or unsupported module (no validator)
 if.wast:1304  no validator yet
 if.wast:1313  no validator yet
 if.wast:1322  no validator yet
 if.wast:1331  no validator yet
 if.wast:1341  no validator yet
-if.wast:1350  translator crashes on an invalid or unsupported module (no validator)
-if.wast:1359  translator crashes on an invalid or unsupported module (no validator)
-if.wast:1368  translator crashes on an invalid or unsupported module (no validator)
-if.wast:1376  translator crashes on an invalid or unsupported module (no validator)
-if.wast:1384  translator crashes on an invalid or unsupported module (no validator)
-if.wast:1393  translator crashes on an invalid or unsupported module (no validator)
-if.wast:1409  translator crashes on an invalid or unsupported module (no validator)
-if.wast:1418  translator crashes on an invalid or unsupported module (no validator)
-if.wast:1427  translator crashes on an invalid or unsupported module (no validator)
-if.wast:1436  translator crashes on an invalid or unsupported module (no validator)
-if.wast:1445  translator crashes on an invalid or unsupported module (no validator)
-if.wast:1454  translator crashes on an invalid or unsupported module (no validator)
 if.wast:1464  gap: block parameters
 if.wast:1470  gap: block parameters
 if.wast:1476  gap: block parameters
@@ -1467,15 +1237,18 @@ instance.wast:55  earlier module of the file did not load
 instance.wast:56  earlier module of the file did not load
 instance.wast:57  earlier module of the file did not load
 instance.wast:62  gap: table import / unknown import kind
-labels.wast:318  translator crashes on an invalid or unsupported module (no validator)
 labels.wast:322  no validator yet
 labels.wast:326  no validator yet
-linking.wast:110  earlier module of the file did not load (name or export missing)
 linking.wast:112  gap: table import / unknown import kind
-linking.wast:434  gap: table import / unknown import kind
+linking.wast:168  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
+linking.wast:207  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
+linking.wast:237  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
+linking.wast:442  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
+linking.wast:446  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
 linking.wast:451  gap: table import / unknown import kind
 linking.wast:455  gap: table import / unknown import kind
 linking.wast:460  gap: table import / unknown import kind
+linking.wast:464  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
 linking.wast:50  translator crashes on an invalid or unsupported module (no validator)
 linking.wast:68  earlier module of the file did not load (name or export missing)
 linking.wast:69  earlier module of the file did not load (name or export missing)
@@ -1485,7 +1258,6 @@ linking.wast:75  earlier module of the file did not load (name or export missing
 linking.wast:77  earlier module of the file did not load (name or export missing)
 linking.wast:81  earlier module of the file did not load (name or export missing)
 linking.wast:83  earlier module of the file did not load (name or export missing)
-linking.wast:96  gap: init expression
 load.wast:312  no validator yet
 load.wast:316  no validator yet
 load.wast:320  no validator yet
@@ -1514,7 +1286,6 @@ load.wast:381  no validator yet
 load.wast:382  no validator yet
 load.wast:383  no validator yet
 load.wast:384  no validator yet
-load.wast:388  translator crashes on an invalid or unsupported module (no validator)
 load.wast:397  no validator yet
 load.wast:407  no validator yet
 load.wast:417  no validator yet
@@ -1522,16 +1293,6 @@ load.wast:427  no validator yet
 load.wast:437  no validator yet
 load.wast:447  no validator yet
 load.wast:457  no validator yet
-load.wast:467  translator crashes on an invalid or unsupported module (no validator)
-load.wast:476  translator crashes on an invalid or unsupported module (no validator)
-load.wast:485  translator crashes on an invalid or unsupported module (no validator)
-load.wast:495  translator crashes on an invalid or unsupported module (no validator)
-load.wast:512  translator crashes on an invalid or unsupported module (no validator)
-load.wast:522  translator crashes on an invalid or unsupported module (no validator)
-load.wast:532  translator crashes on an invalid or unsupported module (no validator)
-load.wast:542  translator crashes on an invalid or unsupported module (no validator)
-load.wast:551  translator crashes on an invalid or unsupported module (no validator)
-load.wast:560  translator crashes on an invalid or unsupported module (no validator)
 local_get.wast:149  no validator yet
 local_get.wast:153  no validator yet
 local_get.wast:157  no validator yet
@@ -1542,39 +1303,26 @@ local_get.wast:181  no validator yet
 local_get.wast:185  no validator yet
 local_get.wast:189  no validator yet
 local_get.wast:193  no validator yet
-local_get.wast:201  translator crashes on an invalid or unsupported module (no validator)
-local_get.wast:205  translator crashes on an invalid or unsupported module (no validator)
-local_get.wast:210  translator crashes on an invalid or unsupported module (no validator)
-local_get.wast:214  translator crashes on an invalid or unsupported module (no validator)
-local_get.wast:219  translator crashes on an invalid or unsupported module (no validator)
-local_get.wast:223  translator crashes on an invalid or unsupported module (no validator)
 local_init.wast:21  earlier module of the file did not load
 local_init.wast:22  earlier module of the file did not load
 local_init.wast:23  earlier module of the file did not load
 local_init.wast:26  translator crashes on an invalid or unsupported module (no validator)
 local_init.wast:3  translator crashes on an invalid or unsupported module (no validator)
-local_init.wast:66  decoder rejects a valid module (unsupported construct)
+local_init.wast:30  no validator yet
+local_init.wast:40  no validator yet
+local_init.wast:53  no validator yet
 local_init.wast:74  earlier module of the file did not load
-local_set.wast:148  translator crashes on an invalid or unsupported module (no validator)
 local_set.wast:152  no validator yet
 local_set.wast:156  no validator yet
 local_set.wast:160  no validator yet
-local_set.wast:169  translator crashes on an invalid or unsupported module (no validator)
 local_set.wast:173  no validator yet
 local_set.wast:177  no validator yet
 local_set.wast:181  no validator yet
-local_set.wast:186  translator crashes on an invalid or unsupported module (no validator)
 local_set.wast:194  no validator yet
 local_set.wast:203  no validator yet
 local_set.wast:212  no validator yet
 local_set.wast:221  no validator yet
 local_set.wast:230  no validator yet
-local_set.wast:239  translator crashes on an invalid or unsupported module (no validator)
-local_set.wast:248  translator crashes on an invalid or unsupported module (no validator)
-local_set.wast:257  translator crashes on an invalid or unsupported module (no validator)
-local_set.wast:265  translator crashes on an invalid or unsupported module (no validator)
-local_set.wast:273  translator crashes on an invalid or unsupported module (no validator)
-local_set.wast:282  translator crashes on an invalid or unsupported module (no validator)
 local_set.wast:301  no validator yet
 local_set.wast:305  no validator yet
 local_set.wast:309  no validator yet
@@ -1592,18 +1340,15 @@ local_tee.wast:338  wrong result (float NaN payload / conversion)
 local_tee.wast:371  no validator yet
 local_tee.wast:375  no validator yet
 local_tee.wast:379  no validator yet
-local_tee.wast:384  translator crashes on an invalid or unsupported module (no validator)
 local_tee.wast:388  no validator yet
 local_tee.wast:392  no validator yet
 local_tee.wast:396  no validator yet
 local_tee.wast:404  no validator yet
 local_tee.wast:408  no validator yet
 local_tee.wast:412  no validator yet
-local_tee.wast:417  translator crashes on an invalid or unsupported module (no validator)
 local_tee.wast:421  no validator yet
 local_tee.wast:425  no validator yet
 local_tee.wast:429  no validator yet
-local_tee.wast:434  translator crashes on an invalid or unsupported module (no validator)
 local_tee.wast:442  no validator yet
 local_tee.wast:451  no validator yet
 local_tee.wast:460  no validator yet
@@ -1611,26 +1356,10 @@ local_tee.wast:469  no validator yet
 local_tee.wast:478  no validator yet
 local_tee.wast:487  no validator yet
 local_tee.wast:496  no validator yet
-local_tee.wast:505  translator crashes on an invalid or unsupported module (no validator)
-local_tee.wast:513  translator crashes on an invalid or unsupported module (no validator)
-local_tee.wast:521  translator crashes on an invalid or unsupported module (no validator)
-local_tee.wast:530  translator crashes on an invalid or unsupported module (no validator)
-local_tee.wast:546  translator crashes on an invalid or unsupported module (no validator)
-local_tee.wast:554  translator crashes on an invalid or unsupported module (no validator)
-local_tee.wast:562  translator crashes on an invalid or unsupported module (no validator)
-local_tee.wast:571  translator crashes on an invalid or unsupported module (no validator)
-local_tee.wast:580  translator crashes on an invalid or unsupported module (no validator)
-local_tee.wast:589  translator crashes on an invalid or unsupported module (no validator)
 local_tee.wast:599  no validator yet
 local_tee.wast:603  no validator yet
 local_tee.wast:607  no validator yet
 local_tee.wast:613  gap: opcode not implemented
-local_tee.wast:630  translator crashes on an invalid or unsupported module (no validator)
-local_tee.wast:634  translator crashes on an invalid or unsupported module (no validator)
-local_tee.wast:639  translator crashes on an invalid or unsupported module (no validator)
-local_tee.wast:643  translator crashes on an invalid or unsupported module (no validator)
-local_tee.wast:648  translator crashes on an invalid or unsupported module (no validator)
-local_tee.wast:652  translator crashes on an invalid or unsupported module (no validator)
 loop.wast:3  gap: block parameters
 loop.wast:441  earlier module of the file did not load
 loop.wast:442  earlier module of the file did not load
@@ -1760,7 +1489,6 @@ memory.wast:91  no validator yet
 memory.wast:95  no validator yet
 memory.wast:99  no validator yet
 memory_grow.wast:342  no validator yet
-memory_grow.wast:351  translator crashes on an invalid or unsupported module (no validator)
 memory_grow.wast:360  no validator yet
 memory_grow.wast:370  no validator yet
 memory_grow.wast:380  no validator yet
@@ -1775,7 +1503,6 @@ nop.wast:416  no validator yet
 nop.wast:420  no validator yet
 nop.wast:424  no validator yet
 ref.wast:28  no validator yet
-ref.wast:3  decoder rejects a valid module (unsupported construct)
 ref.wast:32  no validator yet
 ref.wast:37  gap: init expression
 ref.wast:42  no validator yet
@@ -1792,6 +1519,7 @@ ref_as_non_null.wast:25  earlier module of the file did not load
 ref_as_non_null.wast:27  earlier module of the file did not load
 ref_as_non_null.wast:28  earlier module of the file did not load
 ref_as_non_null.wast:29  earlier module of the file did not load
+ref_as_non_null.wast:32  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
 ref_as_non_null.wast:41  decoder rejects a valid module (unsupported construct)
 ref_func.wast:109  gap: opcode not implemented
 ref_func.wast:113  gap: opcode not implemented
@@ -1920,6 +1648,7 @@ return_call.wast:141  earlier module of the file did not load
 return_call.wast:142  earlier module of the file did not load
 return_call.wast:147  gap: opcode not implemented
 return_call.wast:154  gap: opcode not implemented
+return_call.wast:161  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
 return_call.wast:170  gap: opcode not implemented
 return_call.wast:177  gap: opcode not implemented
 return_call.wast:184  gap: opcode not implemented
@@ -1988,6 +1717,7 @@ return_call_indirect.wast:305  earlier module of the file did not load
 return_call_indirect.wast:436  gap: opcode not implemented
 return_call_indirect.wast:444  gap: opcode not implemented
 return_call_indirect.wast:452  gap: opcode not implemented
+return_call_indirect.wast:460  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
 return_call_indirect.wast:471  gap: opcode not implemented
 return_call_indirect.wast:479  gap: opcode not implemented
 return_call_indirect.wast:487  gap: opcode not implemented
@@ -2038,7 +1768,10 @@ return_call_ref.wast:206  earlier module of the file did not load
 return_call_ref.wast:207  earlier module of the file did not load
 return_call_ref.wast:208  earlier module of the file did not load
 return_call_ref.wast:213  decoder rejects a valid module (unsupported construct)
+return_call_ref.wast:232  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
+return_call_ref.wast:243  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
 return_call_ref.wast:254  gap: opcode not implemented
+return_call_ref.wast:265  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
 return_call_ref.wast:276  gap: opcode not implemented
 return_call_ref.wast:287  gap: opcode not implemented
 return_call_ref.wast:3  gap: init expression
@@ -2174,8 +1907,6 @@ select.wast:358  earlier module of the file did not load
 select.wast:359  earlier module of the file did not load
 select.wast:360  earlier module of the file did not load
 select.wast:361  earlier module of the file did not load
-select.wast:364  translator crashes on an invalid or unsupported module (no validator)
-select.wast:368  translator crashes on an invalid or unsupported module (no validator)
 select.wast:372  no validator yet
 select.wast:384  no validator yet
 select.wast:392  no validator yet
@@ -2188,18 +1919,12 @@ select.wast:431  no validator yet
 select.wast:435  no validator yet
 select.wast:439  no validator yet
 select.wast:443  no validator yet
-select.wast:449  translator crashes on an invalid or unsupported module (no validator)
-select.wast:457  translator crashes on an invalid or unsupported module (no validator)
-select.wast:465  translator crashes on an invalid or unsupported module (no validator)
 select.wast:473  no validator yet
 select.wast:482  no validator yet
 select.wast:491  no validator yet
 select.wast:500  no validator yet
 select.wast:509  no validator yet
 select.wast:518  no validator yet
-select.wast:527  translator crashes on an invalid or unsupported module (no validator)
-select.wast:536  translator crashes on an invalid or unsupported module (no validator)
-select.wast:545  translator crashes on an invalid or unsupported module (no validator)
 select.wast:557  no validator yet
 select.wast:561  no validator yet
 select.wast:565  no validator yet
@@ -2216,30 +1941,14 @@ store.wast:132  no validator yet
 store.wast:136  no validator yet
 store.wast:140  no validator yet
 store.wast:144  no validator yet
-store.wast:150  translator crashes on an invalid or unsupported module (no validator)
-store.wast:159  translator crashes on an invalid or unsupported module (no validator)
 store.wast:168  no validator yet
 store.wast:178  no validator yet
 store.wast:188  no validator yet
 store.wast:198  no validator yet
-store.wast:208  translator crashes on an invalid or unsupported module (no validator)
-store.wast:218  translator crashes on an invalid or unsupported module (no validator)
-store.wast:228  translator crashes on an invalid or unsupported module (no validator)
-store.wast:238  translator crashes on an invalid or unsupported module (no validator)
 store.wast:248  no validator yet
 store.wast:258  no validator yet
 store.wast:268  no validator yet
 store.wast:278  no validator yet
-store.wast:288  translator crashes on an invalid or unsupported module (no validator)
-store.wast:298  translator crashes on an invalid or unsupported module (no validator)
-store.wast:308  translator crashes on an invalid or unsupported module (no validator)
-store.wast:317  translator crashes on an invalid or unsupported module (no validator)
-store.wast:326  translator crashes on an invalid or unsupported module (no validator)
-store.wast:335  translator crashes on an invalid or unsupported module (no validator)
-store.wast:344  translator crashes on an invalid or unsupported module (no validator)
-store.wast:354  translator crashes on an invalid or unsupported module (no validator)
-store.wast:364  translator crashes on an invalid or unsupported module (no validator)
-store.wast:380  translator crashes on an invalid or unsupported module (no validator)
 store.wast:399  no validator yet
 store.wast:400  no validator yet
 store.wast:401  no validator yet
@@ -2258,7 +1967,6 @@ store.wast:414  no validator yet
 store.wast:415  no validator yet
 store.wast:416  no validator yet
 store.wast:417  no validator yet
-switch.wast:150  translator crashes on an invalid or unsupported module (no validator)
 table.wast:112  earlier module of the file did not load (name or export missing)
 table.wast:113  earlier module of the file did not load (name or export missing)
 table.wast:114  earlier module of the file did not load (name or export missing)
@@ -2283,7 +1991,6 @@ table.wast:67  no validator yet
 table.wast:71  no validator yet
 table.wast:75  no validator yet
 table.wast:79  no validator yet
-table.wast:86  gap: init expression
 table.wast:93  gap: opcode not implemented
 table_get.wast:1  gap: opcode not implemented
 table_get.wast:23  earlier module of the file did not load
@@ -2313,16 +2020,9 @@ table_grow.wast:123  earlier module of the file did not load (name or export mis
 table_grow.wast:124  earlier module of the file did not load (name or export missing)
 table_grow.wast:125  gap: table import / unknown import kind
 table_grow.wast:130  earlier module of the file did not load (name or export missing)
-table_grow.wast:136  gap: opcode not implemented
-table_grow.wast:145  gap: opcode not implemented
-table_grow.wast:154  gap: opcode not implemented
-table_grow.wast:163  gap: opcode not implemented
 table_grow.wast:17  earlier module of the file did not load
-table_grow.wast:172  gap: opcode not implemented
 table_grow.wast:18  earlier module of the file did not load
-table_grow.wast:182  gap: opcode not implemented
 table_grow.wast:19  earlier module of the file did not load
-table_grow.wast:191  gap: opcode not implemented
 table_grow.wast:201  gap: opcode not implemented
 table_grow.wast:208  earlier module of the file did not load
 table_grow.wast:209  earlier module of the file did not load
@@ -2425,8 +2125,6 @@ table_size.wast:61  earlier module of the file did not load
 table_size.wast:62  earlier module of the file did not load
 table_size.wast:63  earlier module of the file did not load
 table_size.wast:64  earlier module of the file did not load
-table_size.wast:70  gap: opcode not implemented
-table_size.wast:79  gap: opcode not implemented
 traps.wast:16  gap: no bounds/segment checks (instantiation or table access does not trap)
 traps.wast:17  gap: no bounds/segment checks (instantiation or table access does not trap)
 traps.wast:18  gap: no bounds/segment checks (instantiation or table access does not trap)
@@ -2463,10 +2161,7 @@ type-canon.wast:1  decoder rejects a valid module (unsupported construct)
 type-canon.wast:9  decoder rejects a valid module (unsupported construct)
 type-equivalence.wast:107  decoder rejects a valid module (unsupported construct)
 type-equivalence.wast:136  decoder rejects a valid module (unsupported construct)
-type-equivalence.wast:16  decoder rejects a valid module (unsupported construct)
 type-equivalence.wast:161  decoder rejects a valid module (unsupported construct)
-type-equivalence.wast:208  decoder rejects a valid module (unsupported construct)
-type-equivalence.wast:218  decoder rejects a valid module (unsupported construct)
 type-equivalence.wast:233  decoder rejects a valid module (unsupported construct)
 type-equivalence.wast:238  decoder rejects a valid module (unsupported construct)
 type-equivalence.wast:246  decoder rejects a valid module (unsupported construct)
@@ -2476,9 +2171,7 @@ type-equivalence.wast:279  decoder rejects a valid module (unsupported construct
 type-equivalence.wast:290  decoder rejects a valid module (unsupported construct)
 type-equivalence.wast:30  decoder rejects a valid module (unsupported construct)
 type-equivalence.wast:308  decoder rejects a valid module (unsupported construct)
-type-equivalence.wast:38  decoder rejects a valid module (unsupported construct)
 type-equivalence.wast:49  decoder rejects a valid module (unsupported construct)
-type-equivalence.wast:5  decoder rejects a valid module (unsupported construct)
 type-equivalence.wast:77  no validator yet
 type-rec.wast:137  decoder rejects a valid module (unsupported construct)
 type-rec.wast:141  earlier module of the file did not load (name or export missing)
@@ -2509,7 +2202,6 @@ unreached-invalid.wast:138  no validator yet
 unreached-invalid.wast:144  no validator yet
 unreached-invalid.wast:150  no validator yet
 unreached-invalid.wast:156  no validator yet
-unreached-invalid.wast:16  translator crashes on an invalid or unsupported module (no validator)
 unreached-invalid.wast:162  no validator yet
 unreached-invalid.wast:168  no validator yet
 unreached-invalid.wast:174  no validator yet
@@ -2531,7 +2223,6 @@ unreached-invalid.wast:259  no validator yet
 unreached-invalid.wast:265  no validator yet
 unreached-invalid.wast:27  no validator yet
 unreached-invalid.wast:271  no validator yet
-unreached-invalid.wast:277  translator crashes on an invalid or unsupported module (no validator)
 unreached-invalid.wast:284  no validator yet
 unreached-invalid.wast:290  no validator yet
 unreached-invalid.wast:296  no validator yet
@@ -2554,10 +2245,8 @@ unreached-invalid.wast:390  no validator yet
 unreached-invalid.wast:396  no validator yet
 unreached-invalid.wast:4  no validator yet
 unreached-invalid.wast:402  no validator yet
-unreached-invalid.wast:409  translator crashes on an invalid or unsupported module (no validator)
 unreached-invalid.wast:415  no validator yet
 unreached-invalid.wast:42  no validator yet
-unreached-invalid.wast:421  translator crashes on an invalid or unsupported module (no validator)
 unreached-invalid.wast:427  no validator yet
 unreached-invalid.wast:433  no validator yet
 unreached-invalid.wast:439  no validator yet
@@ -2619,180 +2308,3 @@ unreached-invalid.wast:8  no validator yet
 unreached-invalid.wast:83  no validator yet
 unreached-invalid.wast:89  no validator yet
 unreached-invalid.wast:95  no validator yet
-unreached-valid.wast:82  decoder rejects a valid module (unsupported construct)
-utf8-custom-section-id.wast:1001  no validator yet
-utf8-custom-section-id.wast:101  no validator yet
-utf8-custom-section-id.wast:1011  no validator yet
-utf8-custom-section-id.wast:1021  no validator yet
-utf8-custom-section-id.wast:1031  no validator yet
-utf8-custom-section-id.wast:1041  no validator yet
-utf8-custom-section-id.wast:1051  no validator yet
-utf8-custom-section-id.wast:1061  no validator yet
-utf8-custom-section-id.wast:1071  no validator yet
-utf8-custom-section-id.wast:1081  no validator yet
-utf8-custom-section-id.wast:1091  no validator yet
-utf8-custom-section-id.wast:1101  no validator yet
-utf8-custom-section-id.wast:111  no validator yet
-utf8-custom-section-id.wast:1111  no validator yet
-utf8-custom-section-id.wast:1121  no validator yet
-utf8-custom-section-id.wast:1131  no validator yet
-utf8-custom-section-id.wast:1141  no validator yet
-utf8-custom-section-id.wast:1151  no validator yet
-utf8-custom-section-id.wast:1163  no validator yet
-utf8-custom-section-id.wast:1173  no validator yet
-utf8-custom-section-id.wast:1183  no validator yet
-utf8-custom-section-id.wast:1193  no validator yet
-utf8-custom-section-id.wast:1203  no validator yet
-utf8-custom-section-id.wast:121  no validator yet
-utf8-custom-section-id.wast:1213  no validator yet
-utf8-custom-section-id.wast:1223  no validator yet
-utf8-custom-section-id.wast:1233  no validator yet
-utf8-custom-section-id.wast:1243  no validator yet
-utf8-custom-section-id.wast:1253  no validator yet
-utf8-custom-section-id.wast:1263  no validator yet
-utf8-custom-section-id.wast:1273  no validator yet
-utf8-custom-section-id.wast:1283  no validator yet
-utf8-custom-section-id.wast:1293  no validator yet
-utf8-custom-section-id.wast:1303  no validator yet
-utf8-custom-section-id.wast:131  no validator yet
-utf8-custom-section-id.wast:1313  no validator yet
-utf8-custom-section-id.wast:1325  no validator yet
-utf8-custom-section-id.wast:1335  no validator yet
-utf8-custom-section-id.wast:1345  no validator yet
-utf8-custom-section-id.wast:1355  no validator yet
-utf8-custom-section-id.wast:1365  no validator yet
-utf8-custom-section-id.wast:1375  no validator yet
-utf8-custom-section-id.wast:1385  no validator yet
-utf8-custom-section-id.wast:1395  no validator yet
-utf8-custom-section-id.wast:1405  no validator yet
-utf8-custom-section-id.wast:141  no validator yet
-utf8-custom-section-id.wast:1415  no validator yet
-utf8-custom-section-id.wast:1425  no validator yet
-utf8-custom-section-id.wast:1435  no validator yet
-utf8-custom-section-id.wast:1445  no validator yet
-utf8-custom-section-id.wast:1455  no validator yet
-utf8-custom-section-id.wast:1465  no validator yet
-utf8-custom-section-id.wast:1475  no validator yet
-utf8-custom-section-id.wast:1487  no validator yet
-utf8-custom-section-id.wast:1497  no validator yet
-utf8-custom-section-id.wast:1507  no validator yet
-utf8-custom-section-id.wast:151  no validator yet
-utf8-custom-section-id.wast:1517  no validator yet
-utf8-custom-section-id.wast:1527  no validator yet
-utf8-custom-section-id.wast:1537  no validator yet
-utf8-custom-section-id.wast:1547  no validator yet
-utf8-custom-section-id.wast:1557  no validator yet
-utf8-custom-section-id.wast:1567  no validator yet
-utf8-custom-section-id.wast:1579  no validator yet
-utf8-custom-section-id.wast:1589  no validator yet
-utf8-custom-section-id.wast:1601  no validator yet
-utf8-custom-section-id.wast:161  no validator yet
-utf8-custom-section-id.wast:1611  no validator yet
-utf8-custom-section-id.wast:1621  no validator yet
-utf8-custom-section-id.wast:1631  no validator yet
-utf8-custom-section-id.wast:1641  no validator yet
-utf8-custom-section-id.wast:1651  no validator yet
-utf8-custom-section-id.wast:1661  no validator yet
-utf8-custom-section-id.wast:1671  no validator yet
-utf8-custom-section-id.wast:1681  no validator yet
-utf8-custom-section-id.wast:1691  no validator yet
-utf8-custom-section-id.wast:17  no validator yet
-utf8-custom-section-id.wast:1701  no validator yet
-utf8-custom-section-id.wast:171  no validator yet
-utf8-custom-section-id.wast:1713  no validator yet
-utf8-custom-section-id.wast:1723  no validator yet
-utf8-custom-section-id.wast:1735  no validator yet
-utf8-custom-section-id.wast:1745  no validator yet
-utf8-custom-section-id.wast:1755  no validator yet
-utf8-custom-section-id.wast:1765  no validator yet
-utf8-custom-section-id.wast:1775  no validator yet
-utf8-custom-section-id.wast:1785  no validator yet
-utf8-custom-section-id.wast:181  no validator yet
-utf8-custom-section-id.wast:191  no validator yet
-utf8-custom-section-id.wast:201  no validator yet
-utf8-custom-section-id.wast:211  no validator yet
-utf8-custom-section-id.wast:223  no validator yet
-utf8-custom-section-id.wast:233  no validator yet
-utf8-custom-section-id.wast:243  no validator yet
-utf8-custom-section-id.wast:253  no validator yet
-utf8-custom-section-id.wast:263  no validator yet
-utf8-custom-section-id.wast:27  no validator yet
-utf8-custom-section-id.wast:275  no validator yet
-utf8-custom-section-id.wast:285  no validator yet
-utf8-custom-section-id.wast:295  no validator yet
-utf8-custom-section-id.wast:305  no validator yet
-utf8-custom-section-id.wast:315  no validator yet
-utf8-custom-section-id.wast:325  no validator yet
-utf8-custom-section-id.wast:335  no validator yet
-utf8-custom-section-id.wast:345  no validator yet
-utf8-custom-section-id.wast:355  no validator yet
-utf8-custom-section-id.wast:365  no validator yet
-utf8-custom-section-id.wast:37  no validator yet
-utf8-custom-section-id.wast:375  no validator yet
-utf8-custom-section-id.wast:385  no validator yet
-utf8-custom-section-id.wast:395  no validator yet
-utf8-custom-section-id.wast:405  no validator yet
-utf8-custom-section-id.wast:415  no validator yet
-utf8-custom-section-id.wast:425  no validator yet
-utf8-custom-section-id.wast:435  no validator yet
-utf8-custom-section-id.wast:445  no validator yet
-utf8-custom-section-id.wast:455  no validator yet
-utf8-custom-section-id.wast:465  no validator yet
-utf8-custom-section-id.wast:47  no validator yet
-utf8-custom-section-id.wast:475  no validator yet
-utf8-custom-section-id.wast:485  no validator yet
-utf8-custom-section-id.wast:495  no validator yet
-utf8-custom-section-id.wast:505  no validator yet
-utf8-custom-section-id.wast:515  no validator yet
-utf8-custom-section-id.wast:525  no validator yet
-utf8-custom-section-id.wast:535  no validator yet
-utf8-custom-section-id.wast:545  no validator yet
-utf8-custom-section-id.wast:555  no validator yet
-utf8-custom-section-id.wast:565  no validator yet
-utf8-custom-section-id.wast:57  no validator yet
-utf8-custom-section-id.wast:575  no validator yet
-utf8-custom-section-id.wast:585  no validator yet
-utf8-custom-section-id.wast:597  no validator yet
-utf8-custom-section-id.wast:607  no validator yet
-utf8-custom-section-id.wast:617  no validator yet
-utf8-custom-section-id.wast:627  no validator yet
-utf8-custom-section-id.wast:637  no validator yet
-utf8-custom-section-id.wast:647  no validator yet
-utf8-custom-section-id.wast:657  no validator yet
-utf8-custom-section-id.wast:667  no validator yet
-utf8-custom-section-id.wast:677  no validator yet
-utf8-custom-section-id.wast:687  no validator yet
-utf8-custom-section-id.wast:69  no validator yet
-utf8-custom-section-id.wast:697  no validator yet
-utf8-custom-section-id.wast:7  no validator yet
-utf8-custom-section-id.wast:707  no validator yet
-utf8-custom-section-id.wast:717  no validator yet
-utf8-custom-section-id.wast:727  no validator yet
-utf8-custom-section-id.wast:737  no validator yet
-utf8-custom-section-id.wast:747  no validator yet
-utf8-custom-section-id.wast:757  no validator yet
-utf8-custom-section-id.wast:767  no validator yet
-utf8-custom-section-id.wast:777  no validator yet
-utf8-custom-section-id.wast:787  no validator yet
-utf8-custom-section-id.wast:79  no validator yet
-utf8-custom-section-id.wast:797  no validator yet
-utf8-custom-section-id.wast:807  no validator yet
-utf8-custom-section-id.wast:817  no validator yet
-utf8-custom-section-id.wast:827  no validator yet
-utf8-custom-section-id.wast:839  no validator yet
-utf8-custom-section-id.wast:849  no validator yet
-utf8-custom-section-id.wast:859  no validator yet
-utf8-custom-section-id.wast:869  no validator yet
-utf8-custom-section-id.wast:879  no validator yet
-utf8-custom-section-id.wast:889  no validator yet
-utf8-custom-section-id.wast:89  no validator yet
-utf8-custom-section-id.wast:899  no validator yet
-utf8-custom-section-id.wast:911  no validator yet
-utf8-custom-section-id.wast:921  no validator yet
-utf8-custom-section-id.wast:931  no validator yet
-utf8-custom-section-id.wast:941  no validator yet
-utf8-custom-section-id.wast:951  no validator yet
-utf8-custom-section-id.wast:961  no validator yet
-utf8-custom-section-id.wast:971  no validator yet
-utf8-custom-section-id.wast:981  no validator yet
-utf8-custom-section-id.wast:991  no validator yet
