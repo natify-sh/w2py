@@ -723,15 +723,6 @@ custom.wast:69  no validator yet
 custom.wast:77  no validator yet
 custom.wast:85  no validator yet
 custom.wast:93  no validator yet
-data.wast:100  gap: import of mem unsupported
-data.wast:115  gap: import of mem unsupported
-data.wast:134  gap: import of mem unsupported
-data.wast:144  gap: import of mem unsupported
-data.wast:149  gap: import of mem unsupported
-data.wast:154  gap: import of global unsupported
-data.wast:160  gap: import of global unsupported
-data.wast:166  gap: import of mem unsupported
-data.wast:171  gap: import of mem unsupported
 data.wast:178  decoder rejects a valid module (unsupported construct)
 data.wast:183  decoder rejects a valid module (unsupported construct)
 data.wast:188  decoder rejects a valid module (unsupported construct)
@@ -759,7 +750,6 @@ data.wast:396  no validator yet
 data.wast:415  no validator yet
 data.wast:423  gap: init expression
 data.wast:431  gap: init expression
-data.wast:44  gap: import of mem unsupported
 data.wast:473  gap: init expression
 data.wast:481  gap: init expression
 data.wast:497  no validator yet
@@ -769,11 +759,6 @@ data.wast:523  no validator yet
 data.wast:532  gap: opcode not implemented
 data.wast:542  earlier module of the file did not load (name or export missing)
 data.wast:543  earlier module of the file did not load (name or export missing)
-data.wast:57  gap: import of mem unsupported
-data.wast:67  gap: import of global unsupported
-data.wast:72  gap: import of global unsupported
-data.wast:78  gap: import of global unsupported
-data.wast:83  gap: import of global unsupported
 elem.wast:1007  gap: opcode not implemented
 elem.wast:1014  earlier module of the file did not load (name or export missing)
 elem.wast:1016  earlier module of the file did not load (name or export missing)
@@ -784,7 +769,6 @@ elem.wast:1022  earlier module of the file did not load (name or export missing)
 elem.wast:1023  earlier module of the file did not load (name or export missing)
 elem.wast:1025  gap: table import / unknown import kind
 elem.wast:1029  earlier module of the file did not load (name or export missing)
-elem.wast:103  gap: table import / unknown import kind
 elem.wast:1030  earlier module of the file did not load (name or export missing)
 elem.wast:1043  gap: element segment flags
 elem.wast:1053  earlier module of the file did not load (name or export missing)
@@ -803,16 +787,7 @@ elem.wast:1110  earlier module of the file did not load (name or export missing)
 elem.wast:1113  gap: element segment flags
 elem.wast:1125  earlier module of the file did not load (name or export missing)
 elem.wast:1126  earlier module of the file did not load (name or export missing)
-elem.wast:118  gap: table import / unknown import kind
-elem.wast:128  gap: import of global unsupported
-elem.wast:135  gap: import of global unsupported
 elem.wast:161  gap: element segment flags
-elem.wast:195  gap: table import / unknown import kind
-elem.wast:205  gap: table import / unknown import kind
-elem.wast:220  gap: table import / unknown import kind
-elem.wast:226  gap: table import / unknown import kind
-elem.wast:232  gap: table import / unknown import kind
-elem.wast:238  gap: table import / unknown import kind
 elem.wast:315  gap: element segment flags
 elem.wast:320  gap: element segment flags
 elem.wast:331  gap: element segment flags
@@ -870,16 +845,7 @@ elem.wast:862  gap: element segment flags
 elem.wast:870  gap: element segment flags
 elem.wast:878  gap: element segment flags
 elem.wast:886  gap: element segment flags
-elem.wast:910  gap: table import / unknown import kind
-elem.wast:921  earlier module of the file did not load (name or export missing)
 elem.wast:946  gap: call_indirect without null/signature check
-elem.wast:950  gap: table import / unknown import kind
-elem.wast:959  gap: call_indirect without null/signature check
-elem.wast:960  wrong result (float NaN payload / conversion)
-elem.wast:963  gap: table import / unknown import kind
-elem.wast:972  gap: call_indirect without null/signature check
-elem.wast:973  wrong result (float NaN payload / conversion)
-elem.wast:974  wrong result (float NaN payload / conversion)
 elem.wast:979  no validator yet
 elem.wast:984  gap: element segment flags
 elem.wast:989  gap: element segment flags
@@ -1168,7 +1134,6 @@ global.wast:359  no validator yet
 global.wast:364  no validator yet
 global.wast:369  no validator yet
 global.wast:377  no validator yet
-global.wast:381  gap: import of global unsupported
 global.wast:385  no validator yet
 global.wast:398  no validator yet
 global.wast:415  no validator yet
@@ -1536,150 +1501,13 @@ imports.wast:244  gap: table import / unknown import kind
 imports.wast:248  gap: table import / unknown import kind
 imports.wast:252  gap: table import / unknown import kind
 imports.wast:256  gap: table import / unknown import kind
-imports.wast:263  translator crashes on an invalid or unsupported module (no validator)
-imports.wast:283  earlier module of the file did not load (name or export missing)
-imports.wast:284  earlier module of the file did not load (name or export missing)
-imports.wast:285  earlier module of the file did not load (name or export missing)
-imports.wast:286  earlier module of the file did not load (name or export missing)
-imports.wast:287  earlier module of the file did not load (name or export missing)
-imports.wast:288  earlier module of the file did not load (name or export missing)
-imports.wast:289  earlier module of the file did not load (name or export missing)
-imports.wast:291  gap: import of global unsupported
-imports.wast:292  gap: import of global unsupported
-imports.wast:293  gap: import of global unsupported
-imports.wast:296  gap: import of global unsupported
-imports.wast:300  gap: import of global unsupported
-imports.wast:305  gap: import of global unsupported
-imports.wast:309  gap: import of global unsupported
-imports.wast:313  gap: import of global unsupported
-imports.wast:317  gap: import of global unsupported
-imports.wast:321  gap: import of global unsupported
-imports.wast:325  gap: import of global unsupported
-imports.wast:329  gap: import of global unsupported
-imports.wast:333  gap: import of global unsupported
-imports.wast:337  gap: import of global unsupported
-imports.wast:341  gap: import of global unsupported
-imports.wast:345  gap: import of global unsupported
-imports.wast:349  gap: import of global unsupported
 imports.wast:35  gap: table import / unknown import kind
-imports.wast:354  gap: import of global unsupported
-imports.wast:358  gap: import of global unsupported
-imports.wast:362  gap: import of global unsupported
-imports.wast:366  gap: import of global unsupported
-imports.wast:370  gap: import of global unsupported
-imports.wast:374  gap: import of global unsupported
-imports.wast:381  gap: table import / unknown import kind
 imports.wast:393  earlier module of the file did not load (name or export missing)
-imports.wast:394  earlier module of the file did not load (name or export missing)
-imports.wast:395  earlier module of the file did not load (name or export missing)
 imports.wast:396  earlier module of the file did not load (name or export missing)
 imports.wast:397  earlier module of the file did not load (name or export missing)
-imports.wast:398  gap: table import / unknown import kind
 imports.wast:410  earlier module of the file did not load (name or export missing)
-imports.wast:411  earlier module of the file did not load (name or export missing)
-imports.wast:412  earlier module of the file did not load (name or export missing)
 imports.wast:413  earlier module of the file did not load (name or export missing)
 imports.wast:414  earlier module of the file did not load (name or export missing)
-imports.wast:415  gap: table import / unknown import kind
-imports.wast:416  gap: table import / unknown import kind
-imports.wast:419  gap: table import / unknown import kind
-imports.wast:420  gap: table import / unknown import kind
-imports.wast:421  gap: table import / unknown import kind
-imports.wast:422  gap: table import / unknown import kind
-imports.wast:423  gap: table import / unknown import kind
-imports.wast:424  gap: table import / unknown import kind
-imports.wast:425  gap: table import / unknown import kind
-imports.wast:426  gap: table import / unknown import kind
-imports.wast:427  gap: table import / unknown import kind
-imports.wast:428  gap: table import / unknown import kind
-imports.wast:429  gap: table import / unknown import kind
-imports.wast:430  gap: table import / unknown import kind
-imports.wast:431  gap: table import / unknown import kind
-imports.wast:432  gap: table import / unknown import kind
-imports.wast:433  gap: table import / unknown import kind
-imports.wast:434  gap: table import / unknown import kind
-imports.wast:435  gap: table import / unknown import kind
-imports.wast:436  gap: table import / unknown import kind
-imports.wast:437  gap: table import / unknown import kind
-imports.wast:438  gap: table import / unknown import kind
-imports.wast:441  gap: table import / unknown import kind
-imports.wast:445  gap: table import / unknown import kind
-imports.wast:450  gap: table import / unknown import kind
-imports.wast:454  gap: table import / unknown import kind
-imports.wast:458  gap: table import / unknown import kind
-imports.wast:462  gap: table import / unknown import kind
-imports.wast:466  gap: table import / unknown import kind
-imports.wast:470  gap: table import / unknown import kind
-imports.wast:475  gap: table import / unknown import kind
-imports.wast:479  gap: table import / unknown import kind
-imports.wast:483  gap: table import / unknown import kind
-imports.wast:487  gap: table import / unknown import kind
-imports.wast:494  gap: import of mem unsupported
-imports.wast:501  earlier module of the file did not load (name or export missing)
-imports.wast:502  earlier module of the file did not load (name or export missing)
-imports.wast:503  earlier module of the file did not load (name or export missing)
-imports.wast:504  earlier module of the file did not load (name or export missing)
-imports.wast:506  gap: import of mem unsupported
-imports.wast:507  gap: import of mem unsupported
-imports.wast:513  earlier module of the file did not load (name or export missing)
-imports.wast:514  earlier module of the file did not load (name or export missing)
-imports.wast:515  earlier module of the file did not load (name or export missing)
-imports.wast:516  earlier module of the file did not load (name or export missing)
-imports.wast:518  gap: import of mem unsupported
-imports.wast:520  gap: import of mem unsupported
-imports.wast:521  gap: import of mem unsupported
-imports.wast:522  gap: import of mem unsupported
-imports.wast:523  gap: import of mem unsupported
-imports.wast:524  gap: import of mem unsupported
-imports.wast:525  gap: import of mem unsupported
-imports.wast:526  gap: import of mem unsupported
-imports.wast:527  gap: import of mem unsupported
-imports.wast:528  gap: import of mem unsupported
-imports.wast:529  gap: import of mem unsupported
-imports.wast:530  gap: import of mem unsupported
-imports.wast:531  gap: import of mem unsupported
-imports.wast:532  gap: import of mem unsupported
-imports.wast:533  gap: import of mem unsupported
-imports.wast:534  gap: import of mem unsupported
-imports.wast:535  gap: import of mem unsupported
-imports.wast:536  gap: import of mem unsupported
-imports.wast:539  gap: import of mem unsupported
-imports.wast:543  gap: import of mem unsupported
-imports.wast:548  gap: import of mem unsupported
-imports.wast:552  gap: import of mem unsupported
-imports.wast:556  gap: import of mem unsupported
-imports.wast:560  gap: import of mem unsupported
-imports.wast:564  gap: import of mem unsupported
-imports.wast:568  gap: import of mem unsupported
-imports.wast:572  gap: import of mem unsupported
-imports.wast:576  gap: import of mem unsupported
-imports.wast:580  gap: import of mem unsupported
-imports.wast:584  gap: import of mem unsupported
-imports.wast:588  gap: import of mem unsupported
-imports.wast:592  gap: import of mem unsupported
-imports.wast:596  gap: import of mem unsupported
-imports.wast:600  gap: import of mem unsupported
-imports.wast:604  gap: import of mem unsupported
-imports.wast:608  gap: import of mem unsupported
-imports.wast:612  gap: import of mem unsupported
-imports.wast:616  gap: import of mem unsupported
-imports.wast:620  gap: import of mem unsupported
-imports.wast:624  gap: import of mem unsupported
-imports.wast:629  gap: import of mem unsupported
-imports.wast:633  gap: import of mem unsupported
-imports.wast:637  gap: import of mem unsupported
-imports.wast:641  gap: import of mem unsupported
-imports.wast:645  gap: import of mem unsupported
-imports.wast:649  gap: import of mem unsupported
-imports.wast:654  gap: import of mem unsupported
-imports.wast:658  gap: import of mem unsupported
-imports.wast:662  gap: import of mem unsupported
-imports.wast:666  earlier module of the file did not load (name or export missing)
-imports.wast:667  earlier module of the file did not load (name or export missing)
-imports.wast:668  earlier module of the file did not load (name or export missing)
-imports.wast:669  earlier module of the file did not load (name or export missing)
-imports.wast:670  earlier module of the file did not load (name or export missing)
-imports.wast:749  gap: table import / unknown import kind
 imports.wast:97  earlier module of the file did not load (name or export missing)
 imports.wast:98  earlier module of the file did not load (name or export missing)
 instance.wast:101  earlier module of the file did not load
@@ -1702,37 +1530,6 @@ labels.wast:322  no validator yet
 labels.wast:326  no validator yet
 linking.wast:110  earlier module of the file did not load (name or export missing)
 linking.wast:112  gap: table import / unknown import kind
-linking.wast:133  gap: import of global unsupported
-linking.wast:138  gap: import of global unsupported
-linking.wast:142  gap: import of global unsupported
-linking.wast:146  gap: import of global unsupported
-linking.wast:151  gap: import of global unsupported
-linking.wast:155  gap: import of global unsupported
-linking.wast:159  gap: import of global unsupported
-linking.wast:164  gap: import of global unsupported
-linking.wast:168  gap: import of global unsupported
-linking.wast:172  gap: import of global unsupported
-linking.wast:176  gap: import of global unsupported
-linking.wast:182  gap: import of global unsupported
-linking.wast:186  gap: import of global unsupported
-linking.wast:190  gap: import of global unsupported
-linking.wast:194  gap: import of global unsupported
-linking.wast:199  gap: import of global unsupported
-linking.wast:203  gap: import of global unsupported
-linking.wast:207  gap: import of global unsupported
-linking.wast:211  gap: import of global unsupported
-linking.wast:216  gap: import of global unsupported
-linking.wast:220  gap: import of global unsupported
-linking.wast:224  gap: import of global unsupported
-linking.wast:228  gap: import of global unsupported
-linking.wast:233  gap: import of global unsupported
-linking.wast:237  gap: import of global unsupported
-linking.wast:241  gap: import of global unsupported
-linking.wast:245  gap: import of global unsupported
-linking.wast:250  gap: import of global unsupported
-linking.wast:254  gap: import of global unsupported
-linking.wast:258  gap: import of global unsupported
-linking.wast:262  gap: import of global unsupported
 linking.wast:308  gap: call_indirect without null/signature check
 linking.wast:309  gap: call_indirect without null/signature check
 linking.wast:311  gap: call_indirect without null/signature check
@@ -1744,64 +1541,25 @@ linking.wast:319  gap: table out-of-bounds reported as memory trap
 linking.wast:320  gap: table out-of-bounds reported as memory trap
 linking.wast:321  gap: table out-of-bounds reported as memory trap
 linking.wast:324  gap: call_indirect without null/signature check
-linking.wast:326  gap: table import / unknown import kind
-linking.wast:342  earlier module of the file did not load (name or export missing)
-linking.wast:344  wrong result (float NaN payload / conversion)
-linking.wast:345  wrong result (float NaN payload / conversion)
-linking.wast:347  wrong result (float NaN payload / conversion)
-linking.wast:348  earlier module of the file did not load (name or export missing)
-linking.wast:350  gap: call_indirect without null/signature check
-linking.wast:351  gap: call_indirect without null/signature check
-linking.wast:353  gap: call_indirect without null/signature check
-linking.wast:354  earlier module of the file did not load (name or export missing)
 linking.wast:356  gap: call_indirect without null/signature check
 linking.wast:357  gap: call_indirect without null/signature check
 linking.wast:359  gap: call_indirect without null/signature check
 linking.wast:360  earlier module of the file did not load (name or export missing)
 linking.wast:362  earlier module of the file did not load (name or export missing)
-linking.wast:364  gap: table import / unknown import kind
-linking.wast:372  translator crashes on an invalid or unsupported module (no validator)
-linking.wast:376  earlier module of the file did not load (name or export missing)
 linking.wast:379  gap: table import / unknown import kind
-linking.wast:388  gap: table import / unknown import kind
 linking.wast:397  gap: call_indirect without null/signature check
 linking.wast:402  gap: table import / unknown import kind
-linking.wast:410  gap: call_indirect without null/signature check
 linking.wast:411  gap: call_indirect without null/signature check
 linking.wast:414  gap: table import / unknown import kind
-linking.wast:423  gap: call_indirect without null/signature check
 linking.wast:434  gap: table import / unknown import kind
-linking.wast:442  gap: table import / unknown import kind
-linking.wast:446  gap: table import / unknown import kind
 linking.wast:451  gap: table import / unknown import kind
 linking.wast:455  gap: table import / unknown import kind
 linking.wast:460  gap: table import / unknown import kind
-linking.wast:464  gap: table import / unknown import kind
-linking.wast:497  gap: import of mem unsupported
 linking.wast:50  translator crashes on an invalid or unsupported module (no validator)
-linking.wast:506  wrong result (float NaN payload / conversion)
-linking.wast:507  wrong result (float NaN payload / conversion)
-linking.wast:509  earlier module of the file did not load (name or export missing)
-linking.wast:511  gap: import of mem unsupported
 linking.wast:517  gap: import of mem unsupported
-linking.wast:524  gap: import of mem unsupported
-linking.wast:532  earlier module of the file did not load (name or export missing)
-linking.wast:533  earlier module of the file did not load (name or export missing)
-linking.wast:534  earlier module of the file did not load (name or export missing)
-linking.wast:535  earlier module of the file did not load (name or export missing)
-linking.wast:536  earlier module of the file did not load (name or export missing)
-linking.wast:537  earlier module of the file did not load (name or export missing)
-linking.wast:538  earlier module of the file did not load (name or export missing)
-linking.wast:539  earlier module of the file did not load (name or export missing)
-linking.wast:542  gap: table import / unknown import kind
 linking.wast:555  gap: import of mem unsupported
-linking.wast:563  wrong result (float NaN payload / conversion)
 linking.wast:564  gap: trap while instantiating raised past the adapter
 linking.wast:567  gap: import of mem unsupported
-linking.wast:576  wrong result (float NaN payload / conversion)
-linking.wast:593  gap: table import / unknown import kind
-linking.wast:609  wrong result (float NaN payload / conversion)
-linking.wast:610  gap: call_indirect without null/signature check
 linking.wast:68  earlier module of the file did not load (name or export missing)
 linking.wast:69  earlier module of the file did not load (name or export missing)
 linking.wast:71  earlier module of the file did not load (name or export missing)
@@ -1810,8 +1568,6 @@ linking.wast:75  earlier module of the file did not load (name or export missing
 linking.wast:77  earlier module of the file did not load (name or export missing)
 linking.wast:81  earlier module of the file did not load (name or export missing)
 linking.wast:83  earlier module of the file did not load (name or export missing)
-linking.wast:87  gap: import of global unsupported
-linking.wast:91  gap: import of global unsupported
 linking.wast:96  gap: init expression
 load.wast:312  no validator yet
 load.wast:316  no validator yet
@@ -2087,11 +1843,6 @@ memory.wast:91  no validator yet
 memory.wast:95  no validator yet
 memory.wast:99  no validator yet
 memory_grow.wast:293  gap: table out-of-bounds reported as memory trap
-memory_grow.wast:324  gap: import of mem unsupported
-memory_grow.wast:329  earlier module of the file did not load (name or export missing)
-memory_grow.wast:330  earlier module of the file did not load (name or export missing)
-memory_grow.wast:331  gap: import of mem unsupported
-memory_grow.wast:336  earlier module of the file did not load (name or export missing)
 memory_grow.wast:342  no validator yet
 memory_grow.wast:351  translator crashes on an invalid or unsupported module (no validator)
 memory_grow.wast:360  no validator yet
@@ -2600,7 +2351,6 @@ table.wast:116  earlier module of the file did not load (name or export missing)
 table.wast:120  no validator yet
 table.wast:128  no validator yet
 table.wast:136  no validator yet
-table.wast:17  gap: table import / unknown import kind
 table.wast:23  no validator yet
 table.wast:24  no validator yet
 table.wast:27  no validator yet

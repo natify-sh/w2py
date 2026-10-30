@@ -65,6 +65,30 @@ def _mfill(M, d, v, n):
     M[d : d + n] = bytes([v & 255]) * n
 
 
+class _Mem(bytearray):
+    """A linear memory; `max` is its declared maximum in pages (None: none). Shared by import."""
+
+    max = None
+
+
+class _Table:
+    """An exported table: the list `t` (shared by import) and its declared maximum."""
+
+    def __init__(self, t, max):
+        self.t = t
+        self.max = max
+
+
+class _Cell:
+    """A global shared between instances (imported, or exported and mutable): value in `.v`."""
+
+    def __init__(self, v):
+        self.v = v
+
+    def get(self):
+        return self.v
+
+
 class _Global:
     """An exported global: `.get()` reads the current value."""
 

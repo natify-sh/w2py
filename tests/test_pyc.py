@@ -30,3 +30,36 @@ def test_coremark_translates_and_compiles() -> None:
     with open(COREMARK, "rb") as f:
         src = translate(f.read())
     compile(src, "<coremark>", "exec")
+
+
+HEAD = "0061736d01000000"
+# A: (memory (export "m") 1) (global (export "g") (mut i32) (i32.const 1))
+SHARE_A = HEAD + "05030100" + "01" + "0606017f0141010b" + "070902016d0200" + "01670300"
+# B: imports A.m and A.g (mut i32); (func (export "f") (result i32)
+#   (i32.store8 (i32.const 0) (i32.const 7)) (global.set 0 (i32.const 9))
+#   (i32.load8_u (i32.const 0)))
+SHARE_B = (
+    HEAD
+    + "0105016000017f"
+    + "020f02"
+    + "0141016d020001"
+    + "014101"
+    + "67037f01"
+    + "03020100"
+    + "07050101660000"
+    + "0a14011200"
+    + "41004107"
+    + "3a0000"
+    + "410924"
+    + "00"
+    + "4100"
+    + "2d0000"
+    + "0b"
+)
+
+
+def test_shared_memory_and_mutable_global_between_instances() -> None:
+    a = load(bytes.fromhex(SHARE_A), {})
+    b = load(bytes.fromhex(SHARE_B), {"A": {"m": a["m"], "g": a["g"]}})
+    assert b["f"]() == 7
+    assert a["m"][0] == 7 and a["g"].get() == 9

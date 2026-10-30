@@ -602,7 +602,8 @@ class FuncGen:
             g = mg.gname(x[1])
             v = pop()
             s.flush_global(g)
-            s.globals_set.add(g)
+            if "." not in g:
+                s.globals_set.add(g)
             s.emit("%s = %s" % (g, n(v) if v.t in (I32, I64) else v.c))
             return
         if op == 0x41:
@@ -1094,13 +1095,22 @@ class ModGen:
     def __init__(s, mod):
         s.mod = mod
         s.types = mod["types"]
-        s.fimports = [im for im in mod["imports"] if im[0] == "func"]
+        im = mod["imports"]
+        s.fimports = [i for i in im if i[0] == "func"]
         s.nimp = len(s.fimports)
-        s.gtypes, s.gmut, s.ginit = [], [], []
-        for g in mod["globals"]:
-            s.gtypes.append(g[0])
-            s.gmut.append(g[1])
-            s.ginit.append(g[2])
+        s.gimports = [i for i in im if i[0] == "global"]
+        s.timports = [i for i in im if i[0] == "table"]
+        s.mimports = [i for i in im if i[0] == "mem"]
+        s.gtypes = [i[3][0] for i in s.gimports] + [g[0] for g in mod["globals"]]
+        s.gmut = [i[3][1] for i in s.gimports] + [g[1] for g in mod["globals"]]
+        s.ginit = [("i32", 0)] * len(s.gimports) + [g[2] for g in mod["globals"]]
+        # a mutable global that is imported or exported is a shared cell `C<i>`; others stay plain `G<i>`
+        s.cells = {
+            i for i, m in enumerate(s.gmut) if m and (i < len(s.gimports) or s.exported(3, i))
+        }
+
+    def exported(s, kind, i):
+        return any(k == kind and x == i for _, k, x in s.mod["exports"])
 
     def ftype(s, fi):
         if fi < s.nimp:
@@ -1113,48 +1123,91 @@ class ModGen:
         return "f%d" % fi
 
     def gname(s, gi):
-        return "G%d" % gi
+        return "C%d.v" % gi if gi in s.cells else "G%d" % gi
+
+    def val(s, init):
+        return s.gname(init[1]) if init[0] == "global" else repr(init[1])
 
     def gen(s):
         mod = s.mod
         mem = mod["mems"][0] if mod["mems"] else (0, 0)
+        ng = len(s.gimports)
         # D18: helpers live in w2py.targets.pyc.runtime and are imported, not pasted
         out = [
             "from w2py.targets.pyc.runtime import *",
-            "M = bytearray(%d * 65536)" % mem[0],
+            "M = _Mem(%d * 65536)" % mem[0],
+            "M.max = %r" % mem[1],
             "_MAXPAGES = %d" % (mem[1] if mem[1] is not None else 65536),
         ]
+        L = ["def instantiate(imports):"]
+        gl = []  # module globals that instantiate assigns
         for i, (t, mut, init) in enumerate(zip(s.gtypes, s.gmut, s.ginit)):
-            out.append("G%d = %r" % (i, init[1]))
+            if i < ng:
+                im = s.gimports[i]
+                L.append(
+                    "    %s = imports[%r][%r]%s"
+                    % (
+                        "C%d" % i if i in s.cells else "G%d" % i,
+                        im[1],
+                        im[2],
+                        "" if i in s.cells else ".get()",
+                    )
+                )
+                gl.append("C%d" % i if i in s.cells else "G%d" % i)
+                continue
+            first = init[0] != "global"
+            if i in s.cells:
+                out.append("C%d = _Cell(%s)" % (i, repr(init[1]) if first else "0"))
+            else:
+                out.append("G%d = %s" % (i, repr(init[1]) if first else "0"))
+                if not first:
+                    gl.append("G%d" % i)
+            if not first:
+                L.append("    %s = %s" % (s.gname(i), s.val(init)))
         for ti, (mn, mx) in enumerate(mod["tables"]):
-            out.append("T%d = [None] * %d" % (ti, mn))
+            k = len(s.timports) + ti
+            out.append("T%d = [None] * %d" % (k, mn))
+            out.append("TX%d = _Table(T%d, %r)" % (k, k, mx))
+        for i, im in enumerate(s.timports):
+            L.append("    TX%d = imports[%r][%r]" % (i, im[1], im[2]))
+            L.append("    T%d = TX%d.t" % (i, i))
+            gl += ["TX%d" % i, "T%d" % i]
+        if s.mimports:
+            im = s.mimports[0]
+            L.append("    M = imports[%r][%r]" % (im[1], im[2]))
+            L.append("    _MAXPAGES = 65536 if M.max is None else M.max")
+            gl += ["M", "_MAXPAGES"]
         for i in range(s.nimp):
             out.append("I%d = None" % i)
+            gl.append("I%d" % i)
         for k, ((locs, body), tidx) in enumerate(zip(mod["codes"], mod["funcs"])):
             out.append(FuncGen(s, s.nimp + k, tidx, locs, body).gen())
-        # instantiate
-        L = ["def instantiate(imports):"]
-        if s.nimp:
-            L.append("    global " + ", ".join("I%d" % i for i in range(s.nimp)))
         for i, im in enumerate(s.fimports):
             L.append("    I%d = imports[%r][%r]" % (i, im[1], im[2]))
+        if gl:
+            L.insert(1, "    global " + ", ".join(gl))
         for ti, off, fs in mod["elems"]:
+            o = s.val(off)
             L.append(
-                "    T%d[%d:%d] = [%s]"
-                % (ti, off[1], off[1] + len(fs), ", ".join(s.fname(f) for f in fs))
+                "    T%d[%s:%s+%d] = [%s]" % (ti, o, o, len(fs), ", ".join(s.fname(f) for f in fs))
             )
-        out.append("DATA = %r" % ([(off[1], d) for off, d in mod["datas"] if off is not None],))
-        L.append("    for o, d in DATA: M[o:o+len(d)] = d")
+        for off, d in mod["datas"]:
+            if off is not None:
+                L.append("    M[%s:%s+%d] = %r" % (s.val(off), s.val(off), len(d), d))
         if mod["start"] is not None:
             L.append("    %s()" % s.fname(mod["start"]))
         ex = []
         for n, k, i in mod["exports"]:
             if k == 0:
                 ex.append("%r: _export(%s)" % (n, s.fname(i)))
+            elif k == 1:
+                ex.append("%r: TX%d" % (n, i))
             elif k == 2:
                 ex.append("%r: M" % n)
             elif k == 3:
-                ex.append("%r: _Global(lambda: G%d)" % (n, i))
+                ex.append(
+                    "%r: C%d" % (n, i) if i in s.cells else "%r: _Global(lambda: G%d)" % (n, i)
+                )
         L.append("    return {%s}" % ", ".join(ex))
         out.append("\n".join(L))
         return "\n\n".join(out) + "\n"

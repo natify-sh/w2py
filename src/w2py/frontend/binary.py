@@ -100,6 +100,12 @@ def parse(data):
                 m, n, k = r.name(), r.name(), r.u8()
                 if k == 0:
                     mod["imports"].append(("func", m, n, r.u()))
+                elif k == 1:
+                    r.u8()
+                    fl = r.u8()
+                    mn = r.u()
+                    mx = r.u() if fl & 1 else None
+                    mod["imports"].append(("table", m, n, (mn, mx)))
                 elif k == 2:
                     fl = r.u8()
                     mn = r.u()

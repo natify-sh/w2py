@@ -29,14 +29,19 @@ class _Module:
         self.imports: list[tuple[Any, ...]] = parsed["imports"]
         self.types: list[tuple[list[int], list[int]]] = parsed["types"]
         nimp = sum(1 for im in self.imports if im[0] == "func")
+        gl = [im[3] for im in self.imports if im[0] == "global"] + [
+            (g[0], g[1]) for g in parsed["globals"]
+        ]
+        self.kinds: dict[str, int] = {}
         self.functypes: dict[str, tuple[list[int], list[int]]] = {}
-        self.globaltypes: dict[str, int] = {}
+        self.globaltypes: dict[str, tuple[int, int]] = {}
         for name, kind, idx in parsed["exports"]:
+            self.kinds[name] = kind
             if kind == 0:
                 tidx = self.imports[idx][3] if idx < nimp else parsed["funcs"][idx - nimp]
                 self.functypes[name] = self.types[tidx]
             elif kind == 3:
-                self.globaltypes[name] = parsed["globals"][idx][0]
+                self.globaltypes[name] = gl[idx]
 
 
 class _Instance:
@@ -92,16 +97,25 @@ class PycEngine:
     def instantiate(self, module: Module, imports: Mapping[str, Instance]) -> Instance:
         m = cast(_Module, module)
         wired: dict[str, dict[str, Any]] = {}
+        kinds = {"func": 0, "table": 1, "mem": 2, "global": 3}
         for kind, mod, name, desc in m.imports:
-            if kind != "func":
-                raise NotImplementedError(f"import of {kind} unsupported")
             src = imports.get(mod)
-            if src is None or name not in cast(_Instance, src).exports:
+            if src is None or cast(_Instance, src).module.kinds.get(name) != kinds[kind]:
                 raise LinkError(f"unknown import {mod}.{name}")
             inst = cast(_Instance, src)
-            if inst.module.functypes.get(name) != m.types[desc]:
+            ex = inst.exports[name]
+            if kind == "func":
+                ok = inst.module.functypes[name] == m.types[desc]
+            elif kind == "global":
+                ok = inst.module.globaltypes[name] == desc
+            else:
+                size = len(ex) >> 16 if kind == "mem" else len(ex.t)
+                ok = size >= desc[0] and (
+                    desc[1] is None or (ex.max is not None and ex.max <= desc[1])
+                )
+            if not ok:
                 raise LinkError(f"incompatible import type {mod}.{name}")
-            wired.setdefault(mod, {})[name] = inst.exports[name]
+            wired.setdefault(mod, {})[name] = ex
         try:
             return _Instance(m, load(m.wasm, wired))
         except PycTrap as e:
@@ -124,7 +138,7 @@ class PycEngine:
 
     def get_global(self, instance: Instance, name: str) -> Value:
         inst = cast(_Instance, instance)
-        ty = inst.module.globaltypes.get(name)
-        if ty is None:
+        gt = inst.module.globaltypes.get(name)
+        if gt is None:
             raise LookupError(f"no exported global {name}")
-        return _from_internal(ty, inst.exports[name].get())
+        return _from_internal(gt[0], inst.exports[name].get())
