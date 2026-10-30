@@ -152,6 +152,8 @@ Phase-3 steps, each one commit with its acceptance; the reviewer reads every JIT
    * **3b one-pass core + integer backend**: i32/i64, locals, globals, control flow incl. `br_table`,
      block params, multi-value, direct calls, loads/stores with explicit bounds checks; floats as data
      only. `spec_diff pyc jit-x86_64` on the files it claims → 0 regressions.
+     Done: core 5370 pass, 0 fail, the rest `unsupported`; `spec_diff pyc jit-x86_64` lists only
+     `unsupported:` lines and linking.wast:564 (a cascade of the unsupported `memory.grow`, closes in 3c).
    * **3c native floats (SSE2 baseline) + `memory.size`/`memory.grow`** (grow is a runtime service:
      commit pages in the 4 GiB reservation, S0003). First CoreMark checkpoint.
    * **3d tables, funcref, `call_indirect`** (table services through the bridge). `spec_diff pyc

@@ -2,7 +2,8 @@
 the value stack, both stack limits, the entry call with status -> `Trap`, host callbacks that never
 raise, nested entries, interrupt, linear memories (reserved, committed on grow, never moved).
 
-Step 3a: an `Instance` is built from code assembled elsewhere (tests; the compiler in 3b)."""
+An `Instance` runs code assembled elsewhere (hand-built in the ABI tests); a `JitInstance` runs a
+compiled module (common/compiler.py)."""
 
 import ctypes
 import mmap
@@ -11,9 +12,11 @@ import sys
 import threading
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
+from typing import Any, cast
 
 from w2py.runtime.store import StoreState
 from w2py.targets.base import Extern, HostError, HostFunc, Raw, Trap, TrapCode
+from w2py.targets.jit.common.compiler import M32, M64, WIDE, Compiled, f32_bits, f64_bits
 from w2py.targets.jit.common.context import (
     HOST_BRIDGE,
     INTERRUPT,
@@ -160,6 +163,7 @@ class Memory:
         self.res = Reservation(MEMORY_RESERVATION, pages << 16)
         self.pages = pages
         self.max = MAX_PAGES if maximum is None else min(maximum, MAX_PAGES)
+        self.declared = maximum  # the type's maximum, for import checks
         self.users: list[tuple[ctypes.Array[ctypes.c_uint64], int]] = []
 
     def bind(self, ctx: "ctypes.Array[ctypes.c_uint64]", word: int) -> None:
@@ -193,10 +197,11 @@ class Instance:
         funcs: Sequence[tuple[int, int]],
         imports: Sequence[tuple[HostFunc, int, Sequence[int]]] = (),
         memory: Memory | None = None,
+        nglobals: int = 0,
     ) -> None:
         self.store, self.tramp, self.funcs = store, tramp, funcs
         self.nimports = len(imports)
-        self.layout = Layout(memories=1 if memory else 0, imports=len(imports))
+        self.layout = Layout(memories=1 if memory else 0, globals=nglobals, imports=len(imports))
         self.ctx = (ctypes.c_uint64 * self.layout.words)()
         self.ctx[HOST_BRIDGE] = tramp.bridge
         self.code: ExecMem = load(code)
@@ -305,3 +310,118 @@ class Instance:
 
     def global_get(self, global_index: int) -> Raw:
         raise LookupError(f"no global {global_index}")
+
+
+@dataclass(frozen=True)
+class GlobalCell:
+    """An exported global: the address of its 64-bit word, and the instance that owns it."""
+
+    addr: int
+    owner: object
+
+
+class JitInstance(Instance):
+    """An instance of a compiled module (S0002 `TargetInstance`): imports wired into the
+    context, globals initialised, active data segments written, the start function run."""
+
+    def __init__(
+        self,
+        store: StoreState,
+        tramp: Trampolines,
+        c: Compiled,
+        imports: Sequence[Extern],
+        owner: str,
+    ) -> None:
+        mod = self.module = c.module
+        self.owner = owner
+        hosts: list[tuple[HostFunc, int, Sequence[int]]] = []
+        memory: Memory | None = None
+        self.gaddr: list[int] = []
+        self.cells: list[GlobalCell] = []  # keeps the owners of imported globals alive
+        for im, ext in zip(mod["imports"], imports, strict=True):
+            if im[0] == "func":
+                ps, rs = mod["types"][im[3]]
+                masks = [M64 if t in WIDE else M32 for t in rs]
+                hosts.append((cast(HostFunc, ext.value), len(ps), masks))
+            elif im[0] == "mem":
+                memory = cast(Memory, ext.value)
+            else:
+                self.cells.append(cast(GlobalCell, ext.value))
+        if mod["mems"]:
+            memory = Memory(*mod["mems"][0])
+        self.hosts = [h[0] for h in hosts]
+        ng = len(self.cells) + len(mod["globals"])
+        super().__init__(store, tramp, c.code, c.funcs, hosts, memory, ng)
+        assert self.layout == c.layout
+        base = ctypes.addressof(self.ctx)
+        for i in range(ng):
+            word = self.layout.global_(i)
+            if i < len(self.cells):
+                self.ctx[word] = self.cells[i].addr
+                self.gaddr.append(self.cells[i].addr)
+            else:
+                t, _, init = mod["globals"][i - len(self.cells)]
+                self.ctx[word] = self._const(init) & (M64 if t in WIDE else M32)
+                self.gaddr.append(base + 8 * word)
+        for (off, data), mi in zip(mod["datas"], mod["data_mem"], strict=True):
+            if mi is None:
+                continue
+            o = self._const(off)
+            if memory is None or o + len(data) > memory.pages << 16:
+                raise Trap(TrapCode.MEMORY_OUT_OF_BOUNDS, "out of bounds memory access")
+            ctypes.memmove(memory.res.addr + o, bytes(data), len(data))
+        if mod["start"] is not None:
+            self.call(mod["start"], [])
+
+    def _const(self, e: tuple[Any, ...]) -> int:
+        k = e[0]
+        if k in ("i32", "i64"):
+            return e[1]
+        if k == "f32":
+            return f32_bits(e[1])
+        if k == "f64":
+            return f64_bits(e[1])
+        if k == "global":
+            return self.global_get(e[1])
+        x, y, mask = self._const(e[2]), self._const(e[3]), M32 if e[1] == "i32" else M64
+        return (x + y if k == "add" else x - y if k == "sub" else x * y) & mask
+
+    def call(self, func_index: int, args: Sequence[Raw]) -> list[Raw]:
+        if func_index >= self.nimports:
+            return super().call(func_index, args)
+        self.store.enter()  # an exported import: the host function itself
+        try:
+            return list(self.hosts[func_index](args))
+        except HostError as e:
+            if self.store.depth == 1:
+                raise e.exc from None
+            raise
+        finally:
+            self.store.leave()
+
+    def export(self, name: str) -> Extern:
+        exports: list[tuple[str, int, int]] = self.module["exports"]
+        for n, kind, idx in exports:
+            if n != name:
+                continue
+            if kind == 0:
+                f = self.hosts[idx] if idx < self.nimports else self._export_func(idx)
+                return Extern("func", self.owner, f)
+            if kind == 2:
+                return Extern("memory", self.owner, self.memory)
+            if kind == 3:
+                return Extern("global", self.owner, GlobalCell(self.gaddr[idx], self))
+        raise LookupError(f"no export {name}")
+
+    def _export_func(self, idx: int) -> HostFunc:
+        return lambda args: self.call(idx, args)  # another instance calls it as a host function
+
+    def limits(self, name: str) -> tuple[int, int | None]:
+        if self.memory is None or not any(
+            n == name and k == 2 for n, k, _ in self.module["exports"]
+        ):
+            raise LookupError(f"no exported memory {name}")
+        return self.memory.pages, self.memory.declared
+
+    def global_get(self, global_index: int) -> Raw:
+        return ctypes.c_uint64.from_address(self.gaddr[global_index]).value

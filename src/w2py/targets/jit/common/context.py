@@ -26,6 +26,10 @@ class Layout:
         """`base`; `size_bytes` is the next word."""
         return FIRST_VAR + 2 * i
 
+    def global_(self, i: int) -> int:
+        """Global i (imports first): its value, or for an imported one the address of it."""
+        return FIRST_VAR + 2 * self.memories + 2 * self.tables + i
+
     def import_(self, i: int) -> int:
         return FIRST_VAR + 2 * self.memories + 2 * self.tables + self.globals + i
 

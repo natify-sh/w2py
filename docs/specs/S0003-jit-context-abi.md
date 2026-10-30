@@ -237,3 +237,9 @@ uv run pytest tests/jit -k "entry or trap or reentry or host or interrupt or sta
   + one page, as glibc does; an unlimited rlimit counts as unknown (128 KiB budget); the rule
   min(max_wasm_stack, (sp − low)/2) applies as for every thread.
 
+* 2026-10-30 (step 3b, after review): `br_table` jump tables are 32-bit entries relative to the table,
+  placed after the function's code, every target an `endbr64` landing pad. Slots and registers hold
+  i32 values zero-extended; `i32.wrap_i64` and `i64.extend_i32_u` always emit a 32-bit `mov`, even onto
+  the same register (the review found the skipped self-move left the upper half). The bounds check
+  zero-extends the address again before use. A function of another JIT instance is imported through
+  the host path (no direct cross-instance calls yet); an imported global is shared as a pointer.

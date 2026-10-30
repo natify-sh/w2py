@@ -1,0 +1,88 @@
+"""The backend call interface of the one-pass JIT core (D26: LIR as a call interface, S0002).
+
+Three-operand, no flags: a compare is consumed inside the same call (`cmp_branch`, `cmp_set`,
+`select_cmp`), so no code can land between a flags producer and its consumer (LESSONS 1). The
+backend owns its register roles: `pool` (pinnable, kept across every call) and `tos` (the result
+register); the core never names a machine register. Between two calls only `tos` and pool
+registers hold values; everything else is the backend's scratch.
+
+Operands: `Imm` (the value of the operand's width, unsigned), `Reg` (a backend register id), `Slot`
+(value-stack slot k of the current frame). `wide`: a 64-bit operation, else 32-bit with the result
+zero-extended (LESSONS 5). Slots always hold zero-extended 64-bit values.
+"""
+
+from collections.abc import Sequence
+from dataclasses import dataclass
+from typing import Protocol, TypeVar
+
+
+@dataclass(frozen=True, slots=True)
+class Imm:
+    value: int
+
+
+@dataclass(frozen=True, slots=True)
+class Reg:
+    id: int
+
+
+@dataclass(frozen=True, slots=True)
+class Slot:
+    k: int
+
+
+Operand = Imm | Reg | Slot
+Dst = Reg | Slot
+
+# binop: add sub mul and or xor shl shr_s shr_u rotl rotr; divrem: div_s div_u rem_s rem_u;
+# unop: clz ctz popcnt extend8_s extend16_s extend32_s extend_i32_s extend_i32_u wrap
+# cond: eq ne lt_s lt_u gt_s gt_u le_s le_u ge_s ge_u
+SWAP = {"eq": "eq", "ne": "ne", "lt_s": "gt_s", "lt_u": "gt_u", "gt_s": "lt_s", "gt_u": "lt_u",
+        "le_s": "ge_s", "le_u": "ge_u", "ge_s": "le_s", "ge_u": "le_u"}  # fmt: skip
+NEGATE = {"eq": "ne", "ne": "eq", "lt_s": "ge_s", "lt_u": "ge_u", "gt_s": "le_s", "gt_u": "le_u",
+          "le_s": "gt_s", "le_u": "gt_u", "ge_s": "lt_s", "ge_u": "lt_u"}  # fmt: skip
+
+L = TypeVar("L")  # the backend's label type
+F = TypeVar("F")  # the backend's per-function frame
+
+
+class Backend(Protocol[L, F]):
+    pool: tuple[int, ...]
+    tos: int
+
+    # frames, traps, labels
+    def new_label(self) -> L: ...
+    def bind(self, label: L) -> None: ...
+    def jump(self, label: L) -> None: ...
+    def here(self) -> int: ...  # code offset of the next instruction
+    def func_begin(self, label: L, pins: tuple[int, ...] = ()) -> F: ...  # checks, poll
+    def func_end(self, f: F, frame_slots: int) -> None: ...
+    def poll(self, f: F) -> None: ...  # interrupt check (loop headers)
+    def trap(self, f: F, code: int) -> None: ...
+    def ret_ok(self, f: F) -> None: ...
+    def finish(self) -> tuple[bytes, int]: ...  # (code + data area, offset of the data area)
+
+    # data
+    def move(self, dst: Dst, src: Operand, wide: bool) -> None: ...
+    def binop(self, op: str, dst: Reg, x: Operand, y: Operand, wide: bool) -> None: ...
+    def divrem(self, f: F, op: str, dst: Reg, x: Operand, y: Operand, wide: bool) -> None: ...
+    def unop(self, op: str, dst: Reg, x: Operand, wide: bool) -> None: ...
+    def cmp_set(self, cond: str, dst: Reg, x: Operand, y: Operand, wide: bool) -> None: ...
+    def cmp_branch(self, cond: str, x: Operand, y: Operand, label: L, wide: bool) -> None: ...
+    def select_cmp(
+        self, cond: str, x: Operand, y: Operand, wc: bool, dst: Reg, t: Operand, e: Operand,
+        wv: bool,
+    ) -> None: ...  # dst = t if (x cond y) else e  # fmt: skip
+    def jump_table(self, index: Operand, labels: Sequence[L], default: L) -> None: ...
+
+    # memory 0 (explicit bounds checks) and context words (globals)
+    def load(
+        self, f: F, size: int, signed: bool, wide: bool, dst: Reg, addr: Operand, offset: int
+    ) -> None: ...
+    def store(self, f: F, size: int, addr: Operand, offset: int, src: Operand) -> None: ...
+    def ctx_load(self, dst: Reg, word: int, indirect: bool) -> None: ...
+    def ctx_store(self, word: int, src: Operand, indirect: bool) -> None: ...
+
+    # calls (a non-zero status unwinds the caller too)
+    def call_direct(self, f: F, label: L, shift_slots: int) -> None: ...
+    def call_host(self, f: F, word: int, slot: int) -> None: ...

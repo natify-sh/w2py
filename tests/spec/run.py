@@ -261,7 +261,14 @@ class _FileRun:
             self.named[c["instance"]] = self.instance(self.defs[c["module"]])
             self.target({"module": c["instance"]})
         elif t == "register":
-            self.registry[c["as"]] = self.named[c["name"]] if "name" in c else self.target({})
+            # an `Unsupported` placeholder is registered too, so a module importing from it fails
+            # `unsupported` (as its own instantiation does), not "unknown import"
+            if "name" in c:
+                self.registry[c["as"]] = self.named[c["name"]]
+            else:
+                if self.current is not None:
+                    self.registry[c["as"]] = self.current
+                self.target({})
         elif t == "action":
             self.act(c["action"])
         elif t == "assert_return":

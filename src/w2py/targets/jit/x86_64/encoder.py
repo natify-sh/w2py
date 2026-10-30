@@ -92,6 +92,10 @@ class Asm:
         self._fixups.append((len(self.buf), size, label))
         self.buf += bytes(size)
 
+    def data_rel32(self, label: Label) -> None:
+        """A 4-byte data field: label - (field address + 4) (jump-table entries)."""
+        self._rel(label, 4)
+
     def finish(self) -> bytes:
         """Resolve every fixup (relative to the end of its field) and return the code."""
         for pos, size, label in self._fixups:

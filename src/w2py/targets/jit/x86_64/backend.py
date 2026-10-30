@@ -1,16 +1,21 @@
-"""The x86-64 backend (docs/specs/S0002 D26, S0003). Step 3a: only the methods that carry the ABI:
-function frames with both stack checks and the interrupt poll, traps returned through frames,
-direct calls and host calls with a status test after each. The operations come in 3b.
+"""The x86-64 backend (docs/specs/S0002 D26, S0003): the `common.backend.Backend` interface.
 
 A function: `endbr64`; push its pins (callee-saved for wasm) + pad to 16; check rsp against
 NSTACK_LIMIT and r12 + 8 * frame_slots against VSTACK_LIMIT; poll INTERRUPT. A trap jumps to a
 cold stub `mov eax, code; jmp unwind`; `unwind` is the epilogue, which keeps eax (R2: no rsp reset).
+
+Roles: rax = tos (and the status), rcx/rdx scratch inside one method, r12 frame, r13/r14 memory 0
+base/size, r15 context, POOL pinnable. i32 values stay zero-extended (32-bit forms, LESSONS 5).
+Every method that compares emits only `mov` between the `cmp` and its consumer (LESSONS 1).
+Everything here is x86-64-v1 (D24): bsr/bsf with an explicit zero case, popcnt by SWAR.
 """
 
 import struct
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 
 from w2py.targets.base import TrapCode
+from w2py.targets.jit.common.backend import NEGATE, SWAP, Dst, Imm, Operand, Reg, Slot
 from w2py.targets.jit.common.context import (
     HOST_BRIDGE,
     INTERRUPT,
@@ -31,6 +36,7 @@ from w2py.targets.jit.x86_64.encoder import (
     RAX,
     RBP,
     RBX,
+    RCX,
     RDI,
     RDX,
     RSI,
@@ -38,31 +44,60 @@ from w2py.targets.jit.x86_64.encoder import (
     Asm,
     Label,
     Mem,
-    Reg,
 )
 
 POOL = (RBX, RBP, RSI, RDI, R8, R9, R10, R11)  # pinnable; never used by the trampolines' roles
 STATUS_MISALIGNED = 255  # test builds only (`check_align`): a call site found rsp % 16 != 0
+CC = {"eq": "e", "ne": "ne", "lt_s": "l", "lt_u": "b", "gt_s": "g", "gt_u": "a", "le_s": "le",
+      "le_u": "be", "ge_s": "ge", "ge_u": "ae"}  # fmt: skip
+SHIFTS = {"shl": "shl", "shr_s": "sar", "shr_u": "shr", "rotl": "rol", "rotr": "ror"}
+M32, M64 = 0xFFFFFFFF, (1 << 64) - 1
 
 
 @dataclass
 class Frame:
-    pins: tuple[Reg, ...]
+    pins: tuple[int, ...]
     pad: bool
     unwind: Label
     vcheck: int  # position of the disp32 of `lea rax, [r12 + 8 * frame_slots]`
     traps: dict[int, Label] = field(default_factory=lambda: {})
 
 
+def _slot(k: int) -> Mem:
+    return Mem(R12, 8 * k)
+
+
+def _imm32(o: Operand, wide: bool) -> int | None:
+    """The immediate if it fits the instruction's (sign-extended) imm32 field, else None."""
+    if not isinstance(o, Imm):
+        return None
+    v = o.value & (M64 if wide else M32)
+    return v if not wide or v < 1 << 31 or v >= (1 << 64) - (1 << 31) else None
+
+
 class Backend:
+    pool = POOL
+    tos = RAX
+
     def __init__(self, check_align: bool = False) -> None:
         self.a = Asm()
         self.check_align = check_align
+        self.tables: list[tuple[Label, list[Label]]] = []
 
+    # ---------------------------------------------------------------- labels, frames, traps
     def new_label(self) -> Label:
         return self.a.label()
 
-    def func_begin(self, label: Label, pins: tuple[Reg, ...] = ()) -> Frame:
+    def bind(self, label: Label) -> None:
+        self.a.bind(label)
+
+    def jump(self, label: Label) -> None:
+        self.a.jmp(label)
+
+    def here(self) -> int:
+        return len(self.a.buf)
+
+    def func_begin(self, label: Label, pins: tuple[int, ...] = ()) -> Frame:
         a = self.a
         assert all(r in POOL for r in pins)
         a.bind(label)
@@ -89,7 +124,7 @@ class Backend:
         for code, label in f.traps.items():
             a.bind(label)
             a.mov_imm(RAX, code)
-            a.jmp(f.unwind, short=True)
+            a.jmp(f.unwind)
         a.bind(f.unwind)
         if f.pad:
             a.alu_imm("add", RSP, 8, w=True)
@@ -107,13 +142,338 @@ class Backend:
         self.a.alu_imm("cmp", Mem(R15, 8 * INTERRUPT), 0, w=True)
         self.a.jcc("ne", self._stub(f, STATUS_INTERRUPT))
 
-    def trap(self, f: Frame, code: TrapCode) -> None:
+    def trap(self, f: Frame, code: int) -> None:
         self.a.jmp(self._stub(f, code))
 
     def ret_ok(self, f: Frame) -> None:
         self.a.alu("xor", RAX, RAX)
         self.a.jmp(f.unwind)
 
+    def finish(self) -> tuple[bytes, int]:
+        """The code, then the data area (jump tables: 32-bit offsets, never executed)."""
+        a = self.a
+        data = len(a.buf)
+        for table, entries in self.tables:
+            a.bind(table)
+            for label in entries:
+                a.data_rel32(label)
+        return a.finish(), data
+
+    # ---------------------------------------------------------------- data
+    def _rm(self, o: Operand, scratch: int, wide: bool) -> int | Mem:
+        """A register or memory form of `o`; an immediate is loaded into `scratch`."""
+        if isinstance(o, Reg):
+            return o.id
+        if isinstance(o, Slot):
+            return _slot(o.k)
+        self.a.mov_imm(scratch, o.value & (M64 if wide else M32), w=wide)
+        return scratch
+
+    def move(self, dst: Dst, src: Operand, wide: bool) -> None:
+        """A register gets the operand's width (32-bit zero-extends); a slot always gets 64 bits."""
+        a = self.a
+        if isinstance(dst, Reg):
+            if isinstance(src, Imm):
+                a.mov_imm(dst.id, src.value & (M64 if wide else M32), w=wide)
+            elif isinstance(src, Reg):
+                if src.id != dst.id:
+                    a.mov(dst.id, src.id, w=wide)
+            else:
+                a.mov(dst.id, _slot(src.k), w=wide)
+            return
+        m = _slot(dst.k)
+        if isinstance(src, Imm):
+            v = _imm32(src, True)
+            if v is not None:
+                a.mov_imm(m, v, w=True)
+            else:
+                a.mov_imm(RCX, src.value, w=True)
+                a.mov(m, RCX, w=True)
+        elif isinstance(src, Reg):
+            a.mov(m, src.id, w=True)
+        elif src.k != dst.k:
+            a.mov(RCX, _slot(src.k), w=True)
+            a.mov(m, RCX, w=True)
+
+    def binop(self, op: str, dst: Reg, x: Operand, y: Operand, wide: bool) -> None:
+        a, d, w = self.a, dst.id, wide
+        if op in SHIFTS:  # x86 masks the count by 31 / 63, as wasm does
+            if isinstance(y, Imm):
+                self.move(dst, x, w)
+                n = y.value & (63 if w else 31)
+                if n:
+                    a.shift(SHIFTS[op], d, n, w=w)
+            else:
+                self.move(Reg(RCX), y, False)
+                self.move(dst, x, w)
+                a.shift(SHIFTS[op], d, None, w=w)
+            return
+        if isinstance(y, Reg) and y.id == d and not (isinstance(x, Reg) and x.id == d):
+            if op == "sub":
+                self.move(Reg(RCX), y, w)
+                y = Reg(RCX)
+            else:  # commutative
+                x, y = y, x
+        self.move(dst, x, w)
+        imm = _imm32(y, w)
+        if op == "mul":
+            if imm is not None:
+                a.imul_imm(d, d, imm, w=w)
+            else:
+                a.imul(d, self._rm(y, RCX, w), w=w)
+        elif imm is not None:
+            a.alu_imm(op, d, imm, w=w)
+        else:
+            a.alu(op, d, self._rm(y, RCX, w), w=w)
+
+    def divrem(self, f: Frame, op: str, dst: Reg, x: Operand, y: Operand, wide: bool) -> None:
+        """Explicit checks (D10): the CPU faults on a zero divisor and on INT_MIN / -1."""
+        a, w, mask = self.a, wide, M64 if wide else M32
+        signed, rem = op.endswith("_s"), op.startswith("rem")
+        known = y.value & mask if isinstance(y, Imm) else None
+        self.move(Reg(RCX), y, w)
+        if not known:
+            a.test(RCX, RCX, w=w)
+            a.jcc("e", self._stub(f, TrapCode.INTEGER_DIVISION_BY_ZERO))
+        self.move(Reg(RAX), x, w)
+        done = None
+        if signed and (known is None or known == mask):
+            go = a.label()
+            a.alu_imm("cmp", RCX, -1, w=w)
+            a.jcc("ne", go, short=True)
+            if rem:  # x rem -1 = 0
+                a.alu("xor", RDX, RDX)
+                done = a.label()
+                a.jmp(done, short=True)
+            else:
+                if w:
+                    a.mov_imm(RDX, 1 << 63, w=True)
+                    a.alu("cmp", RAX, RDX, w=True)
+                else:
+                    a.alu_imm("cmp", RAX, 1 << 31)
+                a.jcc("e", self._stub(f, TrapCode.INTEGER_OVERFLOW))
+            a.bind(go)
+        if signed:
+            a.cqo() if w else a.cdq()
+            a.unary("idiv", RCX, w=w)
+        else:
+            a.alu("xor", RDX, RDX)
+            a.unary("div", RCX, w=w)
+        if done:
+            a.bind(done)
+        res = RDX if rem else RAX
+        if dst.id != res:
+            a.mov(dst.id, res, w=w)
+
+    def unop(self, op: str, dst: Reg, x: Operand, wide: bool) -> None:
+        a, d, w = self.a, dst.id, wide
+        bits = 64 if w else 32
+        if op in ("clz", "ctz"):  # bsr/bsf leave ZF set and the result undefined on zero
+            src = self._rm(x, RCX, w)
+            if op == "clz":
+                a.bsr(d, src, w=w)
+                a.mov_imm(RDX, 2 * bits - 1)  # mov: the flags survive
+                a.cmov("e", d, RDX, w=w)
+                a.alu_imm("xor", d, bits - 1, w=w)  # 31 - i == 31 ^ i; (63 ^ 31) = 32
+            else:
+                a.bsf(d, src, w=w)
+                a.mov_imm(RDX, bits)
+                a.cmov("e", d, RDX, w=w)
+        elif op == "popcnt":  # SWAR (x86-64-v1 has no popcnt)
+            self.move(dst, x, w)
+            k = [0x5555555555555555, 0x3333333333333333, 0x0F0F0F0F0F0F0F0F, 0x0101010101010101]
+            if not w:
+                k = [v & M32 for v in k]
+            a.mov(RCX, d, w=w)
+            a.shift("shr", RCX, 1, w=w)
+            self._and_k(RCX, k[0], w)
+            a.alu("sub", d, RCX, w=w)
+            a.mov(RCX, d, w=w)
+            self._and_k(d, k[1], w)
+            a.shift("shr", RCX, 2, w=w)
+            self._and_k(RCX, k[1], w)
+            a.alu("add", d, RCX, w=w)
+            a.mov(RCX, d, w=w)
+            a.shift("shr", RCX, 4, w=w)
+            a.alu("add", d, RCX, w=w)
+            self._and_k(d, k[2], w)
+            if w:
+                a.mov_imm(RDX, k[3], w=True)
+                a.imul(d, RDX, w=True)
+            else:
+                a.imul_imm(d, d, k[3])
+            a.shift("shr", d, bits - 8, w=w)
+        elif op in ("extend8_s", "extend16_s"):
+            src = self._rm(x, RCX, w)
+            a.movsx(d, src, 8 if op == "extend8_s" else 16, w=w)
+        elif op in ("extend32_s", "extend_i32_s"):
+            a.movsx(d, self._rm(x, RCX, False), 32)
+        else:  # extend_i32_u, wrap: the low 32 bits, zero-extended
+            assert op in ("extend_i32_u", "wrap"), op
+            if isinstance(x, Reg):  # even when x is d: `move` skips that, the upper half must go
+                a.mov(d, x.id, w=False)
+            else:
+                self.move(dst, x, False)
+
+    def _and_k(self, r: int, k: int, w: bool) -> None:
+        if w:
+            self.a.mov_imm(RDX, k, w=True)
+            self.a.alu("and", r, RDX, w=True)
+        else:
+            self.a.alu_imm("and", r, k)
+
+    def _cmp(self, cond: str, x: Operand, y: Operand, wide: bool) -> str:
+        """Emit the compare (only `mov` may follow before the consumer); the condition to test,
+        swapped if the operands were."""
+        a, w = self.a, wide
+        if isinstance(x, Imm):
+            if isinstance(y, Imm):
+                self.move(Reg(RCX), x, w)
+                x = Reg(RCX)
+            else:
+                x, y, cond = y, x, SWAP[cond]
+        if isinstance(x, Slot) and isinstance(y, Slot):
+            self.move(Reg(RCX), x, w)
+            x = Reg(RCX)
+        lhs = x.id if isinstance(x, Reg) else _slot(x.k)
+        imm = _imm32(y, w)
+        if imm is not None:
+            a.alu_imm("cmp", lhs, imm, w=w)
+        else:
+            a.alu("cmp", lhs, self._rm(y, RDX, w), w=w)
+        return cond
+
+    def cmp_set(self, cond: str, dst: Reg, x: Operand, y: Operand, wide: bool) -> None:
+        cond = self._cmp(cond, x, y, wide)
+        self.a.setcc(CC[cond], dst.id)
+        self.a.movzx(dst.id, dst.id, 8)
+
+    def cmp_branch(self, cond: str, x: Operand, y: Operand, label: Label, wide: bool) -> None:
+        cond = self._cmp(cond, x, y, wide)
+        self.a.jcc(CC[cond], label)
+
+    def select_cmp(
+        self, cond: str, x: Operand, y: Operand, wc: bool, dst: Reg, t: Operand, e: Operand,
+        wv: bool,
+    ) -> None:  # fmt: skip
+        """dst = t if (x cond y) else e; both values are already computed (LESSONS 28)."""
+        cond = self._cmp(cond, x, y, wc)
+        self.move(Reg(RCX), t, wv)  # mov only from here to the cmov (LESSONS 1)
+        src = self._rm(e, RDX, wv)
+        self.a.cmov(CC[NEGATE[cond]], RCX, src, w=wv)
+        self.move(dst, Reg(RCX), wv)
+
+    def jump_table(self, index: Operand, labels: Sequence[Label], default: Label) -> None:
+        """Jump to labels[index], or default when index >= len(labels). From 4 entries on, a
+        table of 32-bit offsets in the data area (S0003: never disassembled); each entry lands on
+        an `endbr64` pad (CET IBT, R2) that jumps on."""
+        a = self.a
+        self.move(Reg(RCX), index, False)
+        if len(labels) < 4:
+            for i, label in enumerate(labels):
+                a.alu_imm("cmp", RCX, i)
+                a.jcc("e", label)
+            a.jmp(default)
+            return
+        a.alu_imm("cmp", RCX, len(labels))
+        a.jcc("ae", default)
+        table = a.label()
+        a.lea_label(RDX, table)
+        a.lea(RDX, Mem(RDX, 0, RCX, 4))
+        a.movsx(RCX, Mem(RDX), 32)
+        a.lea(RDX, Mem(RDX, 4, RCX))
+        a.jmp(RDX)
+        pads: dict[Label, Label] = {}
+        for label in labels:
+            if label not in pads:
+                pads[label] = a.label()
+                a.bind(pads[label])
+                a.endbr64()
+                a.jmp(label)
+        self.tables.append((table, [pads[label] for label in labels]))
+
+    # ---------------------------------------------------------------- memory 0 and context
+    def _bounds(self, f: Frame, addr: Operand, offset: int, size: int) -> Mem:
+        """The bounds check (R3: the one place memory safety rests on). The effective address
+        addr + offset (< 2**33) and its end are computed in 64 bits, so nothing wraps; the end
+        must be <= memory size (r14) or the access traps. A register address is first copied
+        with a 32-bit move, so its upper half cannot matter."""
+        a = self.a
+        oob = self._stub(f, TrapCode.MEMORY_OUT_OF_BOUNDS)
+        if isinstance(addr, Imm):
+            ea = (addr.value & M32) + offset
+            if ea + size < 1 << 31:
+                a.alu_imm("cmp", R14, ea + size, w=True)
+                a.jcc("b", oob)
+                return Mem(R13, ea)
+            a.mov_imm(RCX, ea, w=True)
+            disp = 0
+        else:
+            self.move(Reg(RCX), addr, False)
+            disp = offset
+            if offset + size >= 1 << 31:
+                a.mov_imm(RDX, offset, w=True)
+                a.alu("add", RCX, RDX, w=True)
+                disp = 0
+        a.lea(RDX, Mem(RCX, disp + size))
+        a.alu("cmp", RDX, R14, w=True)
+        a.jcc("a", oob)
+        return Mem(R13, disp, RCX)
+
+    def load(
+        self, f: Frame, size: int, signed: bool, wide: bool, dst: Reg, addr: Operand, offset: int
+    ) -> None:
+        a, d = self.a, dst.id
+        m = self._bounds(f, addr, offset, size)
+        if size == 8:
+            a.mov(d, m, w=True)
+        elif size == 4:
+            if signed:
+                a.movsx(d, m, 32)
+            else:
+                a.mov(d, m)
+        elif signed:
+            a.movsx(d, m, 8 * size, w=wide)
+        else:
+            a.movzx(d, m, 8 * size)
+
+    def store(self, f: Frame, size: int, addr: Operand, offset: int, src: Operand) -> None:
+        a = self.a
+        m = self._bounds(f, addr, offset, size)
+        imm = _imm32(src, size == 8)
+        if imm is not None and size >= 4:
+            a.mov_imm(m, imm, w=size == 8)
+            return
+        r = self._rm(src, RDX, size == 8)
+        if not isinstance(r, int):
+            a.mov(RDX, r, w=True)
+            r = RDX
+        if size == 1:
+            a.store8(m, r)
+        elif size == 2:
+            a.store16(m, r)
+        else:
+            a.mov(m, r, w=size == 8)
+
+    def ctx_load(self, dst: Reg, word: int, indirect: bool) -> None:
+        if indirect:
+            self.a.mov(RCX, Mem(R15, 8 * word), w=True)
+            self.a.mov(dst.id, Mem(RCX), w=True)
+        else:
+            self.a.mov(dst.id, Mem(R15, 8 * word), w=True)
+
+    def ctx_store(self, word: int, src: Operand, indirect: bool) -> None:
+        r = self._rm(src, RDX, True)
+        if not isinstance(r, int):
+            self.a.mov(RDX, r, w=True)
+            r = RDX
+        if indirect:
+            self.a.mov(RCX, Mem(R15, 8 * word), w=True)
+            self.a.mov(Mem(RCX), r, w=True)
+        else:
+            self.a.mov(Mem(R15, 8 * word), r, w=True)
+
+    # ---------------------------------------------------------------- calls
     def _call(self, f: Frame, target: Label | Mem) -> None:
         if self.check_align:
             self.a.test_imm(RSP, 15)
