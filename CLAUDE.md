@@ -124,7 +124,21 @@ Report:      files changed, commands run with output, numbers before/after, open
 * `pyc` codegen: keep generated code valid for the minimum Python (see `docs/ROADMAP.md`, open
   question 1) and for the MicroPython flavour.
 
-## Commands (PoC)
+## Commands
+```
+uv sync                                    # dev environment
+uv run pytest -q                           # package tests
+uv run python tests/spec/fetch.py          # fetch and convert the pinned spec suite
+uv run python -m tests.spec.run --engine {wasmtime,pyc,jit-x86_64,auto}   # the spec metric
+uv run python tools/spec_diff.py pyc jit-x86_64 --allow-unsupported       # gap between two targets
+uv run python tools/run_coremark_pyc.py poc/in/core.wasm   # CoreMark on the package's pyc
+uv run python tools/run_coremark_jit.py poc/in/core.wasm   # CoreMark on the package's jit-x86_64
+python3 tools/check_docs.py                # documents follow docs/STANDARDS.md
+python3 tools/features.py --check          # feature table is consistent
+uv run python tools/stack_info.py          # thread stack bounds the JIT uses
+```
+
+PoC (for comparisons):
 ```
 cd poc
 python3 run_jit2.py in/core.wasm           # JIT, CoreMark

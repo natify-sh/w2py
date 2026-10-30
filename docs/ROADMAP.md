@@ -85,6 +85,8 @@ lacks a feature reports it through `Target.supports` and the module runs on anot
 | later | each new proposal enters with its spec tests green on every target that claims it |
 
 ## Phase 0 — repository from the PoC
+*Status: done (branch `phase0-skeleton`, not merged to `main`).*
+
 * Package layout of ARCHITECTURE.md; move the PoC's reader, decoder and stack-to-tree builder out of
   `w2py.py` into `frontend/` and `ir/`; the code generators become `targets/pyc` and `targets/jit/x86_64`.
 * `pyproject.toml` with **no** runtime dependencies and a development group (wasmtime pinned as the
@@ -92,6 +94,8 @@ lacks a feature reports it through `Target.supports` and the module runs on anot
 * CI skeleton: CPython 3.11–3.15 + 3.15t + PyPy 3.11 on Linux x86-64.
 
 ## Phase 1 — frontend complete
+*Status: done: strict binary reader, validator, spec-suite runner, HIR.*
+
 * Full binary reader for every proposal Wasmtime supports (FEATURES.md); the validator (type checking
   of function bodies); constant expressions (extended const).
 * Spec-suite harness over the tiny internal engine interface (TESTING.md) running `assert_invalid` / `assert_malformed`.
@@ -99,6 +103,8 @@ lacks a feature reports it through `Target.supports` and the module runs on anot
   weights, effect order, trap points, call graph); documented in code.
 
 ## Phase 2 — `pyc` target complete
+*Status: done for the core group (spec core: `pyc` 20508 pass, wasmtime oracle 20556); frozen for new features, correctness fixes only.*
+
 * All core features of FEATURES.md, SIMD correct before fast; NaN rules settled against the oracle.
 * Trap conversion at the boundary; stack-depth counter and `STACK_OVERFLOW`; re-entrancy.
 * Long calls: yield points + interrupt word (measure the cost); one-thread-per-store guard.
@@ -111,9 +117,10 @@ lacks a feature reports it through `Target.supports` and the module runs on anot
 * Exit criterion: the spec suite passes on CPython and PyPy.
 
 ## Phase 3 — `jit-x86_64`: integer core and the backend interface
-* **Order of work from here (2026-10-30):** `pyc` first closes the remaining gaps of the core (the
-  top-level `test/core` group, outside GC and exceptions), then is frozen at that feature set (plus
-  typed function references and tail calls) and only gets correctness fixes until the JIT catches up. **Multi-memory is the first proposal after that, on both
+*Status: in progress, S0002 step 3: 3a ABI, 3b integer core, 3c SSE2 floats and `memory.grow` done (spec core 18201 pass; CoreMark 16 299 it/s, `w2jit2` 16 411); 3d tables, `call_indirect`, reference types under way; then steps 4 (fallback test), 5 (speed and ISA), 6 (review). The scope went beyond the integer core (floats, tables) because the goal is completeness (D25).*
+
+* **Order of work (2026-10-30):** `pyc` has closed the core group and is frozen at that feature set
+  (plus typed function references and tail calls); it only gets correctness fixes until the JIT catches up. **Multi-memory is the first proposal after that, on both
   targets together**, as soon as the JIT's integer core runs the `core` group: fused WASI 0.2 needs it
   (D7). S0003's context already indexes memories (`memory i: base, size` from word 16), so it needs no
   ABI change; `pyc` needs a memory index on every memory operation. New
@@ -146,6 +153,8 @@ lacks a feature reports it through `Target.supports` and the module runs on anot
   declared level.
 
 ## Phase 4 — the second architecture (integer core) proves the interface
+*Status: not started.*
+
 * `jit-aarch64`, tested natively on GitHub's arm64 runners (Linux; macOS arm64 with `MAP_JIT`), integer
   core only: the same stage 1, the same spec commands as phase 3. QEMU user-mode is only for
   architectures without native runners (riscv64 and later ones).
@@ -157,6 +166,8 @@ lacks a feature reports it through `Target.supports` and the module runs on anot
   in phase 5.
 
 ## Phase 5 — JIT completion
+*Status: not started.*
+
 * The rest of the opcode set in stages (TARGETS.md) on **every** JIT target in step: floats, `call_indirect`
   and tables, `memory.grow` on a reserved range, bulk memory, reference types, multi-value,
   multi-memory, memory64, then SIMD and the later proposals. What a backend lacks is `unsupported` until it
@@ -175,6 +186,8 @@ lacks a feature reports it through `Target.supports` and the module runs on anot
 * Differential fuzzing against wasmtime (`wasm-smith`) from the first widened stage on.
 
 ## Phase 6 — runtime API, WASI, CLI
+*Status: not started.*
+
 * `Engine`, `Config`, `Store`, `Module`, `Linker`, `Instance`, externs, `Caller`, `Trap`/`TrapCode`,
   limits, in the shape of wasmtime-py (not a drop-in), over the internal engine interface the spec
   runner has used since phase 1.
@@ -186,6 +199,8 @@ lacks a feature reports it through `Target.supports` and the module runs on anot
 * Differential tests against wasmtime on real programs.
 
 ## Phase 7 — `mpy` target
+*Status: not started.*
+
 * `.mpy` ahead of time and on-device source; `@native` where it helps; avoid the `mpy-cross` large
   function bug (LESSONS.md 17).
 * Research: lower HIR to `@micropython.viper` code (machine-word ints, `ptr8/16/32` memory) so that
@@ -195,6 +210,8 @@ lacks a feature reports it through `Target.supports` and the module runs on anot
 * Port the translator to run on MicroPython if on-device compilation is wanted.
 
 ## Phase 8 — more architectures
+*Status: not started.*
+
 * armv7, mips32el (Ingenic X2000), ppc64le, loongarch64 and whichever of aarch64 / riscv64 phase 4 did
   not take — by hand or by copy-and-patch, CI under QEMU user-mode. Each is added by a backend, the
   encoder test and the integer-core spec commands; the shared core does not change.
