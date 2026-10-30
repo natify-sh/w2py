@@ -111,6 +111,11 @@ lacks a feature reports it through `Target.supports` and the module runs on anot
 * Exit criterion: the spec suite passes on CPython and PyPy.
 
 ## Phase 3 — `jit-x86_64`: integer core and the backend interface
+* **Order of work from here (2026-10-30):** `pyc` is frozen at its current feature set (the core of
+  `test/core` plus typed function references and tail calls); it only gets correctness fixes. New
+  proposals (SIMD, GC, exceptions, memory64, multi-memory beyond memory 0, threads) land on `pyc`
+  and the JIT together, or on the JIT first, so the gap between their expected-failure files stays
+  small and is reported per directory on every run (D25).
 * **Decide the shape of the shared JIT core before writing it** and record it in DECISIONS.md: LIR with
   virtual registers and an allocator (Cranelift style), or one pass over HIR driving a small
   `MacroAssembler`-like backend interface (Winch style; closest to what `w2jit2` already does with its
