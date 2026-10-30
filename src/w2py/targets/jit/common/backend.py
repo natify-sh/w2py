@@ -113,6 +113,7 @@ class Backend(Protocol[L, F]):
         self, f: F, table: int, sig: int, index: Operand, shift_slots: int
     ) -> None: ...  # fmt: skip
     def call_ref(self, f: F, ref: Operand, shift_slots: int) -> None: ...  # null: NULL_REFERENCE
+    def call_record(self, f: F, word: int, shift_slots: int) -> None: ...  # a function import
     def host_thunk(self, word: int) -> int: ...  # code offset of an import's record entry
     def null_check(self, f: F, x: Operand, code: int) -> None: ...  # trap if the reference is 0
 
@@ -123,3 +124,4 @@ class Backend(Protocol[L, F]):
         self, f: F, table: int, sig: int, index: Operand, src: int, n: int
     ) -> None: ...  # fmt: skip
     def tail_ref(self, f: F, ref: Operand, src: int, n: int) -> None: ...
+    def tail_record(self, f: F, word: int, src: int, n: int) -> None: ...

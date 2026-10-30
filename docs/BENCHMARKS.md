@@ -78,6 +78,24 @@ round by round: `python3 tools/run_coremark_jit.py poc/in/core.wasm`, then
   costs nothing elsewhere: the code is byte-for-byte the size of step 3c's (45 396 bytes, data area
   from 44 872); compile 60–64 ms. The −1.1 % is within the run-to-run noise (~±5 %).
 
+### Package JIT: function imports through their records (JIT step 3f, D32)
+
+Conditions: 2026-10-30, Intel Xeon @ 2.10 GHz, 4 vCPU cloud machine, CPython 3.13.17. HEAD
+(3c2c853's `src/`, exported to a scratch directory and put first on `PYTHONPATH`) and the change,
+alternated round by round in one session.
+
+* **1e6 calls of an import from a wasm loop** (a scratch script: `(call $f (local.get 0))` in a
+  `loop`, best of 5 runs per round, ns per iteration). A host function (`lambda a: [a[0] & 1]`):
+  HEAD 1545 1469 1466 1449 1497 1628 1553 1472 1597, new 1602 1570 1617 1589 1490 1635 1475 1758
+  1444: minima 1449 / 1444, medians 1497 / 1589 (the first three rounds) and 1525 / 1540 (the
+  last six); no difference beyond the noise of the ctypes callback. The same loop calling a
+  function of another JIT instance: HEAD 4757–5057 (through the host bridge and a nested entry),
+  new **3** (a direct call with a context switch).
+* **CoreMark** (`tools/run_coremark_jit.py poc/in/core.wasm`, self-check passed in every run,
+  crcfinal 0x4983): HEAD 14 872 · 14 769 · 14 837, new 15 069 · 16 067 · 14 704 it/s (medians
+  14 837 / 15 069: noise). Code 45 396 → 45 579 bytes (a thunk per import, longer import call
+  sites).
+
 ## Compile and load times (CoreMark)
 
 | step | time |

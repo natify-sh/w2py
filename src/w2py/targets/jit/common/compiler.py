@@ -176,7 +176,9 @@ class Compiled:
     layout: Layout
     records: list[int]  # the function index of each function record (Layout.record)
     sigs: list[int]  # the type index of each signature word (Layout.sig)
-    thunks: dict[int, int]  # imported function -> code offset of its entry for a table element
+    thunks: dict[
+        int, int
+    ]  # imported function -> code offset of its host thunk (its record if host)
 
 
 @dataclass(slots=True)
@@ -215,10 +217,11 @@ def compile_module(mod: ValidModule, b: Backend[Any, Any], target: str) -> Compi
     gimps = [im[3][0] for im in imps if im[0] == "global"]
     has_mem = bool(mod["mems"]) or any(im[0] == "mem" for im in imps)
     # every function a reference can be taken to (the validator checks that ref.func names one
-    # of them) gets a record; every type call_indirect names a signature word
+    # of them) and every function import (`call` goes through its record, D30) gets a record;
+    # every type call_indirect names a signature word
     inits = [e for _, _, _, items in mod["elem_info"] for e in items]
     inits += [g[2] for g in mod["globals"]] + [e for e in mod["tinit"] if e is not None]
-    refd = {e[1] for e in inits if e[0] == "func"}
+    refd = {e[1] for e in inits if e[0] == "func"} | set(range(len(fimps)))
     refd |= {i[1] for insns in mod["insns"] for i in insns if i[0] == 0xD2}
     sigs = sorted({i[1] for insns in mod["insns"] for i in insns if i[0] in (0x11, 0x13)})
     layout = Layout(
@@ -474,8 +477,8 @@ class _Func:
         self.flush()
         h0 = len(self.st) - n
         del self.st[h0:]
-        if fi < m.nimp:
-            b.call_host(self.f, m.layout.import_(fi), self.L + h0)
+        if fi < m.nimp:  # its record: another instance's function, or the host thunk
+            b.call_record(self.f, m.layout.record(m.records[fi]), self.L + h0)
         else:
             b.call_direct(self.f, m.labels[fi - m.nimp], self.L + h0)
         self.st += [SLOTE] * nres
@@ -507,13 +510,8 @@ class _Func:
     def tail_call(self, op: int, ins: Any) -> None:
         """return_call / return_call_indirect / return_call_ref: the arguments become the
         callee's frame at our frame base, our native frame is dropped, then a jump (constant
-        stacks, S0003 3e). A host import is called and returned from (a host frame is not wasm's
-        to drop)."""
+        stacks, S0003 3e). An import is jumped to through its record, as return_call_ref does."""
         m, b = self.m, self.b
-        if op == 0x12 and ins[1] < m.nimp:
-            self.call(ins[1])
-            self.br(len(self.ctl) - 1)
-            return
         fi: int = ins[1]
         ti = m.ftypes[fi] if op == 0x12 else fi
         n = len(m.types[ti][0])
@@ -521,7 +519,9 @@ class _Func:
         self.flush()
         h0 = len(self.st) - n
         src = self.L + h0
-        if op == 0x12:
+        if op == 0x12 and fi < m.nimp:
+            b.tail_record(self.f, m.layout.record(m.records[fi]), src, n)
+        elif op == 0x12:
             b.tail_direct(self.f, m.labels[fi - m.nimp], src, n)
         elif op == 0x13:
             assert x is not None

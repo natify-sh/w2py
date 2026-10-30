@@ -313,10 +313,20 @@ uv run pytest tests/jit -k "entry or trap or reentry or host or interrupt or sta
   both limits and polls INTERRUPT. A record of the same context is jumped to directly. One of another
   context goes through the `tail_switch` trampoline (context word 9, D30), which leaves one restore
   frame per chain, so the caller's direct `call` site finds its r15/r13/r14 again. `return_call` of
-  an import is a call and a return. The host thunk reloads r13/r14 after the bridge: as a tail-call
-  target it returns to a caller that does not reload them. `call_ref` is `call_indirect` without the
+  an import is a call and a return (until step 3f, below). The host thunk reloads r13/r14 after
+  the bridge: as a tail-call target it returns to a caller that does not reload them. `call_ref` is `call_indirect` without the
   table lookup or the type check; a null gives `NULL_REFERENCE`, as `ref.as_non_null` does (Wasmtime).
   `br_on_null`/`br_on_non_null` compare the reference's slot with 0. Typed references are the same
   word as `funcref`. Tags are read and validated (a type index naming a type without results); they
   have no run-time meaning while tag imports and exception instructions are unsupported on both
   targets.
+* 2026-10-30 (step 3f, D32): every function import gets a function record (the records section
+  counts the imports too; no new section, same version 1): the exporter's record for a function of
+  another JIT instance of the same store, the module's host thunk for a host function. `call` of an
+  import is `call_ref` on that record without the null check (r15 pushed with a pad, r15/r13/r14
+  from the record's context, `call [record]`, r15 popped and r13/r14 reloaded); `return_call` of an
+  import is `return_call_ref` on it (same context: `jmp [record]`, which for a host function is the
+  thunk; another context: `tail_switch`). A direct call into another instance therefore runs
+  without Python, and tail recursion through an import runs in constant stacks
+  (`test_tail_recursion_through_a_function_import`: 10⁶ rounds on a 256 KiB thread, as Wasmtime).
+  The import word keeps the host function's address; the bridge is reached through the thunk.

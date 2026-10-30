@@ -478,8 +478,8 @@ class GlobalCell:
 
 
 class JitFunc:
-    """An exported function of a JIT instance: a `HostFunc` for imports (the host path), and the
-    contents of its function record for a table element in another instance of the store."""
+    """An exported function of a JIT instance: a `HostFunc` for the host, and the contents of its
+    function record for an importer or a table element in another instance of the store (D30)."""
 
     def __init__(self, inst: "JitInstance", idx: int) -> None:
         self.inst, self.idx = inst, idx

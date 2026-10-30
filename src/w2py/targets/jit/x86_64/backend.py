@@ -991,6 +991,13 @@ class Backend:
         self._ref_record(f, ref)
         self._call_record(f, shift_slots)
 
+    def call_record(self, f: Frame, word: int, shift_slots: int) -> None:
+        """A function import, through its record in context word `word` (D30): a function of
+        another instance of the store runs on its own context; a host function's record is
+        this module's thunk on our context."""
+        self.a.lea(RDX, Mem(R15, 8 * word))
+        self._call_record(f, shift_slots)
+
     def null_check(self, f: Frame, x: Operand, code: int) -> None:
         """Trap with `code` if the reference x is null; nothing but rcx is written."""
         r = x.id if isinstance(x, Reg) else RCX
@@ -1044,6 +1051,11 @@ class Backend:
         self._tail(f, src, n)
         self._tail_record()
 
+    def tail_record(self, f: Frame, word: int, src: int, n: int) -> None:
+        self._tail(f, src, n)
+        self.a.lea(RDX, Mem(R15, 8 * word))
+        self._tail_record()
+
     def host_thunk(self, word: int) -> int:
         """The code address a function record of an imported function points to: called like a
         wasm function (frame in r12, context in r15), it calls the import in context word `word`
@@ -1062,8 +1074,8 @@ class Backend:
         return at
 
     def call_host(self, f: Frame, word: int, slot: int) -> None:
-        """Call the host function (import or libcall) in context word `word`; its arguments and
-        results are slots `slot`, `slot + 1`, ... of this frame."""
+        """Call the libcall in context word `word` through the bridge (imports go through their
+        records, D32); its arguments and results are slots `slot`, `slot + 1`, ... of this frame."""
         a = self.a
         a.lea(RDX, Mem(R12, 8 * slot))
         a.mov_imm(RAX, word)

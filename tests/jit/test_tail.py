@@ -24,6 +24,7 @@ from w2py.runtime.store import StoreState
 from w2py.targets.base import Raw, Trap, TrapCode
 from w2py.targets.jit.common.compiler import Compiled
 from w2py.targets.jit.common.context import TAIL_SWITCH
+from w2py.targets.jit.common.instance import JitFunc
 from w2py.targets.jit.x86_64 import JitX86_64Target
 from w2py.targets.jit.x86_64.abi import bridge, entry, sp_stub, tail_switch, trampolines
 from w2py.targets.jit.x86_64.encoder import Asm
@@ -238,9 +239,10 @@ def test_tail_calls_across_instances() -> None:
 
 
 def test_return_call_to_host_functions() -> None:
-    """return_call of an import is a call and a return (results, trap, exception). A host
-    function reached by return_call_indirect (its thunk, jumped to) re-enters wasm and grows the
-    memory: the caller's direct call site does not reload the memory size, so the thunk does."""
+    """call and return_call of a host import go through its record, the module's thunk (results,
+    trap, exception), as return_call_indirect does. A host function reached by a tail call (the
+    thunk, jumped to) re-enters wasm and grows the memory: the caller's direct call site does not
+    reload the memory size, so the thunk does."""
     cell: list[Inst] = []
 
     def h(args: Sequence[Raw]) -> list[Raw]:
@@ -259,22 +261,127 @@ def test_return_call_to_host_functions() -> None:
       (memory 1)
       (table 1 funcref) (elem (i32.const 0) func $h)
       (func (export "grow") (drop (memory.grow (i32.const 1))))
-      (func (export "direct") (param i32) (result i32) (return_call $h (local.get 0)))
+      (func (export "call") (param i32) (result i32) (call $h (local.get 0)))
+      (func $direct (export "direct") (param i32) (result i32) (return_call $h (local.get 0)))
       (func $tail (param i32) (result i32)
         (return_call_indirect (type $h) (local.get 0) (i32.const 0)))
       (func (export "indirect") (param i32) (result i32) (call $tail (local.get 0)))
       (func (export "after_grow") (result i32)
         (drop (call $tail (i32.const 15)))
-        (i32.load (i32.const 65540))))"""),
+        (i32.load (i32.const 65540)))
+      (func (export "after_grow_call") (result i32)
+        (drop (call $h (i32.const 15)))
+        (i32.load (i32.const 131076)))
+      (func (export "after_grow_direct") (result i32)
+        (drop (call $direct (i32.const 15)))
+        (i32.load (i32.const 196612))))"""),
         imports={"env": {"h": h}},
     )
     cell.append(jit)
-    for name in ("direct", "indirect"):
+    for name in ("call", "direct", "indirect"):
         assert jit(name, 21) == [42]
         assert trap_of(jit, name, 13) is TrapCode.UNREACHABLE
         with pytest.raises(ValueError, match="host"):
             jit(name, 14)
     assert jit("after_grow") == [0]
+    assert jit("after_grow_call") == [0]
+    assert jit("after_grow_direct") == [0]
+
+
+# B exports pong and its table; A imports both and puts its ping in the table: ping return_calls
+# the imported pong, pong return_call_indirects back into ping (the 3e review's repro).
+PONG = """(module
+  (type $p (func (param i32) (result i32)))
+  (table $t (export "t") 1 funcref)
+  (func $pong (export "pong") (type $p)
+    (if (result i32) (i32.eqz (local.get 0)) (then (i32.const 222))
+      (else (return_call_indirect $t (type $p) (i32.sub (local.get 0) (i32.const 1))
+        (i32.const 0))))))"""
+PING = """(module
+  (type $p (func (param i32) (result i32)))
+  (import "b" "pong" (func $pong (type $p)))
+  (import "b" "t" (table $t 1 funcref))
+  (elem (table $t) (i32.const 0) func $ping)
+  (func $ping (export "ping") (type $p)
+    (if (result i32) (i32.eqz (local.get 0)) (then (i32.const 111))
+      (else (return_call $pong (i32.sub (local.get 0) (i32.const 1)))))))"""
+
+
+def test_tail_recursion_through_a_function_import(monkeypatch: pytest.MonkeyPatch) -> None:
+    """return_call of an imported function of another instance jumps through its record (D30):
+    1e6 rounds on a 256 KiB thread give Wasmtime's results, never through Python (the exported
+    function's host path is disabled)."""
+    need(importlib.util.find_spec("wasmtime") is not None, "wasmtime")
+    import wasmtime
+
+    s = wasmtime.Store(wasmtime.Engine(_config()))
+    be = wasmtime.Instance(s, wasmtime.Module(s.engine, wat(PONG)), []).exports(s)
+    ai = wasmtime.Instance(s, wasmtime.Module(s.engine, wat(PING)), [be["pong"], be["t"]])
+    ping = cast(wasmtime.Func, ai.exports(s)["ping"])
+    ns = (0, 1, 2, 1000, 1_000_000, 1_000_001)
+    expected = [[ping(s, n)] for n in ns]
+    assert expected[-2:] == [[111], [222]]
+
+    def no_host_path(self: JitFunc, args: Sequence[Raw]) -> list[Raw]:
+        raise AssertionError("an imported JIT function was called through the host bridge")
+
+    def body() -> None:
+        store = StoreState()
+        b = build(wat(PONG), store=store)
+        a = build(wat(PING), imports={"b": provider(b)}, store=store)
+        monkeypatch.setattr(JitFunc, "__call__", no_host_path)
+        assert [a("ping", n) for n in ns] == expected
+
+    _small_thread(body)
+
+
+# B owns a memory and a global and grows the memory; A calls it directly (call and return_call)
+# and reads its own memory, size and global afterwards.
+OWN_B = """(module
+  (memory 1) (data (i32.const 0) "\\07")
+  (global $g (mut i32) (i32.const 300))
+  (func (export "work") (param i32) (result i32)
+    (global.set $g (i32.add (global.get $g) (i32.const 1)))
+    (i32.add (i32.load8_u (i32.const 0))
+      (i32.add (global.get $g)
+        (i32.add (i32.mul (memory.grow (local.get 0)) (i32.const 1000))
+          (i32.load (i32.sub (i32.mul (memory.size) (i32.const 65536)) (i32.const 4)))))))
+  (func (export "trap") (param i32) (result i32) (i32.div_u (i32.const 1) (local.get 0))))"""
+OWN_A = """(module
+  (type $w (func (param i32) (result i32)))
+  (import "b" "work" (func $work (type $w)))
+  (import "b" "trap" (func $trap (type $w)))
+  (memory 1) (data (i32.const 0) "\\05")
+  (global $g (mut i32) (i32.const 40000))
+  (func $mine (result i32)
+    (i32.add (i32.load8_u (i32.const 0)) (i32.add (global.get $g) (memory.size))))
+  (func (export "call") (param i32) (result i32)
+    (i32.add (call $work (local.get 0)) (i32.mul (call $mine) (i32.const 100000))))
+  (func $tail (param i32) (result i32) (return_call $work (local.get 0)))
+  (func (export "tail") (param i32) (result i32)
+    (i32.add (call $tail (local.get 0)) (i32.mul (call $mine) (i32.const 100000))))
+  (func (export "trap") (param i32) (result i32)
+    (i32.add (call $trap (local.get 0)) (call $mine))))"""
+
+
+def test_direct_call_into_another_instance(pins: None) -> None:
+    """A direct call (and a return_call) of an imported function of another instance runs on the
+    exporter's context: it sees its own memory and global and grows its own memory; the caller
+    then sees its own memory, size and global again. A trap in the callee reaches the caller's
+    entry; an import of another store's function is still refused."""
+    store = StoreState()
+    b = build(wat(OWN_B), store=store)
+    a = build(wat(OWN_A), imports={"b": provider(b)}, store=store)
+    mine = (5 + 40000 + 1) * 100000
+    # B: byte 7, global 300 + k, old size (k pages) * 1000; its new last word is 0
+    assert a("call", 1) == [(7 + 301 + 1000 + mine) & 0xFFFFFFFF]
+    assert a("tail", 2) == [(7 + 302 + 2000 + mine) & 0xFFFFFFFF]
+    assert a("call", 0) == [(7 + 303 + 4000 + mine) & 0xFFFFFFFF]
+    assert b("work", 0) == [7 + 304 + 4000]
+    assert a("trap", 3) == [0 + 5 + 40000 + 1]
+    assert trap_of(a, "trap", 0) is TrapCode.INTEGER_DIVISION_BY_ZERO
+    with pytest.raises(ValueError, match="another store"):
+        build(wat(OWN_A), imports={"b": provider(b)}, store=StoreState())
 
 
 TYPED = """(module
@@ -356,7 +463,7 @@ def test_isa_check_on_tail_call_code(tmp_path: Path) -> None:
     sp_stub(a)
     tail_switch(a)
     blobs: list[tuple[bytes, int | None]] = [(a.finish(), None)]
-    for text in (DEEP, SHAPES, CROSS_A, CROSS_B, TYPED):
+    for text in (DEEP, SHAPES, CROSS_A, CROSS_B, TYPED, PONG, PING, OWN_A, OWN_B):
         mod = parse(wat(text))
         validate(mod)
         c = JitX86_64Target().compile(mod)

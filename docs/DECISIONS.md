@@ -352,7 +352,7 @@ Deviation (temporary): a `return_call` to a function import is a call plus a ret
 bridge, so tail recursion through an imported wasm function grows the stack (A `return_call`s an
 imported `pong` that `return_call_indirect`s back: Wasmtime runs 10⁶ rounds, both w2py targets trap
 `STACK_OVERFLOW` at 10³). It is closed by calling an imported function of another JIT instance of the
-same store directly through its function record. A `return_call*`  moves its arguments to its frame
+same store directly through its function record (closed by D32). A `return_call*`  moves its arguments to its frame
 base, drops its native frame and jumps. When the callee's function record has another context, r15
 must change, but a direct `call` site in the original caller relies on r15/r13/r14 being its own
 afterwards. The jump therefore goes through `tail_switch`, one trampoline per process whose address is
@@ -378,3 +378,20 @@ this machine's architecture exists but its probe fails (executable memory forbid
 the fallback is reported there too). No message when the target was chosen explicitly; an explicit
 `jit-*` that cannot run is an `Unsupported` error. Rejected: `print` to stderr (cannot be filtered or turned into an error, noisy in
 libraries); `logging` (silent by default, so the one case where speed silently drops would go unseen).
+
+### D32. Every function import is called through its function record; host imports share the path
+Status: accepted · Date: 2026-10-30 · Supersedes: — · Evidence: `tests/jit/test_tail.py` (`test_tail_recursion_through_a_function_import`: 10⁶ ping/pong rounds through an imported function as in Wasmtime, none through Python); BENCHMARKS.md "function imports through their records"
+
+Closes the deviation of D30. Every function import has a function record in the importer's context
+(the exporter's `{code, type id, context}` for a function of another JIT instance of the same store,
+the module's host thunk otherwise), and `call`/`return_call` of an import go through it as
+`call_ref`/`return_call_ref` do (no null check): a call into another instance costs ~3 ns instead of
+~4.8 µs through the bridge and a nested entry, and tail recursion through an import runs in constant
+stack (`tail_switch` when the context differs). `pyc` closes the same case with `_TC` (a `return_call`
+of an import returns its trampolined body). Host imports take the same path, one extra call through
+the thunk: the code is compiled before linking, so a call site cannot know the kind of import, and
+the measured host-call cost is within the noise of the ctypes callback (~1.45 µs either way).
+Rejected: a separate bridge call site for host imports (more code at every import call site, no
+measured gain). Context ABI: the records were already a section of v1 (3d); records for imports are an
+amendment of v1 without a version bump (S0003: v1 is fixed in phase 5; no artifact is saved yet, and
+the import words keep their bridge callbacks, so code compiled before still runs).
