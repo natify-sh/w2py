@@ -98,9 +98,12 @@ pins and pads (≤ 80 bytes per frame, never more than one page at once: no stac
 D23; the SysV red zone is never used). Every prologue checks `rsp ≥ ctx[NSTACK_LIMIT]`. The runtime
 sets that limit at the first JIT entry of the store on the stack, whatever the store's depth:
 `limit = sp − min(max_wasm_stack, (sp − low) / 2)`, `max_wasm_stack` default 512 KiB (Wasmtime's,
-D6), `low` the thread's lowest stack address (`pthread_getattr_np`; macOS `pthread_get_stackaddr_np
-− stacksize`; Windows `GetCurrentThreadStackLimits`); if `low` cannot be read the budget is
-`min(max_wasm_stack, 128 KiB)`. The wasm part never takes more than half of the stack below the
+D6), `low` read per thread (Linux `pthread_getattr_np` + `pthread_attr_getstack`; macOS
+`pthread_get_stackaddr_np` (the top) − `pthread_get_stacksize_np`, the main thread's size capped at
+the soft `RLIMIT_STACK`, one page kept clear above the guard page; Windows
+`GetCurrentThreadStackLimits`); if `low` cannot be read, or `sp − low` is not within (0, 1 GiB] (e.g.
+an unlimited `RLIMIT_STACK` on the main thread), the budget is `min(max_wasm_stack, 128 KiB)`.
+Measured sizes per OS: `tools/stack_info.py`, run in CI on Linux (glibc, musl), Windows and macOS. The wasm part never takes more than half of the stack below the
 entry, so a host function called from the deepest frame has at least as much (a host that needs more
 than its share can still overflow the C stack on CPython < 3.14, which has no C-stack check — as it
 would on so small a thread without wasm; RISKS.md R5). `sp` comes from a stub run through the same
@@ -218,3 +221,4 @@ uv run pytest tests/jit -k "entry or trap or reentry or host or interrupt or sta
   non-zero status only. A host callback returns status 0 only after its results are written; an
   asynchronous exception arriving in the callback's last handler can still escape to ctypes (which
   then returns 0).
+* 2026-10-30: per-OS stack bounds rule with a sanity range and the 128 KiB fallback; `tools/stack_info.py` measures the sizes in CI (Linux glibc: main ≈ 8 MiB, threads 8 MiB, 2 MiB under an unlimited rlimit).

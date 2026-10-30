@@ -1,7 +1,7 @@
 """Executable memory is W^X (R2, S0003): never writable and executable at once."""
 
 import ctypes
-import sys
+import os
 from pathlib import Path
 
 import pytest
@@ -9,7 +9,7 @@ import pytest
 from tests.jit import need
 from w2py.targets.base import TARGETS
 from w2py.targets.jit.common.execmem import ExecMem, load
-from w2py.targets.jit.x86_64.encoder import RAX, RCX, RDI, RSI, Asm
+from w2py.targets.jit.x86_64.encoder import R8, RAX, RCX, RDI, RDX, RSI, Asm
 
 MAPS = Path("/proc/self/maps")
 
@@ -58,18 +58,18 @@ def test_w_xor_x() -> None:
 def test_generated_loop() -> None:
     """sum(a*b for i in range(n)) with a backward jcc: labels resolve to running code."""
     usable()
-    need(sys.platform != "win32", "SysV arguments")
+    n, x = {"nt": (RCX, RDX)}.get(os.name, (RDI, RSI))  # the host's C convention (Win64)
     a = Asm()
     a.endbr64()
     loop, done = a.label(), a.label()
     a.alu("xor", RAX, RAX)  # eax = 0 (64-bit result zero-extended)
-    a.test(RDI, RDI, w=True)
+    a.test(n, n, w=True)
     a.jcc("le", done, short=True)
     a.bind(loop)
-    a.mov(RCX, RSI, w=True)
-    a.imul(RCX, RSI, w=True)
-    a.alu("add", RAX, RCX, w=True)
-    a.alu_imm("sub", RDI, 1, w=True)
+    a.mov(R8, x, w=True)
+    a.imul(R8, x, w=True)
+    a.alu("add", RAX, R8, w=True)
+    a.alu_imm("sub", n, 1, w=True)
     a.jcc("ne", loop)
     a.bind(done)
     a.ret()

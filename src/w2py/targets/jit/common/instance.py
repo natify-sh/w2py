@@ -5,6 +5,7 @@ raise, nested entries, interrupt, linear memories (reserved, committed on grow, 
 Step 3a: an `Instance` is built from code assembled elsewhere (tests; the compiler in 3b)."""
 
 import ctypes
+import mmap
 import sys
 import threading
 from collections.abc import Callable, Sequence
@@ -31,7 +32,8 @@ MEMORY_RESERVATION = (
 )  # Wasmtime's default `memory_reservation` (crates/environ/src/tunables.rs)
 MAX_PAGES = 1 << 16
 DEFAULT_BUDGET = 512 << 10  # Wasmtime's default `max_wasm_stack` (D6)
-UNKNOWN_STACK_BUDGET = 128 << 10  # when the thread's stack bounds cannot be read
+UNKNOWN_STACK_BUDGET = 128 << 10  # when the thread's stack bounds cannot be read or are implausible
+PLAUSIBLE_STACK = 1 << 30  # more stack than this below the entry: the bounds are not trusted
 
 
 @dataclass(frozen=True)
@@ -84,11 +86,18 @@ def _read_stack_low() -> int | None:
         libc.pthread_self.restype = vp
         me = libc.pthread_self()
         if sys.platform == "darwin":
+            # stackaddr is the top; the main thread's reported size may exceed its rlimit, so
+            # take the smaller; leave one guard's worth (a page) above the guard page as unusable
             libc.pthread_get_stackaddr_np.restype = vp
             libc.pthread_get_stacksize_np.restype = size_t
             libc.pthread_get_stackaddr_np.argtypes = libc.pthread_get_stacksize_np.argtypes = [vp]
-            top = libc.pthread_get_stackaddr_np(me)
-            return top - libc.pthread_get_stacksize_np(me) if top else None
+            top, size = libc.pthread_get_stackaddr_np(me), libc.pthread_get_stacksize_np(me)
+            if libc.pthread_main_np():
+                import resource
+
+                soft = resource.getrlimit(resource.RLIMIT_STACK)[0]
+                size = min(size, soft) if soft > 0 else size
+            return top - size + mmap.PAGESIZE if top else None
         attr = ctypes.create_string_buffer(256)  # >= sizeof(pthread_attr_t) on glibc and musl
         libc.pthread_getattr_np.argtypes = [vp, ctypes.c_char_p]
         if libc.pthread_getattr_np(me, attr) != 0:
@@ -99,6 +108,16 @@ def _read_stack_low() -> int | None:
         return addr.value
     except (OSError, AttributeError):
         return None
+
+
+def native_budget(sp: int, low: int | None, budget: int) -> int:
+    """Native stack wasm code may use below `sp` (S0003, D10): never more than half of the
+    thread's stack left below `sp`, so a host function called from the deepest wasm frame still
+    has at least as much; if the bounds are unknown or implausible (`sp` not within 1 GiB above
+    `low`: e.g. an unlimited RLIMIT_STACK on the main thread), at most UNKNOWN_STACK_BUDGET."""
+    if low is None or not 0 < sp - low <= PLAUSIBLE_STACK:
+        return min(budget, UNKNOWN_STACK_BUDGET)
+    return min(budget, (sp - low) // 2)
 
 
 class Memory:
@@ -182,16 +201,12 @@ class Instance:
             store.leave()
 
     def _nstack_limit(self, frame: int) -> int:
-        """At the first JIT entry on the stack: rsp as wasm code sees it, minus the budget. The
-        budget never takes more than half of the thread's stack left below that point, so a host
-        function called from the deepest wasm frame still has at least as much as the wasm part
-        (S0003, D10); if the bounds cannot be read, at most UNKNOWN_STACK_BUDGET."""
+        """At the first JIT entry on the stack: rsp as wasm code sees it (the stub), then
+        `native_budget`."""
         if self.entry(ctypes.addressof(self.ctx), frame, self.tramp.sp_stub):
             raise RuntimeError("stack-pointer stub failed")
         sp = ctypes.c_uint64.from_address(frame).value
-        budget, low = self.store.max_wasm_stack or DEFAULT_BUDGET, _stack_low()
-        share = UNKNOWN_STACK_BUDGET if low is None else max(sp - low, 0) // 2
-        return sp - min(budget, share)
+        return sp - native_budget(sp, _stack_low(), self.store.max_wasm_stack or DEFAULT_BUDGET)
 
     def _error(self, status: int) -> BaseException:
         if status == STATUS_HOST_ERROR:

@@ -23,6 +23,11 @@ jobs:
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2  # v10.3.3
       - run: uv sync --python ${{ matrix.python }}
       - run: uv run pytest -q
+      # the measured native stack bounds and the JIT's budget (D10), once; and on musl (128 KiB threads)
+      - if: matrix.python == '3.13'
+        run: uv run python tools/stack_info.py
+      - if: matrix.python == '3.13'
+        run: docker run --rm -v "$PWD:/w" -w /w python:3.13-alpine python tools/stack_info.py
   jit:
     runs-on: ubuntu-latest
     steps:
@@ -63,7 +68,13 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2  # v10.3.3
       - run: uv sync --python 3.13
-      - run: uv run pytest -q -rs
+      - run: uv run pytest -q -rs --ignore=tests/jit
+      # which JIT tests ran here, and the native stack bounds of the deepest-host case (D10)
+      - run: uv run pytest tests/jit -v -rs
+      - if: ${{ !cancelled() }}
+        run: uv run pytest tests/jit/test_abi.py -v -s -k deepest
+      - if: ${{ !cancelled() }}
+        run: uv run python tools/stack_info.py
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
         with:
           path: .cache/spec

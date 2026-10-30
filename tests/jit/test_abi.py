@@ -348,39 +348,59 @@ import sys, threading
 from tests.jit.test_abi import build, recursion
 from w2py.runtime.store import StoreState
 from w2py.targets.base import Trap
+from w2py.targets.jit.common import instance
 from w2py.targets.jit.x86_64.abi import trampolines
+depth, kib, jit = int(sys.argv[1]), int(sys.argv[2]), sys.argv[3] == "jit"
 x = []
-for _ in range(int(sys.argv[1])):
+for _ in range(depth):
     x = [x]
 def host(args):
     try:
-        repr(x)  # deep C recursion at the deepest wasm frame
+        repr(x)  # deep C recursion (at the deepest wasm frame)
     except RecursionError:
         pass
     return []
 def run():
-    inst = build(StoreState(), trampolines(), recursion(0, 1), [(host, 0, [])])
+    if not jit:
+        host([])
+        print("HOST_OK")
+        return
+    store = StoreState()
+    inst = build(store, trampolines(), recursion(0, 1), [(host, 0, [])])
     try:
         inst.call(1, [])
     except Trap as e:
         print(e.code.name)
-threading.stack_size(int(sys.argv[2]) << 10)
+    low, limit = instance._stack_low(), store.target_state.nlimit
+    share = (limit - low) >> 10
+    print(f"low {low:#x} limit {limit:#x} host share {share} KiB", file=sys.stderr)
+threading.stack_size(kib << 10)
 t = threading.Thread(target=run)
 t.start()
 t.join()
 """
 
 
+def child(depth: int, kib: int, mode: str) -> "subprocess.CompletedProcess[str]":
+    cmd = [sys.executable, "-c", DEEPEST_HOST, str(depth), str(kib), mode]
+    root = str(Path(__file__).resolve().parents[2])
+    return subprocess.run(cmd, capture_output=True, text=True, cwd=root, timeout=120)
+
+
 @pytest.mark.parametrize("depth,kib", [(300, 256), (900, 512)])
 def test_host_at_the_deepest_frame_keeps_half_the_stack(
     tramp: Trampolines, depth: int, kib: int
 ) -> None:
-    """A host function needing ~190 KiB of C stack (repr of a 900-deep list) runs at the deepest
-    wasm frame of a 512 KiB thread: the budget takes at most half of the stack (D10)."""
-    cmd = [sys.executable, "-c", DEEPEST_HOST, str(depth), str(kib)]
-    root = str(Path(__file__).resolve().parents[2])
-    run = subprocess.run(cmd, capture_output=True, text=True, cwd=root, timeout=120)
+    """A host function with deep C recursion runs at the deepest wasm frame: the budget takes at
+    most half of the thread's stack (D10). Calibrated first: the same host must run on its own in
+    a thread of half the size minus 32 KiB (CPython's C frames differ per build and OS); if it
+    cannot, the host does not fit its share and the case says nothing about our bounds."""
+    alone = child(depth, kib // 2 - 32, "alone")
+    if (alone.returncode, alone.stdout.strip()) != (0, "HOST_OK"):
+        pytest.skip(f"this CPython's repr of depth {depth} needs > {kib // 2 - 32} KiB of stack")
+    run = child(depth, kib, "jit")
     assert (run.returncode, run.stdout.strip()) == (0, "STACK_OVERFLOW"), run.stderr[-500:]
+    print(run.stderr.strip())  # the bounds, visible with -s / in the CI log on failure
 
 
 def test_native_stack_overflow_capped_by_a_small_thread_stack(tramp: Trampolines) -> None:
