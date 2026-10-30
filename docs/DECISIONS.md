@@ -69,7 +69,12 @@ Status: accepted · Date: 2026-10-26 · Supersedes: — · Evidence: —
 Not decided. The candidate is the Python twin of fusedwasi (natify-sh/fusedwasi): one function per
 import, memories as buffers, the same code as the C headers used by wasmext. It has not been used with
 w2py yet. Whatever is chosen, w2py only binds names and memories (`Linker.define_wasi`), and the
-choice must not set the minimum Python of the package (fusedwasi's twin declares 3.10+).
+choice must not set the minimum Python of the package (fusedwasi's twin declares 3.10+, below our 3.11
+floor, D19).
+
+2026-10-30 (maintainer): fusedwasi 0.1.0a1 is runtime-independent and already works with wasmtime,
+wasm3 and wasmext, so it is expected to fit w2py as well; the choice is confirmed in the WASI phase by
+running it on w2py.
 
 ### D9. Cache compiled artifacts
 Status: accepted · Date: 2026-10-26 · Supersedes: — · Evidence: —

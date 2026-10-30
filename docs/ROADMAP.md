@@ -202,7 +202,8 @@ lacks a feature reports it through `Target.supports` and the module runs on anot
 ## Open questions
 1. **Minimum Python.** Resolved by D19: 3.11 (the PoC's 3.8 and 3.4 `--legacy` measurements stay as
    history).
-2. **The WASI host.** fusedwasi's Python twin (candidate, not tried with w2py; declares Python 3.10+),
+2. **The WASI host.** fusedwasi's Python twin (candidate: 0.1.0a1 is runtime-independent and runs on
+   wasmtime, wasm3 and wasmext, D8; not tried with w2py yet),
    an own implementation, or another; and what WASI means on MicroPython (open question 6).
 3. **Parallelism of `pyc` guests**: yield points only, or also subinterpreters (3.12+/3.14),
    free-threaded builds, a process with shared memory (ARCHITECTURE.md, "Long calls and the GIL")?
