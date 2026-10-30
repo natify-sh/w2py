@@ -17,10 +17,11 @@ class E:
     (i.e. it is a canonical unsigned int), None if it may be out of range (needs masking).
     For floats b is unused.  Ls/m/g: what state the expression reads."""
 
-    __slots__ = ("c", "t", "b", "Ls", "m", "g", "k", "w")
+    __slots__ = ("c", "t", "b", "Ls", "m", "g", "k", "w", "x")
 
-    def __init__(s, c, t, b=None, Ls=(), m=False, g=(), k=False, w=None):
+    def __init__(s, c, t, b=None, Ls=(), m=False, g=(), k=False, w=None, x=False):
         s.c, s.t, s.b, s.Ls, s.m, s.g, s.k, s.w = c, t, b, frozenset(Ls), m, frozenset(g), k, w
+        s.x = x  # may trap by arithmetic (div/rem/trunc): must be evaluated even if discarded
         # w: for a dirty value, 'up' = lies in [0, 2*MOD) / 'down' = lies in (-MOD, MOD):
         #    at most one wrap, so a compare+adjust replaces the (slow) & mask
 
@@ -30,12 +31,15 @@ class E:
 
 
 def dep(*es, **kw):
-    Ls, m, g = set(), False, set()
+    Ls, m, g, x = set(), False, set(), False
     for e in es:
         Ls |= e.Ls
         m = m or e.m
         g |= e.g
-    return dict(Ls=Ls, m=m or kw.get("m", False), g=g | set(kw.get("g", ())))
+        x = x or e.x
+    return dict(
+        Ls=Ls, m=m or kw.get("m", False), g=g | set(kw.get("g", ())), x=x or kw.get("x", False)
+    )
 
 
 def flit(v):
@@ -172,7 +176,7 @@ class FuncGen:
     def pop(s):
         e = s.stack.pop()
         if e.t == "bool":  # keep ints exact (bool breaks CPython's int specialisations)
-            e = E("(1 if %s else 0)" % e.c, I32, 1, e.Ls, e.m, e.g)
+            e = E("(1 if %s else 0)" % e.c, I32, 1, e.Ls, e.m, e.g, x=e.x)
         return e
 
     def popc(s):
@@ -589,7 +593,7 @@ class FuncGen:
         mg = s.mg
         if op == 0x1A:
             e = pop()
-            if e.m and not e.k:  # a dropped load can still trap out of bounds
+            if (e.m or e.x) and not e.k:  # a dropped load/div/trunc can still trap
                 s.emit(e.c)
             return
         if op == 0x1B:
@@ -597,6 +601,15 @@ class FuncGen:
             b = pop()
             a = pop()
             bb = max(a.b, b.b) if a.b is not None and b.b is not None else None
+            if any((e.m or e.x) and not e.k for e in (a, b)):  # both arms are always evaluated
+                ab = []
+                for e in (a, b):
+                    if not e.k:
+                        t = s.newtmp(e.t)
+                        s.emit("%s = %s" % (t, e.c))
+                        e = E(t, e.t, e.b, k=True, w=e.w)
+                    ab.append(e)
+                a, b = ab
             push(E("(%s if %s else %s)" % (a.c, s.cond(c), b.c), a.t, bb, **dep(a, b, c)))
             return
         if op == 0x20:
@@ -942,16 +955,16 @@ class FuncGen:
                 push(E("(%s*%s)" % (a.c, b.c), T, bb, **d))
                 return
             if k == 6:
-                push(E("_divs%d(%s,%s)" % (W, n(a), n(b)), T, MAX, **d))
+                push(E("_divs%d(%s,%s)" % (W, n(a), n(b)), T, MAX, **dict(d, x=True)))
                 return
             if k == 7:
-                push(E("(%s//%s)" % (n(a), n(b)), T, nb(a), **d))
+                push(E("(%s//%s)" % (n(a), n(b)), T, nb(a), **dict(d, x=True)))
                 return
             if k == 8:
-                push(E("_rems%d(%s,%s)" % (W, n(a), n(b)), T, MAX, **d))
+                push(E("_rems%d(%s,%s)" % (W, n(a), n(b)), T, MAX, **dict(d, x=True)))
                 return
             if k == 9:
-                push(E("(%s%%%s)" % (n(a), n(b)), T, nb(a), **d))
+                push(E("(%s%%%s)" % (n(a), n(b)), T, nb(a), **dict(d, x=True)))
                 return
             if k == 10:  # and
                 if a.b is not None or b.b is not None:
@@ -1064,7 +1077,7 @@ class FuncGen:
                     "_trunc_%s%d(%s)" % (sg, W, a.c),
                     I32 if W == 32 else I64,
                     M32 if W == 32 else M64,
-                    **dep(a),
+                    **dep(a, x=True),
                 )
             )
             return

@@ -225,3 +225,39 @@ def test_float_rounding_helpers() -> None:
     x = (1 << 53) + (1 << 29) + 1
     assert rt._i64_f32(x) == float((1 << 53) + (1 << 30))
     assert rt._i64_f32(-x) == -float((1 << 53) + (1 << 30))
+
+
+def test_discarded_operands_keep_their_traps_and_effects() -> None:
+    # (func (export "f") (param i32 i32) local.get 0 local.get 1 i32.div_s drop)
+    div = (
+        HEAD
+        + "010601"
+        + "60027f7f00"
+        + "03020100"
+        + "07050101660000"
+        + "0a0a0108"
+        + "00200020016d1a0b"
+    )
+    with pytest.raises(Trap):
+        load(bytes.fromhex(div), {})["f"](1, 0)
+    # (func (export "f") (param i32 i32) (result i32)
+    #   i32.const 1 (i32.div_s (local.get 0) (local.get 1)) i32.const 1 select)  ;; arm not selected
+    sel = HEAD + "0107016002" + "7f7f017f" + "03020100" + "07050101660000" + "0a0e010c"
+    sel += "00410120002001" + "6d41011b0b"
+    with pytest.raises(Trap):
+        load(bytes.fromhex(sel), {})["f"](1, 0)
+    # (global (mut i32)) (func $h (result i32) i32.const 9 global.set 0 i32.const 0)
+    # (func (export "f") (result i32) call $h drop)  ;; the dropped call still runs
+    call = HEAD + "010501" + "60000" + "17f" + "03030200" + "00" + "0606017f0141000b"
+    call += (
+        "070902016600"
+        + "01"
+        + "01670300"
+        + "0a1202"
+        + "08004109240041000b"
+        + "07"
+        + "0010001a41000b"
+    )
+    ex = load(bytes.fromhex(call), {})
+    ex["f"]()
+    assert ex["g"].get() == 9

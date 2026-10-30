@@ -112,9 +112,10 @@ What went wrong or surprised us while building the PoC, so it is not found again
 28. **A lazy operand stack can drop a trap.** `pyc` builds expressions lazily; `drop` discarded an
     unevaluated `i32.load` whose address was out of bounds, so the trap never happened (60 commands in
     `address.wast`). Wasm evaluates every operand: anything that can trap (loads, `div`/`rem`,
-    `trunc`, `call`) must be evaluated even when its value is discarded. Still open: `select`
-    evaluates only the arm it picks, so a trapping operand in the other arm would not trap (no spec
-    test hits it; a differential/fuzz case should). Found: pyc loop, 2026-10-30.
+    `trunc`, `call`) must be evaluated even when its value is discarded. Fixed with an `x` (may trap)
+    flag on div/rem/trunc next to `m` (reads memory): `drop` emits such operands as statements and
+    `select` evaluates both operands when either has the flag. Not yet audited: values discarded below
+    the arity of `br_if`/`br_table`/`return` and at unreachable block ends. Found: pyc loop, 2026-10-30.
 29. **Never write a float into generated source with `repr`.** `repr(inf)`/`repr(nan)` give `inf`/
     `nan`, undefined names in the generated module, so a module with such a global initialiser failed
     to load (`select.wast`, found while fixing NaN constants). Emit special values through an exact
