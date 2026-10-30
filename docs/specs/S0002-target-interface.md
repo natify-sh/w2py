@@ -47,6 +47,7 @@ class HostError(Exception):         # carrier: a host function raised `exc`; nev
 
 Raw: TypeAlias = int        # a 64-bit slot: i32 in [0, 2**32), i64 in [0, 2**64),
                             # f32/f64 as bit patterns (ARTIFACT.md part 3 slot encoding)
+RefVal: TypeAlias = object  # funcref/externref at the boundary: an opaque object, None = null
 HostFunc: TypeAlias = Callable[[Sequence[Raw]], Sequence[Raw]]   # wrapped by the runtime
 
 @dataclass(frozen=True)
@@ -68,6 +69,7 @@ class TargetInstance(Protocol):
     def call(self, func_index: int, args: Sequence[Raw]) -> list[Raw]: ...     # Trap / host exc
     def export(self, name: str) -> Extern: ...                 # LookupError if absent
     def global_get(self, global_index: int) -> Raw: ...
+    def limits(self, name: str) -> tuple[int, int | None]: ...  # exported memory/table: (size, max)
     def global_set(self, global_index: int, value: Raw) -> None: ...           # later (phase 6)
     def interrupt(self) -> None: ...                           # JIT: sets the word; pyc: later
 ```
@@ -227,3 +229,4 @@ weights itself until then.
 * 2026-10-30: one target per engine/store, no per-module fallback, pyc/JIT parity (D25).
 * 2026-10-30: interrupt polling on by default (timeouts and Ctrl-C are built on it); fuel is an opt-in, later (maintainer).
 * 2026-10-30: approved by the maintainer; the proposed decision is D26.
+* 2026-10-30: `TargetInstance.limits(name)` for import type checks in `runtime/link.py`; reference values cross the boundary as opaque objects (`None` = null), numbers stay `Raw` (maintainer).
