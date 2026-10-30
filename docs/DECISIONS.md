@@ -226,3 +226,22 @@ or to block a step. On iOS/Pythonista wasm runs through the separate PyPI packag
 (JavaScriptCore's `WebAssembly` via JSContext), not through w2py. The `mpy` target (ROADMAP phase 7)
 keeps its place in the order of work at tier 3. D1 is unchanged: no runtime dependencies stays a rule
 for every platform.
+
+### D23. A JIT target is an architecture, not an OS
+Status: accepted · Date: 2026-10-30 · Supersedes: — · Evidence: —
+
+There is one JIT target per architecture and ISA baseline (`jit-x86_64`, `jit-aarch64`,
+`jit-riscv64`, …), not one per operating system: the same artifact runs on Linux, macOS, the BSDs and
+Windows. The code is position-independent and reaches everything through the context register
+(ARTIFACT.md); the OS differences stay at the edges:
+* calling convention: one entry trampoline per host convention inside the artifact (`sysv`/`win64`,
+  `aapcs64`/`win-arm64`); host calls from wasm go through the same per-convention bridge;
+* executable memory (`mmap`, `VirtualAlloc`, `MAP_JIT` + W^X switching) and the guard-page fault
+  handler (signals vs vectored exceptions) belong to the loader/runtime, not to the code; explicit
+  bounds checks behave the same everywhere;
+* the code generator avoids what any supported OS reserves, so one artifact suits all of them: e.g.
+  `x18` on AArch64 (Darwin, Windows), and frames that would need stack probes on Windows (machine
+  frames stay small; values live on the host-allocated value stack). The context-ABI spec lists
+  these rules per architecture.
+Rejected: `jit-x86_64-sysv` / `jit-x86_64-win64` as separate targets (TARGETS.md before this): two
+code generators or two artifacts for one CPU, with no gain.

@@ -44,7 +44,7 @@ projects above. Record the edition or revision used in the commit or the spec th
 | **Intel 64 and IA-32 Architectures Software Developer's Manual**; **AMD64 Architecture Programmer's Manual** | x86-64 instruction encodings and semantics (flags, `div` faults, `cvt*` rounding, `lzcnt`/`tzcnt` availability) | `jit-x86_64` encoders and ISA levels (ARTIFACT.md) |
 | **Arm Architecture Reference Manual for A-profile** (Arm DDI 0487) | AArch64 encodings and semantics | `jit-aarch64` |
 | **The RISC-V Instruction Set Manual**, Volume I (Unprivileged), ratified extensions | RV64 encodings and semantics | `jit-riscv64` |
-| **System V AMD64 psABI** (`x86-64-abi`) and the **Microsoft x64 calling convention** | argument registers, callee-saved registers, stack alignment, red zone / shadow space | the entry trampolines and host calls of `jit-x86_64-sysv` / `-win64` |
+| **System V AMD64 psABI** (`x86-64-abi`) and the **Microsoft x64 calling convention** | argument registers, callee-saved registers, stack alignment, red zone / shadow space | the SysV and Win64 entry trampolines and host calls of `jit-x86_64` (D23) |
 | **AAPCS64** (`ARM-software/abi-aa`) and Apple's arm64 ABI differences | the same for AArch64 (incl. `x18`, Darwin variadics) | `jit-aarch64` |
 | **RISC-V psABI** (`riscv-non-isa/riscv-elf-psabi-doc`) | the same for RISC-V | `jit-riscv64` |
 

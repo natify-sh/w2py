@@ -18,7 +18,7 @@ reason), never silently differently.
 from w2py import Engine, Config, Store, Module, Linker, WasiConfig
 
 config = Config()
-config.target = "auto"            # w2py: "pyc", "mpy", "jit-x86_64-sysv", ... or a list
+config.target = "auto"            # w2py: "pyc", "mpy", "jit-x86_64", ... or a list
 config.cache = True               # same name as wasmtime-py's Config.cache
 engine = Engine(config)
 module = Module.from_file(engine, "app.wasm")

@@ -16,7 +16,7 @@ A sketch (names to settle during phase 1); everything a target needs comes in, n
 
 ```python
 class Target(Protocol):
-    name: str                      # "pyc", "mpy", "jit-x86_64-sysv", "jit-aarch64", ...
+    name: str                      # "pyc", "mpy", "jit-x86_64", "jit-aarch64", ...
     version: int                   # bumps invalidate cached artifacts
 
     def probe(self, config: Config) -> Probe:
@@ -114,8 +114,7 @@ with real numbers for both.
 |---|---|---|---|
 | `pyc` | CPython ≥ 3.11 (D19; PoC measured down to 3.8), PyPy | CoreMark | floor for everything; artifact = code object; the fastest pure-Python option on PyPy (2 300–2 900 it/s) |
 | `mpy` | MicroPython (unix port tested, 1.29.0) | CoreMark | `.mpy` ahead of time or source on device; `@native` (94 it/s); next: viper code, i.e. MicroPython's own emitters as native back ends for every MCU architecture (below) |
-| `jit-x86_64-sysv` | Linux, macOS (Intel), BSDs | CoreMark (`w2jit2`) | 15 337 it/s; needs the rest of the opcode set, `memory.grow`, nested entry |
-| `jit-x86_64-win64` | Windows | — | other argument registers, shadow space, `VirtualAlloc` |
+| `jit-x86_64` | Linux, macOS (Intel), BSDs, Windows | CoreMark (`w2jit2`, SysV only) | 15 337 it/s; needs the rest of the opcode set, `memory.grow`, nested entry; one artifact for every OS (D23): a Win64 entry trampoline (other argument registers, shadow space) next to the SysV one, `VirtualAlloc` in the loader |
 | `jit-aarch64` | Linux, macOS (Apple Silicon: `MAP_JIT`), Windows on ARM, Android (Termux) | — | the second architecture (or `jit-riscv64`, ROADMAP phase 4); its integer core proves the split before the opcode set is widened |
 | `jit-riscv64`, `jit-armv7`, `jit-mips32` (Ingenic X2000, little-endian), `jit-ppc64le`, `jit-loongarch64` | as available | — | QEMU user-mode in CI; candidates for copy-and-patch |
 | `lua` / `luajit` | Lua 5.4, LuaJIT | CoreMark | **not a w2py target** (D20, rejected; code stays in `poc/`): an experiment showing the IR serves other languages (271 / 1 873 it/s); the shared layers stay language-neutral so such backends remain possible (DECISIONS.md D17) |
