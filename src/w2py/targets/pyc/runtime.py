@@ -65,6 +65,32 @@ def _mfill(M, d, v, n):
     M[d : d + n] = bytes([v & 255]) * n
 
 
+def _eseg(T, o, fs):
+    o &= 0xFFFFFFFF
+    if o + len(fs) > len(T):
+        raise Trap("out of bounds table access", "TABLE_OUT_OF_BOUNDS")
+    T[o : o + len(fs)] = fs
+
+
+def _dseg(M, o, d):
+    o &= 0xFFFFFFFF
+    if o + len(d) > len(M):
+        raise Trap("out of bounds memory access", "MEMORY_OUT_OF_BOUNDS")
+    M[o : o + len(d)] = d
+
+
+def _toob():
+    raise Trap("undefined element", "TABLE_OUT_OF_BOUNDS")
+
+
+def _tnull():
+    raise Trap("uninitialized element", "INDIRECT_CALL_TO_NULL")
+
+
+def _tsig():
+    raise Trap("indirect call type mismatch", "BAD_SIGNATURE")
+
+
 class _Mem(bytearray):
     """A linear memory; `max` is its declared maximum in pages (None: none). Shared by import."""
 
@@ -111,6 +137,7 @@ def _export(f):
         except RecursionError:
             raise Trap("call stack exhausted", "STACK_OVERFLOW") from None
 
+    w.s = f.s  # type signature, checked by call_indirect
     return w
 
 

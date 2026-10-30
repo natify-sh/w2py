@@ -589,7 +589,6 @@ br_table.wast:1449  translator crashes on an invalid or unsupported module (no v
 br_table.wast:1455  translator crashes on an invalid or unsupported module (no validator)
 br_table.wast:1461  translator crashes on an invalid or unsupported module (no validator)
 br_table.wast:3  gap: element segment flags
-call.wast:354  gap: table out-of-bounds reported as memory trap
 call.wast:381  translator crashes on an invalid or unsupported module (no validator)
 call.wast:388  no validator yet
 call.wast:396  translator crashes on an invalid or unsupported module (no validator)
@@ -612,24 +611,6 @@ call_indirect.wast:1006  translator crashes on an invalid or unsupported module 
 call_indirect.wast:1013  translator crashes on an invalid or unsupported module (no validator)
 call_indirect.wast:1022  translator crashes on an invalid or unsupported module (no validator)
 call_indirect.wast:1038  no validator yet
-call_indirect.wast:498  gap: call_indirect without null/signature check
-call_indirect.wast:499  gap: no bounds/segment checks (instantiation or table access does not trap)
-call_indirect.wast:500  gap: table out-of-bounds reported as memory trap
-call_indirect.wast:501  gap: table out-of-bounds reported as memory trap
-call_indirect.wast:502  gap: table out-of-bounds reported as memory trap
-call_indirect.wast:508  gap: call_indirect without null/signature check
-call_indirect.wast:509  gap: no bounds/segment checks (instantiation or table access does not trap)
-call_indirect.wast:515  gap: call_indirect without null/signature check
-call_indirect.wast:516  gap: no bounds/segment checks (instantiation or table access does not trap)
-call_indirect.wast:522  gap: call_indirect without null/signature check
-call_indirect.wast:523  gap: no bounds/segment checks (instantiation or table access does not trap)
-call_indirect.wast:529  gap: call_indirect without null/signature check
-call_indirect.wast:530  gap: call_indirect without null/signature check
-call_indirect.wast:652  gap: table out-of-bounds reported as memory trap
-call_indirect.wast:657  gap: table out-of-bounds reported as memory trap
-call_indirect.wast:661  gap: call_indirect without null/signature check
-call_indirect.wast:662  gap: call_indirect without null/signature check
-call_indirect.wast:663  gap: table out-of-bounds reported as memory trap
 call_indirect.wast:791  no validator yet
 call_indirect.wast:799  translator crashes on an invalid or unsupported module (no validator)
 call_indirect.wast:807  no validator yet
@@ -727,20 +708,6 @@ data.wast:178  decoder rejects a valid module (unsupported construct)
 data.wast:183  decoder rejects a valid module (unsupported construct)
 data.wast:188  decoder rejects a valid module (unsupported construct)
 data.wast:195  decoder rejects a valid module (unsupported construct)
-data.wast:211  gap: no bounds/segment checks (instantiation or table access does not trap)
-data.wast:219  gap: no bounds/segment checks (instantiation or table access does not trap)
-data.wast:227  gap: no bounds/segment checks (instantiation or table access does not trap)
-data.wast:234  gap: no bounds/segment checks (instantiation or table access does not trap)
-data.wast:241  gap: no bounds/segment checks (instantiation or table access does not trap)
-data.wast:258  gap: import of global unsupported
-data.wast:267  gap: no bounds/segment checks (instantiation or table access does not trap)
-data.wast:274  gap: import of mem unsupported
-data.wast:282  gap: no bounds/segment checks (instantiation or table access does not trap)
-data.wast:290  gap: no bounds/segment checks (instantiation or table access does not trap)
-data.wast:298  gap: no bounds/segment checks (instantiation or table access does not trap)
-data.wast:305  gap: import of mem unsupported
-data.wast:313  gap: no bounds/segment checks (instantiation or table access does not trap)
-data.wast:320  gap: import of mem unsupported
 data.wast:330  no validator yet
 data.wast:338  no validator yet
 data.wast:351  no validator yet
@@ -813,18 +780,6 @@ elem.wast:556  gap: element segment flags
 elem.wast:561  gap: element segment flags
 elem.wast:573  gap: element segment flags
 elem.wast:578  gap: element segment flags
-elem.wast:594  gap: no bounds/segment checks (instantiation or table access does not trap)
-elem.wast:603  gap: no bounds/segment checks (instantiation or table access does not trap)
-elem.wast:612  gap: no bounds/segment checks (instantiation or table access does not trap)
-elem.wast:621  gap: no bounds/segment checks (instantiation or table access does not trap)
-elem.wast:628  gap: no bounds/segment checks (instantiation or table access does not trap)
-elem.wast:636  gap: table import / unknown import kind
-elem.wast:645  gap: no bounds/segment checks (instantiation or table access does not trap)
-elem.wast:653  gap: table import / unknown import kind
-elem.wast:662  gap: no bounds/segment checks (instantiation or table access does not trap)
-elem.wast:670  gap: table import / unknown import kind
-elem.wast:679  gap: no bounds/segment checks (instantiation or table access does not trap)
-elem.wast:687  gap: table import / unknown import kind
 elem.wast:698  gap: opcode not implemented
 elem.wast:706  earlier module of the file did not load (name or export missing)
 elem.wast:708  gap: opcode not implemented
@@ -845,7 +800,6 @@ elem.wast:862  gap: element segment flags
 elem.wast:870  gap: element segment flags
 elem.wast:878  gap: element segment flags
 elem.wast:886  gap: element segment flags
-elem.wast:946  gap: call_indirect without null/signature check
 elem.wast:979  no validator yet
 elem.wast:984  gap: element segment flags
 elem.wast:989  gap: element segment flags
@@ -1054,12 +1008,6 @@ func_ptrs.wast:36  no validator yet
 func_ptrs.wast:44  gap: init expression
 func_ptrs.wast:48  translator crashes on an invalid or unsupported module (no validator)
 func_ptrs.wast:49  no validator yet
-func_ptrs.wast:78  gap: table out-of-bounds reported as memory trap
-func_ptrs.wast:79  gap: table out-of-bounds reported as memory trap
-func_ptrs.wast:80  gap: table out-of-bounds reported as memory trap
-func_ptrs.wast:89  gap: table out-of-bounds reported as memory trap
-func_ptrs.wast:90  gap: table out-of-bounds reported as memory trap
-func_ptrs.wast:91  gap: table out-of-bounds reported as memory trap
 global.wast:204  earlier module of the file did not load
 global.wast:205  earlier module of the file did not load
 global.wast:206  earlier module of the file did not load
@@ -1502,12 +1450,6 @@ imports.wast:248  gap: table import / unknown import kind
 imports.wast:252  gap: table import / unknown import kind
 imports.wast:256  gap: table import / unknown import kind
 imports.wast:35  gap: table import / unknown import kind
-imports.wast:393  earlier module of the file did not load (name or export missing)
-imports.wast:396  earlier module of the file did not load (name or export missing)
-imports.wast:397  earlier module of the file did not load (name or export missing)
-imports.wast:410  earlier module of the file did not load (name or export missing)
-imports.wast:413  earlier module of the file did not load (name or export missing)
-imports.wast:414  earlier module of the file did not load (name or export missing)
 imports.wast:97  earlier module of the file did not load (name or export missing)
 imports.wast:98  earlier module of the file did not load (name or export missing)
 instance.wast:101  earlier module of the file did not load
@@ -1530,36 +1472,11 @@ labels.wast:322  no validator yet
 labels.wast:326  no validator yet
 linking.wast:110  earlier module of the file did not load (name or export missing)
 linking.wast:112  gap: table import / unknown import kind
-linking.wast:308  gap: call_indirect without null/signature check
-linking.wast:309  gap: call_indirect without null/signature check
-linking.wast:311  gap: call_indirect without null/signature check
-linking.wast:313  gap: call_indirect without null/signature check
-linking.wast:314  gap: call_indirect without null/signature check
-linking.wast:316  gap: call_indirect without null/signature check
-linking.wast:318  gap: table out-of-bounds reported as memory trap
-linking.wast:319  gap: table out-of-bounds reported as memory trap
-linking.wast:320  gap: table out-of-bounds reported as memory trap
-linking.wast:321  gap: table out-of-bounds reported as memory trap
-linking.wast:324  gap: call_indirect without null/signature check
-linking.wast:356  gap: call_indirect without null/signature check
-linking.wast:357  gap: call_indirect without null/signature check
-linking.wast:359  gap: call_indirect without null/signature check
-linking.wast:360  earlier module of the file did not load (name or export missing)
-linking.wast:362  earlier module of the file did not load (name or export missing)
-linking.wast:379  gap: table import / unknown import kind
-linking.wast:397  gap: call_indirect without null/signature check
-linking.wast:402  gap: table import / unknown import kind
-linking.wast:411  gap: call_indirect without null/signature check
-linking.wast:414  gap: table import / unknown import kind
 linking.wast:434  gap: table import / unknown import kind
 linking.wast:451  gap: table import / unknown import kind
 linking.wast:455  gap: table import / unknown import kind
 linking.wast:460  gap: table import / unknown import kind
 linking.wast:50  translator crashes on an invalid or unsupported module (no validator)
-linking.wast:517  gap: import of mem unsupported
-linking.wast:555  gap: import of mem unsupported
-linking.wast:564  gap: trap while instantiating raised past the adapter
-linking.wast:567  gap: import of mem unsupported
 linking.wast:68  earlier module of the file did not load (name or export missing)
 linking.wast:69  earlier module of the file did not load (name or export missing)
 linking.wast:71  earlier module of the file did not load (name or export missing)
@@ -1842,7 +1759,6 @@ memory.wast:86  no validator yet
 memory.wast:91  no validator yet
 memory.wast:95  no validator yet
 memory.wast:99  no validator yet
-memory_grow.wast:293  gap: table out-of-bounds reported as memory trap
 memory_grow.wast:342  no validator yet
 memory_grow.wast:351  translator crashes on an invalid or unsupported module (no validator)
 memory_grow.wast:360  no validator yet

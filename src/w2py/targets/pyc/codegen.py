@@ -683,9 +683,20 @@ class FuncGen:
             else:
                 ps, rs = mg.types[x[1]]
                 ix = pop()
-                callee = "T%d[%s]" % (x[2], n(ix))
             args = s.popn(len(ps))
             s.flush_call()
+            if op == 0x11:
+                callee = s.newtmp()
+                q = s.newtmp()
+                s.emit("try:")
+                s.emit("    %s = T%d[%s]" % (callee, x[2], n(ix)))
+                s.emit("    %s = %s.s" % (q, callee))
+                s.emit("except IndexError:")
+                s.emit("    _toob()")
+                s.emit("except AttributeError:")
+                s.emit("    _tnull()")
+                s.emit("if %s != %r:" % (q, mg.sig(*mg.types[x[1]])))
+                s.emit("    _tsig()")
             ac = ", ".join(n(a) if a.t in (I32, I64) else a.c for a in args)
             call = "%s(%s)" % (callee, ac)
             if not rs:
@@ -1117,6 +1128,10 @@ class ModGen:
             return s.types[s.fimports[fi][3]]
         return s.types[s.mod["funcs"][fi - s.nimp]]
 
+    @staticmethod
+    def sig(ps, rs):
+        return "%s>%s" % (",".join(map(str, ps)), ",".join(map(str, rs)))
+
     def fname(s, fi):
         if fi < s.nimp:
             return "I%d" % fi
@@ -1182,18 +1197,18 @@ class ModGen:
             gl.append("I%d" % i)
         for k, ((locs, body), tidx) in enumerate(zip(mod["codes"], mod["funcs"])):
             out.append(FuncGen(s, s.nimp + k, tidx, locs, body).gen())
+            out.append("f%d.s = %r" % (s.nimp + k, s.sig(*s.types[tidx])))
         for i, im in enumerate(s.fimports):
             L.append("    I%d = imports[%r][%r]" % (i, im[1], im[2]))
         if gl:
             L.insert(1, "    global " + ", ".join(gl))
         for ti, off, fs in mod["elems"]:
-            o = s.val(off)
             L.append(
-                "    T%d[%s:%s+%d] = [%s]" % (ti, o, o, len(fs), ", ".join(s.fname(f) for f in fs))
+                "    _eseg(T%d, %s, [%s])" % (ti, s.val(off), ", ".join(s.fname(f) for f in fs))
             )
         for off, d in mod["datas"]:
             if off is not None:
-                L.append("    M[%s:%s+%d] = %r" % (s.val(off), s.val(off), len(d), d))
+                L.append("    _dseg(M, %s, %r)" % (s.val(off), d))
         if mod["start"] is not None:
             L.append("    %s()" % s.fname(mod["start"]))
         ex = []

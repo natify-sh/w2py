@@ -244,3 +244,12 @@ w2lua output loaded as source or as `string.dump` bytecode (stripped) inside lup
   (±5 it/s on this machine).
 * Conditions: helpers imported from `w2py.targets.pyc.runtime` (D18) instead of pasted into the
   generated module; no measurable cost.
+
+## `pyc`: checked `call_indirect` (table bounds, null, signature)
+
+* Date: 2026-10-30 · machine: Intel Xeon @ 2.10 GHz, 4 cores · CPython 3.13.17 · command:
+  `tools/run_coremark_pyc.py poc/in/core.wasm`, HEAD (unchecked) vs the change, from a worktree, alternated.
+* Result (it/s): implementer 89.8 / 85.4, 92.9 / 90.4; orchestrator 90.4 / 95.7, 82.9 / 90.8,
+  83.7 / 90.6 (HEAD / new). The two series disagree in sign; the run order (HEAD first) and a
+  ±5 % noise dominate. Conclusion: no cost measurable on this machine; the check is required by the
+  spec (BAD_SIGNATURE, INDIRECT_CALL_TO_NULL, TABLE_OUT_OF_BOUNDS) regardless.
