@@ -113,7 +113,10 @@ lacks a feature reports it through `Target.supports` and the module runs on anot
 ## Phase 3 — `jit-x86_64`: integer core and the backend interface
 * **Order of work from here (2026-10-30):** `pyc` first closes the remaining gaps of the core (the
   top-level `test/core` group, outside GC and exceptions), then is frozen at that feature set (plus
-  typed function references and tail calls) and only gets correctness fixes until the JIT catches up. New
+  typed function references and tail calls) and only gets correctness fixes until the JIT catches up. **Multi-memory is the first proposal after that, on both
+  targets together**, as soon as the JIT's integer core runs the `core` group: fused WASI 0.2 needs it
+  (D7). S0003's context already indexes memories (`memory i: base, size` from word 16), so it needs no
+  ABI change; `pyc` needs a memory index on every memory operation. New
   proposals (SIMD, GC, exceptions, memory64, multi-memory beyond memory 0, threads) land on `pyc`
   and the JIT together, or on the JIT first, so the gap between their expected-failure files stays
   small and is reported per directory on every run (D25).
