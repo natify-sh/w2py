@@ -52,7 +52,7 @@ SPEC = {
 def xfails() -> dict[str, list[str]]:
     """Spec stem -> reasons, from tests/spec/xfail/pyc.txt (`file.wast:line  reason`)."""
     out: dict[str, list[str]] = {}
-    for line in (ROOT / "tests/spec/xfail/pyc.txt").read_text().splitlines():
+    for line in (ROOT / "tests/spec/xfail/pyc.txt").read_text(encoding="utf-8").splitlines():
         if line.strip() and not line.startswith("#"):
             head, _, reason = line.partition("  ")
             out.setdefault(head.split(".wast")[0], []).append(reason.strip())
@@ -61,7 +61,7 @@ def xfails() -> dict[str, list[str]]:
 
 def spec_counts() -> dict[str, int]:
     """Commands per converted spec file, written by tests/spec/fetch.py (committed)."""
-    return json.loads((ROOT / "tests/spec/counts.json").read_text())
+    return json.loads((ROOT / "tests/spec/counts.json").read_text(encoding="utf-8"))
 
 
 def evidence(key: str, target: str, bad: dict[str, list[str]], counts: dict[str, int]) -> Any:
@@ -125,12 +125,12 @@ def table(upstream: dict[str, Any], ours: dict[str, Any]) -> str:
 
 def main(argv: list[str]) -> int:
     check = "--check" in argv
-    upstream = json.loads((ROOT / "docs/upstream/features.json").read_text())
+    upstream = json.loads((ROOT / "docs/upstream/features.json").read_text(encoding="utf-8"))
     path = ROOT / "docs/features.json"
     ours = build(upstream)
     problems: list[str] = []
     if path.exists():
-        have = json.loads(path.read_text())
+        have = json.loads(path.read_text(encoding="utf-8"))
         for name, rt in have.get("runtimes", {}).items():
             problems += [
                 f"{name}: unknown key {k}" for k in rt["features"] if k not in upstream["features"]
@@ -138,7 +138,7 @@ def main(argv: list[str]) -> int:
     problems += [f"SPEC: unknown key {k}" for k in SPEC if k not in upstream["features"]]
     text = json.dumps(ours, indent=2) + "\n"
     md_path = ROOT / "docs/FEATURES.md"
-    md = md_path.read_text()
+    md = md_path.read_text(encoding="utf-8")
     head, sep, rest = md.partition(BEGIN)
     if not sep or END not in rest:
         problems.append(f"FEATURES.md: markers {BEGIN} / {END} missing")
@@ -146,15 +146,15 @@ def main(argv: list[str]) -> int:
     tail = rest.partition(END)[2]
     new_md = f"{head}{BEGIN}\n{table(upstream, ours)}\n{END}{tail}"
     if check:
-        if not path.exists() or path.read_text() != text:
+        if not path.exists() or path.read_text(encoding="utf-8") != text:
             problems.append("docs/features.json is stale: run python3 tools/features.py")
         if md != new_md:
             problems.append("docs/FEATURES.md table is stale: run python3 tools/features.py")
         return report(problems)
     if problems:
         return report(problems)
-    path.write_text(text)
-    md_path.write_text(new_md)
+    path.write_text(text, encoding="utf-8", newline="\n")
+    md_path.write_text(new_md, encoding="utf-8", newline="\n")
     for name, rt in ours["runtimes"].items():
         c = Counter(
             "partial" if isinstance(v, list) else "true" if v else "null"

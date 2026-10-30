@@ -81,7 +81,9 @@ def check(path: str, size: int, data: list[tuple[int, int]]) -> list[str]:
     for start, end in code_ranges(size, data):
         cmd = ["objdump", "-D", "-b", "binary", "-mi386:x86-64", "-M", "intel"]
         cmd += [f"--start-address={start}", f"--stop-address={end}", path]
-        out = subprocess.run(cmd, capture_output=True, text=True, check=True).stdout
+        out = subprocess.run(
+            cmd, capture_output=True, text=True, encoding="utf-8", check=True
+        ).stdout
         insns: list[tuple[str, bytearray, str]] = []  # (line, bytes, text)
         for line in out.splitlines():
             parts = line.split("\t")

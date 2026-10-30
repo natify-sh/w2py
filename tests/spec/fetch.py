@@ -21,14 +21,16 @@ CACHE_DIR = HERE.parents[1] / ".cache" / "spec" / SPEC_COMMIT
 
 
 def _wasm_tools() -> str:
-    beside = Path(sys.executable).parent / "wasm-tools"
-    return str(beside) if beside.exists() else shutil.which("wasm-tools") or "wasm-tools"
+    beside = shutil.which("wasm-tools", path=str(Path(sys.executable).parent))  # wasm-tools.exe too
+    return beside or shutil.which("wasm-tools") or "wasm-tools"
 
 
 def main() -> int:
     tool = _wasm_tools()
     try:
-        version = subprocess.run([tool, "--version"], capture_output=True, text=True).stdout
+        version = subprocess.run(
+            [tool, "--version"], capture_output=True, text=True, encoding="utf-8"
+        ).stdout
     except OSError as e:
         print(f"cannot run wasm-tools: {e}", file=sys.stderr)
         return 2
@@ -40,7 +42,7 @@ def main() -> int:
 
     manifest_path = CACHE_DIR / "manifest.json"
     if manifest_path.exists():
-        old = json.loads(manifest_path.read_text())
+        old = json.loads(manifest_path.read_text(encoding="utf-8"))
         if (
             old["commit"] == SPEC_COMMIT
             and old["wasm_tools"] == WASM_TOOLS_VERSION
@@ -86,9 +88,12 @@ def main() -> int:
         check=True,
     )
     counts = {
-        k: len(json.loads((json_dir / f"{k}.json").read_text())["commands"]) for k in converted
+        k: len(json.loads((json_dir / f"{k}.json").read_text(encoding="utf-8"))["commands"])
+        for k in converted
     }
-    (HERE / "counts.json").write_text(json.dumps(counts, indent=0, sort_keys=True) + "\n")
+    (HERE / "counts.json").write_text(
+        json.dumps(counts, indent=0, sort_keys=True) + "\n", encoding="utf-8", newline="\n"
+    )
     manifest = {
         "commit": SPEC_COMMIT,
         "wasm_tools": WASM_TOOLS_VERSION,
@@ -96,7 +101,7 @@ def main() -> int:
         "converted": converted,
         "failed": failed,
     }
-    manifest_path.write_text(json.dumps(manifest, indent=1) + "\n")
+    manifest_path.write_text(json.dumps(manifest, indent=1) + "\n", encoding="utf-8")
     print(f"{len(converted)}/{len(converted) + len(failed)} converted")
     dirs = Counter(k.rpartition("/")[0] or "core" for k in (*converted, *(f[:-5] for f in failed)))
     for d, n in sorted(dirs.items()):

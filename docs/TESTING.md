@@ -83,7 +83,7 @@ tools installed on CPython 3.11, 3.15 and 3.15t; PyPy 3.11 is first checked in C
 | axis | values |
 |---|---|
 | Python | CPython 3.11, 3.12, 3.13, 3.14, 3.15, 3.15t (free-threaded); PyPy 3.11 (D19) |
-| OS | Linux x86-64, Linux aarch64, macOS arm64 (MAP_JIT), Windows x86-64 |
+| OS | Linux x86-64 (all jobs), Windows x64 and macOS x64 (`os` job: unit tests + spec `core` for `pyc` and wasmtime); later Linux aarch64, macOS arm64 (MAP_JIT) |
 | target | `pyc` everywhere; `jit-*` where the machine matches; `mpy` with the MicroPython unix port |
 | native arm64 | `jit-aarch64` on GitHub's arm64 runners (Linux; macOS arm64 with `MAP_JIT`) |
 | emulated | QEMU user-mode only for architectures without native runners (riscv64, armv7, mips32el) as JIT targets appear |

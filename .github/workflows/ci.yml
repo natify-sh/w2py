@@ -44,7 +44,29 @@ jobs:
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
         with:
           path: .cache/spec
-          key: spec-${{ hashFiles('tests/spec/fetch.py', 'tests/spec/spectest.wat') }}
+          key: spec-${{ runner.os }}-${{ hashFiles('tests/spec/fetch.py', 'tests/spec/spectest.wat') }}
       - run: uv run python tests/spec/fetch.py
       - run: uv run python -m tests.spec.run --engine wasmtime --json spec-wasmtime.json
       - run: uv run python -m tests.spec.run --engine pyc --json spec-pyc.json
+  os:
+    # Windows x64 and macOS x64 (Intel); arm64 runners come with jit-aarch64. tests/jit runs inside
+    # pytest here: llvm-mc/objdump checks skip where the tools are absent (no W2PY_JIT_REQUIRE).
+    runs-on: ${{ matrix.os }}
+    env:
+      PYTHONUTF8: "1"  # Windows console code page
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-15-intel]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2  # v10.3.3
+      - run: uv sync --python 3.13
+      - run: uv run pytest -q -rs
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: .cache/spec
+          key: spec-${{ runner.os }}-${{ hashFiles('tests/spec/fetch.py', 'tests/spec/spectest.wat') }}
+      - run: uv run python tests/spec/fetch.py
+      - run: uv run python -m tests.spec.run --engine wasmtime
+      - run: uv run python -m tests.spec.run --engine pyc

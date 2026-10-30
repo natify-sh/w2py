@@ -21,6 +21,8 @@ def usable() -> None:
 def perms(lo: int, size: int) -> str | None:
     """The permissions of the mappings overlapping [lo, lo+size) (only ours: the interpreter, e.g.
     PyPy's JIT, may map RWX elsewhere); asserts none is writable and executable."""
+    if not MAPS.exists():  # not Linux: the call below is the only check there
+        return None
     found: set[str] = set()
     for line in MAPS.read_text().splitlines():
         rng, p = line.split()[:2]
@@ -34,18 +36,18 @@ def perms(lo: int, size: int) -> str | None:
 
 def test_w_xor_x() -> None:
     usable()
-    need(MAPS.exists(), "/proc/self/maps")
     a = Asm()
     a.endbr64()
     a.mov_imm(RAX, 7)
     a.ret()
     mem = ExecMem(10)
     addr, size = mem.addr, mem.size
-    assert perms(addr, size) == "rw-p"
+    rw, rx = ("rw-p", "r-xp") if MAPS.exists() else (None, None)
+    assert perms(addr, size) == rw
     mem.write(a.finish())
-    assert perms(addr, size) == "rw-p"
+    assert perms(addr, size) == rw
     mem.seal()
-    assert perms(addr, size) == "r-xp"
+    assert perms(addr, size) == rx
     with pytest.raises(ValueError):
         mem.write(b"\xc3")
     assert ctypes.CFUNCTYPE(ctypes.c_int)(mem.addr)() == 7

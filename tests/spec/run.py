@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
@@ -252,7 +253,9 @@ class _FileRun:
 
 
 def run_file(engine: SpecEngine, directory: Path, stem: str, spectest: bytes) -> Iterator[Result]:
-    commands: list[Json] = json.loads((directory / f"{stem}.json").read_text())["commands"]
+    commands: list[Json] = json.loads((directory / f"{stem}.json").read_text(encoding="utf-8"))[
+        "commands"
+    ]
     ids = command_ids(stem, commands)
     try:
         state = _FileRun(engine, directory / stem, spectest)
@@ -303,7 +306,8 @@ def _child_results(engine_name: str, stem: str, ids: list[str], timeout: float) 
     cmd = [sys.executable, "-m", "tests.spec.run", "--engine", engine_name, "--child", stem]
     why = ""
     try:
-        proc = subprocess.run(cmd, cwd=ROOT, capture_output=True, timeout=timeout)
+        env = {**os.environ, "PYTHONUTF8": "1"}
+        proc = subprocess.run(cmd, cwd=ROOT, env=env, capture_output=True, timeout=timeout)
         out, why = proc.stdout, f"crash: {proc.returncode}"
     except subprocess.TimeoutExpired as e:
         out, why = e.stdout or b"", "timeout"
@@ -333,7 +337,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 2
     json_dir = CACHE_DIR / "json"
     try:
-        manifest: Json = json.loads((CACHE_DIR / "manifest.json").read_text())
+        manifest: Json = json.loads((CACHE_DIR / "manifest.json").read_text(encoding="utf-8"))
         spectest = (CACHE_DIR / "spectest.wasm").read_bytes()
     except OSError:
         print("no spec cache: run `uv run python tests/spec/fetch.py` first", file=sys.stderr)
@@ -353,7 +357,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     if not args.files:
         for stem in [s for s in stems if not claimed(args.engine, _dir(s))]:
             unclaimed[_dir(stem)] += len(
-                json.loads((json_dir / f"{stem}.json").read_text())["commands"]
+                json.loads((json_dir / f"{stem}.json").read_text(encoding="utf-8"))["commands"]
             )
         stems = [s for s in stems if claimed(args.engine, _dir(s))]
     unknown = [s for s in stems if s not in converted]
@@ -371,7 +375,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     per_dir: dict[str, Counter[str]] = {}
     for stem in stems:
         directory = _dir(stem)
-        commands: list[Json] = json.loads((json_dir / f"{stem}.json").read_text())["commands"]
+        commands: list[Json] = json.loads((json_dir / f"{stem}.json").read_text(encoding="utf-8"))[
+            "commands"
+        ]
         ids = command_ids(stem, commands)
         types.update(zip(ids, (c["type"] for c in commands), strict=True))
         whole = f"{stem}.wast:*"
@@ -446,7 +452,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 if st != "pass"
             ],
         }
-        args.json.write_text(json.dumps(report, indent=1) + "\n")
+        args.json.write_text(json.dumps(report, indent=1) + "\n", encoding="utf-8")
 
     if args.write_xfail:
         lines = {f"{k}  {v}" for k, v in xfail.items() if k.endswith(".wast:*")}
