@@ -480,7 +480,7 @@ class FuncGen:
                 s.dead = True
                 continue
             if op == 0x00:
-                s.emit('raise Trap("unreachable")')
+                s.emit('raise Trap("unreachable", "UNREACHABLE")')
                 s.dead = True
                 continue
             if op == 0x01:
@@ -1150,9 +1150,11 @@ class ModGen:
         ex = []
         for n, k, i in mod["exports"]:
             if k == 0:
-                ex.append("%r: %s" % (n, s.fname(i)))
+                ex.append("%r: _export(%s)" % (n, s.fname(i)))
             elif k == 2:
                 ex.append("%r: M" % n)
+            elif k == 3:
+                ex.append("%r: _Global(lambda: G%d)" % (n, i))
         L.append("    return {%s}" % ", ".join(ex))
         out.append("\n".join(L))
         return "\n\n".join(out) + "\n"

@@ -5,7 +5,11 @@ import struct as _st, math as _m
 
 
 class Trap(Exception):
-    pass
+    """A wasm trap. `code` is a name from Wasmtime's TrapCode (D6), e.g. "UNREACHABLE"."""
+
+    def __init__(self, message, code=None):
+        Exception.__init__(self, message)
+        self.code = code
 
 
 INF = float("inf")
@@ -51,14 +55,39 @@ def _grow(M, maxpages, n):
 
 def _mcopy(M, d, s, n):
     if d + n > len(M) or s + n > len(M):
-        raise Trap("oob")
+        raise Trap("out of bounds memory access", "MEMORY_OUT_OF_BOUNDS")
     M[d : d + n] = M[s : s + n]
 
 
 def _mfill(M, d, v, n):
     if d + n > len(M):
-        raise Trap("oob")
+        raise Trap("out of bounds memory access", "MEMORY_OUT_OF_BOUNDS")
     M[d : d + n] = bytes([v & 255]) * n
+
+
+class _Global:
+    """An exported global: `.get()` reads the current value."""
+
+    def __init__(self, get):
+        self.get = get
+
+
+def _export(f):
+    """Wrap an exported function: Python errors that mean a trap become `Trap` (provisional)."""
+
+    def w(*a):
+        try:
+            return f(*a)
+        except Trap:
+            raise
+        except (IndexError, _st.error):
+            raise Trap("out of bounds memory access", "MEMORY_OUT_OF_BOUNDS") from None
+        except ZeroDivisionError:
+            raise Trap("integer divide by zero", "INTEGER_DIVISION_BY_ZERO") from None
+        except RecursionError:
+            raise Trap("call stack exhausted", "STACK_OVERFLOW") from None
+
+    return w
 
 
 def _pc(x):
@@ -105,9 +134,9 @@ def _divs32(a, b):
     a = (a ^ 0x80000000) - 0x80000000
     b = (b ^ 0x80000000) - 0x80000000
     if b == 0:
-        raise Trap("integer divide by zero")
+        raise Trap("integer divide by zero", "INTEGER_DIVISION_BY_ZERO")
     if a == -0x80000000 and b == -1:
-        raise Trap("integer overflow")
+        raise Trap("integer overflow", "INTEGER_OVERFLOW")
     q = abs(a) // abs(b)
     return (-q if (a < 0) != (b < 0) else q) & 0xFFFFFFFF
 
@@ -116,7 +145,7 @@ def _rems32(a, b):
     a = (a ^ 0x80000000) - 0x80000000
     b = (b ^ 0x80000000) - 0x80000000
     if b == 0:
-        raise Trap("integer divide by zero")
+        raise Trap("integer divide by zero", "INTEGER_DIVISION_BY_ZERO")
     r = abs(a) % abs(b)
     return (-r if a < 0 else r) & 0xFFFFFFFF
 
@@ -126,9 +155,9 @@ def _divs64(a, b):
     a = (a ^ h) - h
     b = (b ^ h) - h
     if b == 0:
-        raise Trap("integer divide by zero")
+        raise Trap("integer divide by zero", "INTEGER_DIVISION_BY_ZERO")
     if a == -h and b == -1:
-        raise Trap("integer overflow")
+        raise Trap("integer overflow", "INTEGER_OVERFLOW")
     q = abs(a) // abs(b)
     return (-q if (a < 0) != (b < 0) else q) & 0xFFFFFFFFFFFFFFFF
 
@@ -138,7 +167,7 @@ def _rems64(a, b):
     a = (a ^ h) - h
     b = (b ^ h) - h
     if b == 0:
-        raise Trap("integer divide by zero")
+        raise Trap("integer divide by zero", "INTEGER_DIVISION_BY_ZERO")
     r = abs(a) % abs(b)
     return (-r if a < 0 else r) & 0xFFFFFFFFFFFFFFFF
 
@@ -197,10 +226,10 @@ _copysign = _m.copysign
 
 def _tr(x, lo, hi):
     if x != x:
-        raise Trap("invalid conversion to integer")
+        raise Trap("invalid conversion to integer", "BAD_CONVERSION_TO_INTEGER")
     t = _m.trunc(x) if x not in (INF, -INF) else None
     if t is None or not (lo <= t <= hi):
-        raise Trap("integer overflow")
+        raise Trap("integer overflow", "INTEGER_OVERFLOW")
     return t
 
 

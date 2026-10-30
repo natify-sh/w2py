@@ -34,3 +34,4 @@ jobs:
           key: spec-${{ hashFiles('tests/spec/fetch.py', 'tests/spec/spectest.wat') }}
       - run: uv run python tests/spec/fetch.py
       - run: uv run python -m tests.spec.run --engine wasmtime --json spec-wasmtime.json
+      - run: uv run python -m tests.spec.run --engine pyc --json spec-pyc.json

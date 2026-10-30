@@ -34,7 +34,13 @@ def _wasmtime() -> SpecEngine:
     return WasmtimeEngine()
 
 
-ENGINES: dict[str, Callable[[], SpecEngine]] = {"wasmtime": _wasmtime}
+def _pyc() -> SpecEngine:
+    from tests.spec.pyc_engine import PycEngine
+
+    return PycEngine()
+
+
+ENGINES: dict[str, Callable[[], SpecEngine]] = {"wasmtime": _wasmtime, "pyc": _pyc}
 
 TRAP_CODES = {
     "unreachable": TrapCode.UNREACHABLE,
