@@ -28,6 +28,33 @@ then only reproduces checked semantics faster, and the same runner shows at once
 The open questions below do not block this start — the name, the WASI host and parallelism are needed
 only in phases 2–3.
 
+## Order of the wasm features
+
+Dictated by the modules that exist in practice, and by what fused WASI 0.2 needs:
+
+1. **MVP + Wasm 2.0**: mutable globals, sign-extension, non-trapping float-to-int, multi-value (block
+   parameters too), bulk memory, reference types, SIMD — what clang, rustc and zig emit by default.
+2. **multi-memory** — without it there is no fused WASI 0.2.
+3. The runtime API and **WASI 0.1**, then **fused WASI 0.2**.
+4. **memory64**, **tail-call**, **extended-const**.
+5. **exception handling**.
+6. **function references** and **GC** — needed by Kotlin, Dart, OCaml, Java-to-wasm; less by C/Rust.
+7. **relaxed SIMD**, **wide arithmetic**.
+8. **threads** (shared memory, atomics), **custom page sizes** (Wasmtime Tier 2).
+
+Tier 3 proposals (branch-hinting, stack-switching, compact-imports) after all of these. Sources and
+counters: TESTING.md, "Sources of truth and the completeness counters".
+
+## Exit criteria in numbers
+
+| phase | counters (TESTING.md) |
+|---|---|
+| 1 | `assert_invalid` / `assert_malformed` of the pinned spec suite pass (the validator) |
+| 2 | spec suite for features 1–2 above passes on `pyc` (CPython and PyPy); the rest are listed expected failures |
+| 3 | wasmtime-py's own tests pass through the shim, except the listed deviations; the WASI testsuite (p1) passes; the CLI accepts the scraped option list |
+| 4 | the same spec commands pass on `jit-x86_64` as on `pyc` for the stages it claims; differential fuzzing finds no divergence over an agreed number of hours |
+| later | each new proposal enters with its spec tests green on every target that claims it |
+
 ## Phase 0 — repository from the PoC
 * Package layout of ARCHITECTURE.md; move the PoC's reader, decoder and stack-to-tree builder out of
   `w2py.py` into `frontend/` and `ir/`; the code generators become `targets/pyc` and `targets/jit/x86_64`.
@@ -47,8 +74,9 @@ only in phases 2–3.
 * Trap conversion at the boundary; stack-depth counter and `STACK_OVERFLOW`; re-entrancy.
 * Long calls: yield points + interrupt word (measure the cost); one-thread-per-store guard.
 * Fuel and epochs (compiled in on demand).
-* Cache and `Module.serialize`/`deserialize`.
-* The generated-module ABI (ARCHITECTURE.md, "Versioned contracts"); regeneration from the wasm on
+* Cache and `Module.serialize`/`deserialize`: thin and fat files (DECISIONS.md D18).
+* No embedded runtime: generated code uses the package's runtime (D18); the PoC's emitted `RUNTIME`
+  goes away. Regeneration from the wasm on
   any mismatch.
 * Exit criterion: the spec suite passes on CPython and PyPy.
 
@@ -61,8 +89,11 @@ only in phases 2–3.
 * Differential tests against wasmtime on real programs.
 
 ## Phase 4 — `jit-x86_64` complete
-* LIR and the shared JIT core extracted from `w2jit2`; bounds-check elimination (measure against the
-  ~20 % gap to Cranelift).
+* LIR and the shared JIT core extracted from `w2jit2`; **guard pages with a JIT-emitted signal
+  handler** (`poc/w2jit_guard.py`: +20–25 % on CoreMark, the gap to Cranelift was mostly the bounds
+  checks) per OS (Linux/BSD `sigaction` + `ucontext` offsets per architecture, macOS also SIGBUS,
+  Windows a vectored exception handler), `sigaltstack` per thread for stack overflow; explicit checks
+  as the fallback; then bounds-check elimination only where guard pages are not available.
 * The full opcode set in stages (TARGETS.md), `memory.grow` on a reserved range,
   `call_indirect` and tables, nested entries, host exceptions across the boundary, trap frames,
   fuel/epoch checks, the interrupt word polled at back-edges (Ctrl+C via the waiting main thread),
@@ -107,6 +138,26 @@ only in phases 2–3.
 8. **Free-threaded CPython (no GIL)**: shared memories and atomics in `pyc` need real synchronisation.
 9. **Name**: `w2py` grew beyond "wasm to Python" — keep it, or rename the runtime and keep `w2py` for
    the translator?
-10. **Version skew**: self-contained modules, versioned helper namespaces or a declared module ABI;
-   fat artifacts with the wasm embedded or not; how many older format versions a loader accepts
-   (RISKS.md, R4).
+10. **Version skew** — settled by D18: no embedded runtime, exact match or regenerate; fat files carry
+   the wasm. Left: the known-bad compiler list (where it lives, how it is updated).
+11. **Components on the fly**: accept a component and fuse it at load time (then compile and cache the
+   core module by the component's hash) by running **meld compiled to wasm on w2py itself**, shipped
+   as a data file in the wheel (Apache-2.0): no native dependency and no second fuser to keep in sync.
+   **Checked (meld 0.66.0, BENCHMARKS.md):** meld builds without patches for `wasm32-wasip1` (CLI,
+   2.7 MB, 16 WASI p1 imports), `wasm32-wasip2` (component, 2.9 MB) and — best for this use —
+   **meld-core alone for `wasm32-unknown-unknown`** behind a ~40-line wrapper (1.7 MB, **no imports at
+   all**: `meld_alloc` / `meld_fuse` / `meld_out_ptr` / `meld_out_len`; attestation set to
+   `reproducible`, there is no wall clock without WASI). It uses only MVP + sign-ext + `memory.copy` /
+   `memory.fill` (no SIMD, no multi-value, no `trunc_sat`), and **the PoC's `pyc` already runs it**:
+   meld fusing its own p2 build gives output byte-identical to the same run on wasmtime, in 44 s on
+   PyPy and 253 s on CPython (wasmtime 1.05 s) — acceptable once per component with the cache, and the
+   JIT will cut it. Still open: its coverage (resources, string transcoding, p3 async). Exports remain
+   core functions; Python values need our own canonical-ABI lift at the boundary.
+12. **Targets in one Store**: one shared representation of memories, tables and globals with
+   per-module fallback, or one target per Store (ARCHITECTURE.md, "State shared across targets")?
+   Measure `pyc` on a reserved mapping against a `bytearray` first.
+13. **Lazy compilation**: compile each function on its first call (JIT: a stub that compiles and
+   patches; `pyc`: translate and `exec` per function) so the first load costs what is used, not the
+   whole module (QuickJS: ~1.5 s JIT / ~5.7 s `pyc` for everything; BENCHMARKS.md, "Compile time on
+   large modules"). Costs: a patchable call path, compilation in the middle of a call (re-entrancy,
+   the GIL, executable-memory growth). Compare with eager compilation + cache before deciding.

@@ -56,7 +56,7 @@ the `wasmtime` command itself. Entry points: `w2py …` and `python -m w2py …`
 | command | meaning | as in wasmtime |
 |---|---|---|
 | `w2py run [opts] file.wasm [args…]` | run a command module (`_start`) or `--invoke name` with arguments | `wasmtime run` |
-| `w2py compile [-o out] file.wasm` | write the serialized artifact for a target (`--target`) | `wasmtime compile` (`.cwasm`) |
+| `w2py compile [-o out] [--fat] file.wasm` | write the serialized file for a target (`--target`), `<name>.<target>.w2a`; `--fat` embeds the wasm so the file regenerates itself on a mismatch (DECISIONS.md D18) | `wasmtime compile` (`.cwasm`) |
 | `w2py wast file.wast` | run a spec-test script (needs a WAT/WAST parser or a `.json` from `wast2json`) | `wasmtime wast` |
 | `w2py settings` / `w2py targets` | the targets available on this machine, their features, why others are not | `wasmtime settings` |
 | `w2py cache {stats,clear,dir}` | the compilation cache | `wasmtime config` / cache options |

@@ -66,8 +66,32 @@ What went wrong or surprised us while building the PoC, so it is not found again
     `while true do … end` with a forward `goto` to a continue label, 1 873 it/s.
 21. Lua has a limit of ~200 locals per function: spill the rest into a table.
 
+22. **CPython's parser allows at most 100 levels of indentation** (on top of the 20 statically nested
+    loop/`try`/`with` blocks of LESSONS 2). Wasm nests blocks without limit: in CPython built for WASI,
+    `_PyEval_EvalFrameDefault` (a 155 KB function body) nests blocks **742 deep** — its big `switch`
+    becomes one block per case. The `pyc` translator turns each block into an indented `if`, so the
+    96.5 MB of generated source fails in `compile()` with `IndentationError: too many levels of
+    indentation`. Possible answers: for functions past a depth, a flat state machine (`while True:` +
+    a label variable + one `if`/`elif` level — the "label variable" fallback of the Relooper); or the
+    switch lowering of BENCHMARKS.md, "br_table", which puts case bodies at the leaves instead of
+    nesting them; or splitting deep regions into nested functions. The JIT has no such limit.
+
 ## Tooling
 
-22. The sandbox could not reach PyPI-hosted binaries for wabt or PyPy; wabt (`wast2json`) was built
+23. The sandbox could not reach PyPI-hosted binaries for wabt or PyPy; wabt (`wast2json`) was built
     from source in a minute with CMake + Ninja; CPython 2.7 for RPython was built from the CPython
     `2.7` branch; old CPythons came from `uv python install` (3.8+ only).
+
+## Found later
+
+24. **Guard pages are reachable from Python after all.** The usual statement "a SIGSEGV cannot be
+    turned into a trap from Python" is true of a Python handler; a handler emitted as machine code by
+    the JIT and installed with `sigaction` through ctypes works (`poc/w2jit_guard.py`: 119 bytes; Linux
+    x86-64; traps at every out-of-bounds address, the module keeps working after a trap, a real
+    segfault elsewhere still ends the process with 139). Watch: `ctypes.memmove` does not take a
+    `bytearray` (pass `bytes`); 0xFFFC + 4 bytes is the last valid i32 of a 64 KiB memory.
+25. **`wasm-opt` on code that LLVM already optimised gains nothing** and its inlining slows the
+    interpreters (wasm3, iwasm: −7…8 %); Lua gained 17 % (fewer calls). The PoC JIT had to learn
+    `if`/`else`: clang/zig never emitted it for CoreMark, binaryen does.
+26. **Precompiled Lua (`string.dump`) only saves load time** (130 KB source 2–3 ms → 76 KB bytecode
+    0.1 ms); the speed is the same VM's.

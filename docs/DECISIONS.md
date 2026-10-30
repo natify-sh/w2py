@@ -49,7 +49,8 @@ choice must not set the minimum Python of the package (fusedwasi's twin declares
 
 ### D9. Cache compiled artifacts
 Keyed by the module hash, w2py version, target and target environment, and code-affecting config. The
-same format is `Module.serialize`. Measured: `pyc` cold 111 ms → 0.5 ms cached.
+same format is `Module.serialize`. Measured: `pyc` cold 111 ms → 0.5 ms cached. Serialized files and
+fat files (embedding the wasm): D18.
 
 ### D10. Never crash the interpreter on deep recursion
 Stack depth is bounded per store with a deterministic `STACK_OVERFLOW` trap; `sys.setrecursionlimit` is
@@ -88,7 +89,8 @@ architecture's baseline (x86-64-v1, ARMv8.0-A) with baseline sequences for highe
 with entry trampolines for every calling convention of the architecture, function/trap tables,
 segments; (3) **context ABI v1** — entry signature, context words, host-function signature, trap
 codes. Hosts in other languages (C, Dart, LuaJIT, …) may load artifacts; a C reference loader keeps the
-contract honest.
+contract honest. *Narrowed by D18*: the contract is first of all the format of cache entries and
+serialized files read by the w2py runtime; other-language loaders and the C loader are optional.
 
 ### D16. Our own thin IR; wasm is the portable IR; no LLVM
 Wasm already is a typed, validated, producer-optimised IR, so no LLVM-class optimiser is needed (a
@@ -105,3 +107,29 @@ the analyses, backends hold everything language-specific, artifacts are loadable
 language. Evidence that it works: the PoC's Lua 5.4 / LuaJIT backends reuse the front end. Only
 Python-family targets (`pyc`, `mpy`, JITs loaded from Python) are in scope; the principle is cheap
 insurance, not a commitment.
+
+### D18. No embedded runtime: the Wasmtime model, not the wasmext model
+w2py generates code when a module is loaded, so what it generates is a derivative owned by the engine,
+as in Wasmtime — not a product that lives without the tool, as wasm2c + a C build is in wasmext (there
+the output must carry its runtime). Consequences:
+
+* **The runtime lives only in the package**: `Store`, memories, tables, globals, traps, WASI, the JIT
+  entry and context. Generated code (a `pyc` code object, a JIT artifact) holds code and metadata and
+  uses the runtime of its own w2py version. The PoC's `RUNTIME` string emitted into every module is a
+  PoC shortcut, not the design.
+* **Portable form: a serialized file** (`Module.serialize`, `w2py compile`), like Wasmtime's `.cwasm`;
+  it runs only on a w2py runtime. Named `<name>.<target>.<ext>`, the target including what decides
+  whether it can run there (`core.jit-x86_64-v1.w2a`, `core.pyc-cp313.w2a`; `.w2a` is a working
+  extension until the project has a name). The header, not the file name, is authoritative.
+* **Fat files**: optionally the file embeds the original wasm (ARTIFACT.md, section `WASM`). A fat file
+  is never refused: on any mismatch — w2py or target version, bytecode magic, ISA level, a known-bad
+  compiler version — the runtime regenerates from the embedded wasm (and may cache the result), so the
+  file always runs, only slower the first time. A thin file is refused on a mismatch, as in Wasmtime.
+* **Version skew (RISKS.md, R4) reduces to one rule**: accept an exact match, otherwise regenerate from
+  the wasm (cache: the wasm is at hand; fat file: embedded) or refuse (thin file). No compatibility
+  windows and no versioned helper namespaces; the interface between generated code and the runtime is
+  internal and may change between any two versions.
+* ARTIFACT.md stays the format of cache entries and serialized files; loaders in other languages and
+  the C reference loader become optional (D15 narrowed).
+* Possible exception, later and optional: a standalone export with minimal embedded helpers for
+  MicroPython devices, where the runtime package costs flash.

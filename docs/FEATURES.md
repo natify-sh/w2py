@@ -12,7 +12,7 @@ w2py follows the defaults of the wasmtime version pinned as the test oracle (TES
 
 | switch | proposal | `pyc` PoC | `jit-x86_64` PoC | notes for the implementation |
 |---|---|---|---|---|
-| — | MVP + mutable globals | most | CoreMark subset | PoC gaps: `call_indirect` signature check, block parameters |
+| — | MVP + mutable globals | CoreMark subset (no spec run yet) | CoreMark subset | PoC gaps: validator, `call_indirect` signature check, block parameters; the JIT lacks `memory.grow` and full i64 |
 | — | sign-extension ops | yes | i32 forms | |
 | — | non-trapping float-to-int | yes | f64→i32 forms | |
 | `wasm_multi_value` | multi-value | results yes, block params no | no | |

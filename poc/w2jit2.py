@@ -21,7 +21,8 @@ from w2jit import (Asm, Ent, Ctl, JitModule, Trap, TRAPS, CC, INV, wide,
                    CTX_VSLIMIT, CTX_GLOBALS)
 
 POOL = [RBX, RBP, RSI, RDI, R8, R9, R10, R11]
-OPT = {'pin': True, 'inplace': True, 'loadfuse': True, 'raxcache': True, 'nopin_funcs': set()}  # debugging switches
+OPT = {'pin': True, 'inplace': True, 'loadfuse': True, 'raxcache': True, 'nopin_funcs': set(),
+       'jumptable': int(__import__('os').environ.get('W2PY_JT', '4'))}  # br_table: min non-default entries, 0 = off  # debugging switches
 C_CALLER_SAVED = {RSI, RDI, R8, R9, R10, R11}
 ARITH = {0x6A: (0x03, 0), 0x6B: (0x2B, 5), 0x71: (0x23, 4), 0x72: (0x0B, 1), 0x73: (0x33, 6)}  # opc r,r/m ; /ext imm
 SHIFT = {0x74: 4, 0x75: 7, 0x76: 5, 0x77: 0, 0x78: 1}
@@ -30,6 +31,10 @@ SHIFT = {0x74: 4, 0x75: 7, 0x76: 5, 0x77: 0, 0x78: 1}
 def s32(v):
     v &= 0xFFFFFFFF
     return v - (1 << 32) if v >= (1 << 31) else v
+
+
+class CtlIf(Ctl):
+    __slots__ = ('else_label', 'has_else')
 
 
 class FuncJit2:
@@ -223,7 +228,30 @@ class FuncJit2:
                 s.ctl.append(T)
                 if op == 0x03: a.bind(T.label)
                 continue
-            if op == 0x04: raise NotImplementedError('if/else not needed for this PoC')
+            if op == 0x04:
+                # if: pop the condition, flush (every entry a slot, so both arms start from one state),
+                # jump to the else label when false; `else` closes the then-arm like a br to the end
+                ps, rs = s.bt(x[1])
+                if ps: raise NotImplementedError('block params')
+                c = s.st.pop(); ci = len(s.st)
+                if c.k == 'const':
+                    s.ld(RCX, c, ci); a.op_rr(b'\x85', RCX, RCX); cc = 'ne'
+                else:
+                    cc = s.test_cond(c, ci)
+                s.flush()                                     # movs only: flags survive
+                T = CtlIf('if', len(s.st), len(rs), a.label())
+                T.else_label = a.label(); T.has_else = False
+                a.jcc(INV[cc], T.else_label)
+                s.ctl.append(T)
+                continue
+            if op == 0x05:
+                T = s.ctl[-1]
+                if not s.dead:
+                    s.flush(); s.br_moves(T); a.jmp(T.label); T.tgt_used = True
+                del s.st[T.h:]
+                a.bind(T.else_label); T.has_else = True
+                s.dead = False
+                continue
             if op == 0x0C: s.br(x[1]); s.dead = True; continue
             if op == 0x0D: s.br_if(x[1]); continue
             if op == 0x0E: s.br_table(x[1], x[2]); s.dead = True; continue
@@ -241,7 +269,10 @@ class FuncJit2:
             s.flush()
             if T.kind != 'loop': s.br_moves(T)
         del s.st[T.h:]
-        if T.kind != 'loop':
+        if T.kind == 'if' and not T.has_else:
+            s.a.bind(T.else_label)                       # the false path arrives here (no results)
+            s.a.bind(T.label); reach = True
+        elif T.kind != 'loop':
             s.a.bind(T.label); reach = (not s.dead) or T.tgt_used
         else:
             reach = not s.dead
@@ -278,6 +309,24 @@ class FuncJit2:
         s.ld(RCX, e, ei)
         s.flush()
         a = s.a
+        if OPT['jumptable'] and sum(d != default for d in tbl) >= OPT['jumptable']:
+            # jump table: cmp ecx,n; jae default; lea rax,[rip+T]; movsxd rdx,[rax+rcx*4]; add rax,rdx; jmp rax
+            # T holds int32 offsets of per-target stubs relative to T (position-independent, as clang does);
+            # ecx is zero-extended by the 32-bit load above
+            stub = {d: a.label() for d in sorted(set(tbl) | {default})}
+            T = a.label()
+            a.alu_r_imm(7, RCX, len(tbl)); a.jcc('ae', stub[default])
+            a.emit(0x48, 0x8D, 0x05); a.fix.append((len(a.b), T)); a.b += b'\0\0\0\0'
+            a.emit(0x48, 0x63, 0x14, 0x88)
+            a.emit(0x48, 0x01, 0xD0)
+            a.emit(0xFF, 0xE0)
+            while len(a.b) % 4: a.emit(0xCC)
+            a.bind(T)
+            for d in tbl:
+                a.fix.append((len(a.b), stub[d], T)); a.b += b'\0\0\0\0'
+            for d, l in stub.items():
+                a.bind(l); s.br(d)
+            return
         for k, d in enumerate(tbl):
             if d == default: continue
             nxt = a.label(); a.alu_r_imm(7, RCX, k); a.jcc('ne', nxt); s.br(d); a.bind(nxt)

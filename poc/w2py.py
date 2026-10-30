@@ -493,6 +493,20 @@ class FuncGen:
                 s.flush_all()
                 if not idx.isidentifier():
                     t = s.newtmp(I32); s.emit('%s = %s' % (t, idx)); idx = t
+                # runs of consecutive indices with the same target; the last run ([n, 2**32)) is the default
+                runs = []
+                for k, d in enumerate(list(x[1]) + [x[2]]):
+                    if not runs or runs[-1][1] != d: runs.append((k, d))
+                if BRTREE and len(runs) > BRTREE:
+                    # Python has no computed goto: a balanced tree of `<` tests over the runs, log2(runs)
+                    # comparisons instead of a linear chain (the same lowering compilers use for sparse switches)
+                    def tree(rs):
+                        if len(rs) == 1: s.br_code(rs[0][1]); return
+                        h = len(rs) // 2
+                        m = s.open('if %s < %d:' % (idx, rs[h][0])); tree(rs[:h]); s.close(m)
+                        m = s.open('else:'); tree(rs[h:]); s.close(m)
+                    tree(runs)
+                    s.dead = True; continue
                 groups = {}
                 for k, d in enumerate(x[1]):
                     if d != x[2]: groups.setdefault(d, []).append(k)
@@ -1251,6 +1265,7 @@ def _gen_typed(s):  # noqa
 
 
 TYPED = False   # --mypyc : annotated code + native-friendly runtime for mypyc
+BRTREE = int(__import__("os").environ.get("W2PY_BT", "4"))  # br_table: balanced if-tree above this many runs, 0 = chain
 INLINE_MAX = 0  # --inline N : inline straight-line leaf functions up to N instructions
 
 

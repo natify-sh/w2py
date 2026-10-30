@@ -113,8 +113,10 @@ class Asm:
     def movzx_r_r8(s, dst, src): s.op_rr(b'\x0f\xb6', dst, src)
 
     def resolve(s):
-        for pos, l in s.fix:
-            s.b[pos:pos + 4] = struct.pack('<i', s.labels[l] - (pos + 4))
+        for f in s.fix:
+            pos, l = f[0], f[1]
+            base = s.labels[f[2]] if len(f) > 2 else pos + 4   # jump-table entries: relative to the table
+            s.b[pos:pos + 4] = struct.pack('<i', s.labels[l] - base)
 
 
 # ============================================================================ code generator

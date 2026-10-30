@@ -168,8 +168,35 @@ memory without knowing the target.
   without committing portably, so the reservation goes through ctypes.
 * `memory64`, `multi-memory`, shared memory (threads) and custom page sizes are properties of the
   facade and of the code generators, not of separate paths.
-* Bounds checks are explicit in every target. Guard pages + a signal handler (how Wasmtime avoids the
-  checks) are not available from Python: a SIGSEGV cannot be turned into a trap safely.
+* Bounds checks: explicit in `pyc`/`mpy`. **The JIT can use guard pages without a native dependency**
+  (measured, `poc/w2jit_guard.py`): an 8 GiB `PROT_NONE` reservation with only the wasm pages
+  read/write, and a SIGSEGV handler that is **machine code emitted by the JIT** (a Python handler
+  cannot run inside a signal) and installed with `sigaction` through ctypes. It resumes a fault at a
+  reserved address raised by this module's code in the out-of-bounds trap stub (it rewrites RIP in the
+  `ucontext`, as Wasmtime does), and passes everything else to the previous handler or restores the
+  default action. CoreMark: +20–25 % (91 % of Wasmtime instead of 78 %), 23 % less machine code
+  (BENCHMARKS.md, "Guard pages"). Explicit checks stay the fallback (offsets ≥ 2 GiB, platforms
+  without the handler yet, `memory64`); risks in RISKS.md, R6.
+
+## State shared across targets
+
+In the PoC each code generator had its own mini-runtime (`pyc`: a `bytearray`, Python globals, a list
+of functions; the JIT: a raw mapping, context slots, code addresses). In the package one runtime owns
+the state and every target works on it, because modules compiled by different targets can meet in one
+`Store` (per-module fallback, TARGETS.md) and share a memory or a table:
+
+| state | one representation for all targets | `pyc` uses it as | JIT uses it as |
+|---|---|---|---|
+| memory | a mapping reserved at its maximum and committed on `grow` (above) | a buffer: `struct` / slices on it | base address + size in the context |
+| table | per entry: type id + a Python callable + a code address (or a call stub) | the callable | the address, the type id for `call_indirect` |
+| globals | slots in the context | attributes read through the instance (or cached and written back at the boundary) | context words |
+| traps | `Trap` with Wasmtime's `TrapCode` | raised directly | trap code → raised at the entry |
+
+Calls across the boundary work in both directions at the cost of a ctypes crossing (JIT → `pyc` as a
+host function through `CFUNCTYPE`, `pyc` → JIT through the entry). To measure before deciding: `pyc`
+on a reserved mapping instead of a `bytearray`. The alternative is one target per `Store` (fallback
+for the whole store): simpler, but a single unsupported feature then slows every module of the
+store. Open question 12 in ROADMAP.md.
 
 ## Calls, stack depth and recursion
 
@@ -278,7 +305,9 @@ Like Wasmtime's cache (and `Module.serialize`), compiled artifacts are kept on d
 * **Where**: `$XDG_CACHE_HOME/w2py` (or the platform's equivalent, computed with stdlib only); atomic
   writes (temp file + `os.replace`); a size limit with LRU eviction; `w2py cache` in the CLI.
 * `Module.serialize()` / `deserialize()` write and read the same artifact format, so a module can
-  also be compiled ahead of time and shipped (`w2py compile`). What to cache versus ship, and the
+  also be compiled ahead of time and shipped (`w2py compile`, a file like Wasmtime's `.cwasm`: it
+  needs the w2py runtime, nothing is embedded — DECISIONS.md D18). Optionally **fat**: the file
+  carries the original wasm and regenerates itself on any mismatch instead of being refused. What to cache versus ship, and the
   trust problem of artifacts from other machines: RISKS.md, R1.
 * Measured cost it saves (PoC, CoreMark): `pyc` translation + `compile()` ≈ 111 ms, from cache
   ≈ 0.5 ms; the JIT compiles in ≈ 25 ms.
@@ -291,11 +320,11 @@ another w2py version. Each interface between them is a versioned contract:
 | contract | between | where |
 |---|---|---|
 | JIT artifact format + context ABI + ISA level | the JIT compiler and any loader (Python or another language) | ARTIFACT.md |
-| **generated-module ABI** (`pyc`, `mpy`) | a generated Python module and the runtime: how it receives imports and memories, which helpers it calls, how it reports traps, how the runtime finds its exports | to define in phase 2; options in RISKS.md, R4 (self-contained modules, versioned helper namespaces, a declared `__w2py_abi__`) |
+| **generated-module ABI** (`pyc`, `mpy`) | a generated Python module and the runtime: how it receives imports and memories, which helpers it calls, how it reports traps, how the runtime finds its exports | **internal** (D18): generated code is used only by the runtime version that made it; an exact match of the w2py version is required, otherwise regenerate |
 | cache key fields | a cache entry and the runtime looking it up | "Cache" above |
 
-On a mismatch the runtime refuses the derivative and regenerates from the wasm when it has it; how long
-older versions stay accepted is an open question (ROADMAP.md, question 10; RISKS.md, R4).
+On a mismatch the runtime regenerates from the wasm when it has it (the cache; a fat file) and refuses
+otherwise (a thin file). No compatibility windows are kept (D18; RISKS.md, R4).
 
 ## WASI
 

@@ -19,7 +19,10 @@ declared ISA level, and a loader that knows its format and context-ABI versions.
 | native artifact | ~instant | one architecture + ISA level + format/ABI versions | invalidated by compiler fixes (versions in the cache key) |
 
 Likely shape: local cache = native artifacts (may use `isa="native"`); distribution = wasm, optionally
-plus prebuilt baseline artifacts for x86-64 and aarch64 to skip the first compilation.
+plus prebuilt baseline artifacts for x86-64 and aarch64 to skip the first compilation — as **fat**
+files (D18), which carry the wasm and fall back to compiling it wherever the native code cannot run.
+A fat file does not change the trust question: its native code still needs the measures below, while
+regenerating from its wasm is always safe.
 
 **Risk: trust.** The wasm sandbox exists only because the compiler inserted the checks (bounds, types,
 stack). A native artifact from elsewhere is arbitrary machine code: a tampered or buggy one can do
@@ -85,6 +88,10 @@ wrong results or sandbox escapes. The PoC already met three silent bugs (LESSONS
 
 ## R4. Version skew: output of one w2py version used by another
 
+> **Largely settled by DECISIONS.md D18** (the Wasmtime model): generated code is used only by the
+> w2py version that made it; on any mismatch the runtime regenerates from the wasm (the cache, a fat
+> file) or refuses (a thin file). The analysis below is kept for the reasons.
+
 Two versions meet: the one that **generated** the code and the one that **runs** it (another machine,
 an upgrade, a shared cache, an artifact shipped with a package).
 
@@ -118,6 +125,28 @@ know, otherwise recompile" is the simplest robust rule. It needs the wasm at han
 * or **"fat" artifacts** embed the original wasm: larger, but self-healing under any version;
 * long compatibility windows (e.g. the current and previous major format) are needed only for artifacts
   shipped **without** their wasm.
+
+## R6. A signal handler of our own (guard pages in the JIT)
+
+Guard pages need a SIGSEGV handler in the process (ARCHITECTURE.md, "Memory"); the PoC emits it as
+machine code. Risks and possible answers:
+
+* **Layouts per platform**: `siginfo_t`/`ucontext_t` offsets and the `struct sigaction` layout differ
+  per OS, libc and architecture (glibc vs musl, macOS `__darwin_mcontext64`, BSDs; Windows has no
+  signals — a vectored exception handler through `AddVectoredExceptionHandler`). Answer: a table per
+  platform, verified by a test that traps on purpose; explicit checks where no entry exists.
+* **Other handlers in the process**: `faulthandler`, other runtimes (wasmtime-py, wasmext modules,
+  JVM/.NET embedded), a later `sigaction` by someone else that replaces ours. Answer: chain to the
+  previous handler (the PoC does), re-check at each entry that ours is still installed (cheap
+  `sigaction` query) and fall back to explicit checks if not; never install when the user asks not to.
+* **Threads**: the handler is per process; the fault address and the code range identify the module,
+  so it works from any thread; stack-overflow detection needs `sigaltstack` per thread (not done).
+* **A fault not of ours inside our code range** (a bug of the JIT): becomes a wasm trap instead of a
+  crash. Answer: only addresses inside a reservation are taken; differential tests against Wasmtime.
+* **Several modules**: one handler with a table of (reservation, code range, stub), or one per module
+  chained — the PoC has one per module.
+* **CET / BTI**: the handler is entered indirectly by the kernel; with IBT enforced it needs `endbr64`
+  (R2).
 
 ## R5. Other known risks (detailed elsewhere)
 

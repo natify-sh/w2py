@@ -7,6 +7,11 @@ a C function pointer and pass C callbacks can load and run it (C/C++, Dart FFI, 
 Java FFM, .NET, Deno/Bun, MicroPython's `ffi`). This document is the contract such hosts — and our own
 Python loader — rely on. It has three parts, each versioned.
 
+> **Scope (DECISIONS.md D18).** First of all this is the format of the w2py runtime's own cache entries
+> and serialized files (`Module.serialize`, `w2py compile`): w2py follows the Wasmtime model, the
+> runtime lives in the package and nothing is embedded in the artifact. Loading from other languages
+> stays possible because the boundary is neutral, but it is optional.
+
 > The PoC (`poc/w2jit.py`, `w2jit2.py`) predates this contract: its context layout and entry signature
 > are a subset of version 1 below and must be brought in line in phase 4.
 
@@ -74,11 +79,24 @@ A little-endian binary container. Self-contained: a host needs **no wasm parser*
 | 11 | `START` | start function index, if any |
 | 12 | `TRAPMAP` | code offset ranges → wasm function index + wasm byte offset (for `Trap.frames`) |
 | 13 | `RELOCS` | empty in version 1 (code is position-independent); reserved for copy-and-patch |
+| 14 | `WASM` | optional: the original wasm bytes. Its presence makes a **fat** file (below) |
 | 0xFFFF | `CHECKSUM` | sha256 of everything before it |
 
 Strings are UTF-8 with a u32 length prefix. A loader refuses an artifact whose `magic`,
 `format_version` major, `ctx_abi_version`, `arch` or ISA it does not support — it never "tries".
 `Module.serialize()` writes this format; the cache stores it.
+
+**Thin and fat files (D18).** A thin file (no `WASM` section) is refused on any mismatch. A fat file is
+never refused: when the loader cannot use the code — another w2py or target version, another ISA
+level, a compiler version on the known-bad list, a format it does not know — it checks that the
+embedded wasm matches `module_sha256` and regenerates from it. For this the loader must be able to
+read the header and find section 14 in every format version, so the header prefix (`magic`,
+`format_version`) and the section framing are frozen across versions.
+
+**Other targets.** Serialized `pyc` and `mpy` modules use the same container with their own
+`arch`/`isa` meaning (the bytecode magic / `.mpy` version) and the marshalled code object or `.mpy`
+as `CODE`; to settle in phase 2. File names: `<name>.<target>.<ext>`, e.g. `core.jit-x86_64-v1.w2a`,
+`core.pyc-cp313.w2a` (`.w2a` is a working extension).
 
 ## 3. Context ABI (version 1)
 

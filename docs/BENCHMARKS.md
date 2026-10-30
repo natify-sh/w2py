@@ -84,3 +84,144 @@ sent ~3 s into the call did not stop it; the call returned normally after 20.6 s
 
 **pywasm spec suite**: 54 006 commands, 0 failures, 40 s on CPython 3.13 (assert_invalid /
 assert_malformed — 3 956 of them — are not checked by its runner).
+
+## `br_table` (a dense `switch`)
+
+`poc/bench/switch/`: a bytecode VM in C (`vm.c`, a 32-case `switch` that clang lowers to one
+`br_table` of 31 entries, 32 targets), built with `clang --target=wasm32 -O2`; `run_switch.py`
+runs it on each mode. Millions of VM operations per second; all modes return the same checksum.
+CPython 3.13, PyPy 7.3.19, same Xeon 2.1 GHz cloud machine, one session.
+
+| mode | linear chain (before) | after | change |
+|---|---|---|---|
+| wasmtime (Cranelift) | 433 | — | reference |
+| `w2jit2` | 105–132 | **392–406** (jump table) | ×3.5, 92–94 % of wasmtime (was ~25 %) |
+| `pyc`, CPython 3.13 | 0.9–1.1 (0.69–0.82 s) | 1.0–1.1 (0.70–0.77 s) (balanced if-tree) | ~+10 %, within noise |
+| `pyc`, PyPy 7.3 | 41–44 | 43–47 (balanced if-tree) | ~+5 %, within noise |
+
+CoreMark is unchanged (its tables are small and not hot): `w2jit2` 16 403 / 16 649 it/s without,
+16 779 / 16 435 with jump tables; `pyc` still passes CoreMark's self-check.
+
+* **JIT**: `cmp ecx,n; jae default; lea rax,[rip+T]; movsxd rdx,[rax+rcx*4]; add rax,rdx; jmp rax`, a
+  table of int32 offsets relative to itself (position-independent) followed by one stub per target.
+  Used from 4 non-default entries (`W2PY_JT`, 0 = off). The indirect `jmp` needs `endbr64` at the
+  stubs once CET IBT is enforced (RISKS.md, R2).
+* **pyc**: dispatch is no longer the cost. Python has no goto, so a `switch` compiled to nested blocks
+  leaves through the `_br` flag: after the dispatch every one of the 32 block levels runs two tests
+  (`if _br == d` and `if not _br`), ~64 per operation against 5 for the tree. The fix is structural:
+  recognise the switch idiom (a `br_table` to the immediately enclosing blocks whose case segments end
+  in an unconditional branch) and emit each case body at the leaf of the tree, with no flags; or, more
+  cheaply, number labels so that one test `if _br <= d` replaces the two. Not done. (`W2PY_BT`: tree
+  above this many runs, 0 = off.)
+
+## meld on the PoC (a real 1.7 MB Rust program)
+
+meld 0.66.0 (pulseengine, Apache-2.0), `meld-core` built for `wasm32-unknown-unknown` with
+`opt-level="z"`, LTO, behind a ~40-line wrapper (no imports). Task: fuse the `wasm32-wasip2` build of
+meld itself (a 2.9 MB component) into a core module. Same Xeon 2.1 GHz cloud machine, one session.
+
+| run | translate | load + `compile()` | fuse | output |
+|---|---|---|---|---|
+| wasmtime-py (Cranelift) | — | — | 1.05 s | 2 834 770 bytes, the reference |
+| meld p1 CLI under wasmtime (WASI) | — | — | 1.09 s | 2 841 680 bytes (attestation with a wall-clock timestamp) |
+| w2py `pyc`, PyPy 7.3.19 | 8.7 s (CPython) | 8.2 s | **44 s** | byte-identical to the reference |
+| w2py `pyc`, CPython 3.13 | 8.7 s | 6.1 s | **253 s** | byte-identical to the reference |
+
+The module: 4 336 functions, 1 267 `call_indirect`, `memory.copy` ×940, `memory.fill` ×16, no SIMD,
+no multi-value, no `trunc_sat`; translated to 13.6 MB of Python source. The PoC JIT cannot run it yet
+(no bulk memory, `memory.grow`, full i64). The fused result has one memory and 38 `wasi:*@0.2.9`
+imports. Wrapper and how to reproduce: `poc/bench/meld/`.
+
+## Compile time on large modules
+
+`poc/bench/compile/jit_compile_time.py`: code generation only. The PoC JIT does not cover every opcode
+yet (missing: `call_indirect`, i64 arithmetic and conversions, bulk memory, …); functions it cannot
+compile are replaced by a trap stub and counted, and the full time is **projected** from the covered
+functions by body bytes — an estimate, weakest for QuickJS (10 % covered). Modules from
+natify-sh/py-wasmext (`dev` branch) and meld (above). CPython 3.13 and PyPy 7.3.19, Xeon 2.1 GHz,
+2 cores, one session. wasmtime-py's Cranelift compiles functions in parallel on both cores.
+
+| module | wasm | JIT covered | **w2py JIT**, CPython (projected) | w2py JIT, PyPy (projected) | wasmtime Cranelift | `pyc`: translate + `compile()` |
+|---|---|---|---|---|---|---|
+| CoreMark | 19 KB | 100 % | 0.03 s (measured) | — | — | — |
+| Lua 5.4 | 321 KB | 54 % | 0.37–0.44 s | 1.54 s | 0.25 s | 0.40 + 1.60 s |
+| QuickJS | 1.1 MB | 10 % | 1.4–1.6 s | 2.75 s | 0.58 s | 1.47 + 4.22 s |
+| wat2wasm (wabt) | 1.26 MB | 32 % | 0.74–0.78 s | 1.14 s | 0.49 s | 0.80 + 0.97 s |
+| wasm2c (wabt) | 1.25 MB | 27 % | 0.66 s | — | — | — |
+| meld-core | 1.7 MB | 31 % | 2.07 s | 1.66 s | 0.96 s | 1.98 + 6.49 s |
+| CPython 3.13 (WASI, brettcannon/cpython-wasi-build v3.13.0) | 28 MB file, 4.1 MB code, 9 752 functions | 72 % | 5.06 s | — | 3.11 s | 6.6 s, then **fails**: 742 nested blocks > CPython's 100 indentation levels (LESSONS.md 22) |
+
+* The single-pass JIT in Python generates code at **~600–840 KB of wasm per second** — about 1.5–2.5×
+  the wall time of Cranelift on two cores. A megabyte-sized module costs ~1–2 s on first load; from the
+  cache it is a file read and an `mmap`.
+* The JIT rate holds on the largest module (CPython: ~800 KB of code bodies per second, 6.7 MB of
+  x86-64 for the covered 72 %).
+* PyPy does not help the compiler (warm-up dominates; only the largest module gains).
+* `pyc` is dominated by CPython's own `compile()` of the generated source (up to 6.5 s): caching the
+  marshalled code object matters more for `pyc` than for the JIT.
+* Not yet measured: the full JIT (more opcodes, bounds-check elimination) may be slower per byte;
+  **lazy compilation** (a function compiled on its first call, as V8 does with Liftoff) would make the
+  first-load cost proportional to the code actually used — ROADMAP.md, open question 13.
+
+## WAMR (iwasm) next to w2py
+
+`poc/bench/wamr/` (a minimal C host over `libiwasm`). WAMR 2.4.3 runtime for AOT (an `.aot` made by
+`wamrc` 2.4.3 is refused by a runtime built from WAMR `main`: "unknown binary version"); fast
+interpreter and Fast JIT from WAMR `main` (f8ed1f4). Same Xeon 2.1 GHz cloud machine, one session;
+CoreMark passes its self-check in every row.
+
+| engine | CoreMark it/s | switch VM, M ops/s | what it needs at run time |
+|---|---|---|---|
+| **iwasm AOT** (`wamrc` = LLVM, ahead of time) | **26 016 – 26 349** | **595 – 617** | `libiwasm` 134–244 KB AOT-only (x86-64, stripped) + an `.aot` per module × target × WAMR version |
+| wasmtime (Cranelift) | 21 104 | 419 | a 29.7 MB library |
+| **w2py JIT (`w2jit2`)** | **16 896** | **406** | the Python standard library |
+| iwasm Fast JIT (x86-64 only) | 15 550 | 368 | `libiwasm` with Fast JIT |
+| iwasm fast interpreter | 2 410 | 43 | `libiwasm` |
+
+WAMR runtime sizes (x86-64 Linux, `MinSizeRel`, stripped; the CLI shows what a linked program keeps,
+the `.so` is the whole archive): AOT only 134 KB CLI / 244 KB `.so`; + WASI 223 / 364 KB; + fast
+interpreter 307 / 461 KB; + SIMD 356 / 506 KB.
+
+* LLVM ahead of time beats Cranelift by ~25 % on CoreMark and ~45 % on the switch VM.
+* The PoC JIT is ahead of WAMR's Fast JIT — the same class of compiler, written in C — on both.
+* WAMR's fast interpreter runs at wasm3's speed (2 433 it/s, earlier table).
+
+## Guard pages in the JIT (`poc/w2jit_guard.py`)
+
+Same session, CoreMark it/s, alternating runs:
+
+| engine | runs | vs wasmtime |
+|---|---|---|
+| wasmtime, guard pages (default) | 20 246 / 20 247 / 20 787 / 21 218 | 100 % |
+| wasmtime, `signals_based_traps=False` (explicit checks) | 16 372 / 17 922 | 81–89 % |
+| **w2py JIT, guard pages** (JIT-emitted SIGSEGV handler) | 18 349 / 19 989 / 19 221 / 18 923 / 19 279 | **~91 %** |
+| w2py JIT, explicit checks | 15 252 / 15 581 / 15 981 / 16 084 / 16 636 | ~78 % |
+
+Machine code 39 357 → 30 403 bytes. The switch VM (not memory-bound) does not change (397 vs 397–447
+M ops/s, wasmtime 432–485). With explicit checks on both sides the PoC JIT and Cranelift are level:
+the gap was the bounds checks, not the code.
+
+## `wasm-opt -O3` (binaryen 125) on CoreMark
+
+`wasm-opt --enable-nontrapping-float-to-int --enable-sign-ext --enable-mutable-globals -O3`: 29 → 10
+functions (inlining), 8 527 → 8 097 instructions, 19.5 → 18.0 KB. Pairs in one session (it/s):
+
+| engine | baseline | `-O3` | change |
+|---|---|---|---|
+| iwasm AOT | 24 472 | 23 405 | −4 % |
+| wasmtime | 20 710 | 20 950 | +1 % |
+| w2py JIT v2 | 16 780 | 16 477 | −2 % (`-Oz` +4 %, `-O4` −7 %) |
+| iwasm Fast JIT | 13 540 | 13 213 | −2 % |
+| w2py `pyc`, PyPy | 3 140 | 3 094–3 116 | −1 % |
+| w2luajit, LuaJIT | 2 645 | 2 678 | +1 % |
+| wasm3 | 2 479 | 2 306 | −7 % |
+| iwasm fast interpreter | 2 256 | 2 066 | −8 % |
+| w2lua, Lua 5.4 | 366 | 428 | +17 % |
+| w2py `pyc`, CPython | 139 | 132 | −5 % |
+| w2py, MicroPython | 82 | 83 | +1 % |
+
+## Precompiled Lua
+
+w2lua output loaded as source or as `string.dump` bytecode (stripped) inside lupa: load 2.4–2.9 ms →
+0.1–0.2 ms (Lua 5.4, 130 → 76 KB), 1.8–2.6 → 0.0–0.1 ms (LuaJIT, 109 → 48 KB); CoreMark unchanged
+(Lua 5.4 416–456, LuaJIT 2 547–2 754 it/s).

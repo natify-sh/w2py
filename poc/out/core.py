@@ -4,28 +4,26 @@ class Trap(Exception): pass
 INF = float('inf'); NAN = float('nan')
 M = bytearray(17 * 65536)
 _MAXPAGES = 65536
-U32 = _st.Struct('<I').unpack_from; S32 = _st.Struct('<i').unpack_from
-U64 = _st.Struct('<Q').unpack_from
-U16 = _st.Struct('<H').unpack_from; S16 = _st.Struct('<h').unpack_from
-S8 = _st.Struct('<b').unpack_from
-F32L = _st.Struct('<f').unpack_from; F64L = _st.Struct('<d').unpack_from
-P32 = _st.Struct('<I').pack_into; P64 = _st.Struct('<Q').pack_into; P16 = _st.Struct('<H').pack_into
-_F32S = _st.Struct('<f').pack_into; F64S = _st.Struct('<d').pack_into
-_pf = _st.Struct('<f')
+_uf = _st.unpack_from; _pi = _st.pack_into; _pk = _st.pack; _upk = _st.unpack
+if hasattr(_st, 'Struct'):
+    U32 = _st.Struct('<I').unpack_from; S32 = _st.Struct('<i').unpack_from
+    U64 = _st.Struct('<Q').unpack_from
+    U16 = _st.Struct('<H').unpack_from; S16 = _st.Struct('<h').unpack_from
+    S8 = _st.Struct('<b').unpack_from
+    F32L = _st.Struct('<f').unpack_from; F64L = _st.Struct('<d').unpack_from
+    P32 = _st.Struct('<I').pack_into; P64 = _st.Struct('<Q').pack_into; P16 = _st.Struct('<H').pack_into
+    F64S = _st.Struct('<d').pack_into
 def F32S(m, a, v):
-    try: _F32S(m, a, v)
-    except OverflowError: _F32S(m, a, _m.copysign(INF, v))
+    try: _pi('<f', m, a, v)
+    except OverflowError: _pi('<f', m, a, _m.copysign(INF, v))
 def _f32(x):
-    try: return _pf.unpack(_pf.pack(x))[0]
+    try: return _upk('<f', _pk('<f', x))[0]
     except OverflowError: return _m.copysign(INF, x)
-V32 = memoryview(M).cast('I'); V16 = memoryview(M).cast('H')
+
 def _grow(n):
-    global V32, V16
     old = len(M) >> 16
     if old + n > _MAXPAGES: return 0xFFFFFFFF
-    V32.release(); V16.release()
     M.extend(bytes(n << 16))
-    V32 = memoryview(M).cast('I'); V16 = memoryview(M).cast('H')
     return old
 def _mcopy(d, s, n):
     if d + n > len(M) or s + n > len(M): raise Trap('oob')
@@ -33,8 +31,22 @@ def _mcopy(d, s, n):
 def _mfill(d, v, n):
     if d + n > len(M): raise Trap('oob')
     M[d:d+n] = bytes([v & 255]) * n
-def _ctz32(x): return (x & -x).bit_length() - 1 if x else 32
-def _ctz64(x): return (x & -x).bit_length() - 1 if x else 64
+if hasattr(0, 'bit_length'):
+    def _bl(x): return x.bit_length()
+else:  # MicroPython
+    def _bl(x):
+        n = 0
+        while x >> 16: x >>= 16; n += 16
+        while x: x >>= 1; n += 1
+        return n
+if hasattr(0, 'bit_count'):
+    def _pc(x): return x.bit_count()
+else:
+    def _pc(x): return bin(x).count('1')
+def _clz32(x): return 32 - _bl(x)
+def _clz64(x): return 64 - _bl(x)
+def _ctz32(x): return _bl(x & -x) - 1 if x else 32
+def _ctz64(x): return _bl(x & -x) - 1 if x else 64
 def _rotl32(x, k): return ((x << k) | (x >> (32 - k))) & 0xFFFFFFFF
 def _rotr32(x, k): return ((x >> k) | (x << (32 - k))) & 0xFFFFFFFF
 def _rotl64(x, k): return ((x << k) | (x >> (64 - k))) & 0xFFFFFFFFFFFFFFFF
@@ -1835,22 +1847,31 @@ def f11(p0, p1):
         if (l5==44):
             _br = 4
             break
-        if l4 == 0:
-            pass
-        elif l4 == 2:
-            _br = 13
-        elif l4 == 3:
-            _br = 10
-        elif l4 == 4:
-            _br = 12
-        elif l4 == 5:
-            _br = 11
-        elif l4 == 6:
-            _br = 9
-        elif l4 == 7:
-            _br = 8
+        if l4 < 4:
+            if l4 < 2:
+                if l4 < 1:
+                    pass
+                else:
+                    _br = 6
+            else:
+                if l4 < 3:
+                    _br = 13
+                else:
+                    _br = 10
         else:
-            _br = 6
+            if l4 < 6:
+                if l4 < 5:
+                    _br = 12
+                else:
+                    _br = 11
+            else:
+                if l4 < 7:
+                    _br = 9
+                else:
+                    if l4 < 8:
+                        _br = 8
+                    else:
+                        _br = 6
         if not _br:
             if not (((l3-58)&255)<=245):
                 l4 = 4
@@ -1858,12 +1879,19 @@ def f11(p0, p1):
             if not _br:
                 l4 = 2
                 t1 = (_w if (_w:=(l5-43)) >= 0 else _w+0x100000000)
-                if t1 in (0, 2):
-                    _br = 15
-                elif t1 == 3:
-                    pass
+                if t1 < 2:
+                    if t1 < 1:
+                        _br = 15
+                    else:
+                        _br = 17
                 else:
-                    _br = 17
+                    if t1 < 3:
+                        _br = 15
+                    else:
+                        if t1 < 4:
+                            pass
+                        else:
+                            _br = 17
                 if not _br:
                     l4 = 5
                     _br = 15
@@ -2137,18 +2165,34 @@ def f18(p0, p1):
             l10 = 4
             l11 = M[l8]
             t1 = (_w if (_w:=(l11-32)) >= 0 else _w+0x100000000)
-            if t1 == 0:
-                _br = 9
-            elif t1 == 3:
-                _br = 8
-            elif t1 == 11:
-                _br = 5
-            elif t1 == 13:
-                pass
-            elif t1 == 16:
-                _br = 7
+            if t1 < 12:
+                if t1 < 3:
+                    if t1 < 1:
+                        _br = 9
+                    else:
+                        _br = 6
+                else:
+                    if t1 < 4:
+                        _br = 8
+                    else:
+                        if t1 < 11:
+                            _br = 6
+                        else:
+                            _br = 5
             else:
-                _br = 6
+                if t1 < 14:
+                    if t1 < 13:
+                        _br = 6
+                    else:
+                        pass
+                else:
+                    if t1 < 16:
+                        _br = 6
+                    else:
+                        if t1 < 17:
+                            _br = 7
+                        else:
+                            _br = 6
             if not _br:
                 l10 = 16
                 _br = 5
@@ -2249,32 +2293,76 @@ def f18(p0, p1):
                 _br = 0
                 l8 = 10
                 t2 = (_w if (_w:=((l11&255)-37)) >= 0 else _w+0x100000000)
-                if t2 == 0:
-                    _br = 33
-                elif t2 == 28:
-                    _br = 40
-                elif t2 == 51:
-                    _br = 38
-                elif t2 == 60:
-                    _br = 39
-                elif t2 == 62:
-                    pass
-                elif t2 in (63, 68):
-                    _br = 36
-                elif t2 == 65:
-                    _br = 35
-                elif t2 == 74:
-                    _br = 31
-                elif t2 == 75:
-                    _br = 41
-                elif t2 == 78:
-                    _br = 42
-                elif t2 == 80:
-                    _br = 30
-                elif t2 == 83:
-                    _br = 37
+                if t2 < 66:
+                    if t2 < 60:
+                        if t2 < 29:
+                            if t2 < 1:
+                                _br = 33
+                            else:
+                                if t2 < 28:
+                                    _br = 34
+                                else:
+                                    _br = 40
+                        else:
+                            if t2 < 51:
+                                _br = 34
+                            else:
+                                if t2 < 52:
+                                    _br = 38
+                                else:
+                                    _br = 34
+                    else:
+                        if t2 < 63:
+                            if t2 < 61:
+                                _br = 39
+                            else:
+                                if t2 < 62:
+                                    _br = 34
+                                else:
+                                    pass
+                        else:
+                            if t2 < 64:
+                                _br = 36
+                            else:
+                                if t2 < 65:
+                                    _br = 34
+                                else:
+                                    _br = 35
                 else:
-                    _br = 34
+                    if t2 < 78:
+                        if t2 < 74:
+                            if t2 < 68:
+                                _br = 34
+                            else:
+                                if t2 < 69:
+                                    _br = 36
+                                else:
+                                    _br = 34
+                        else:
+                            if t2 < 75:
+                                _br = 31
+                            else:
+                                if t2 < 76:
+                                    _br = 41
+                                else:
+                                    _br = 34
+                    else:
+                        if t2 < 81:
+                            if t2 < 79:
+                                _br = 42
+                            else:
+                                if t2 < 80:
+                                    _br = 34
+                                else:
+                                    _br = 30
+                        else:
+                            if t2 < 83:
+                                _br = 34
+                            else:
+                                if t2 < 84:
+                                    _br = 37
+                                else:
+                                    _br = 34
                 if not _br:
                     if not (l9&16):
                         if not (l10 < 2 or l10 > 2147483647):

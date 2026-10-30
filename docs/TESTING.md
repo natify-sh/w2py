@@ -3,6 +3,26 @@
 Every target passes the same tests; a target becomes selectable only when it passes them for the
 features it claims.
 
+## Sources of truth and the completeness counters
+
+Completeness is measured, not listed by hand: every axis has an upstream document that says what
+"complete" is and an upstream test suite that turns it into a number. CI reports all the numbers; the
+exit criterion of each phase (ROADMAP.md) is a value of them.
+
+| axis | what defines it | what measures it | counter |
+|---|---|---|---|
+| wasm semantics | **WebAssembly Core Specification 3.0** (W3C, 2025: GC, memory64, exceptions, tail calls, multi-memory, relaxed SIMD, typed function references, extended const are part of it); the proposal repositories for what is not in 3.0 (wide-arithmetic, custom-page-sizes, threads) | `WebAssembly/spec` `test/core` at a pinned commit, the proposal repos' tests, Wasmtime's own `tests/misc_testsuite` (Wasmtime-specific behaviour) | spec commands passed, per target and per proposal |
+| which features, in which order | Wasmtime's "Wasm Proposals" page (stability tiers): Tier 1 (on by default) is the required set — 17 proposals, 16 without the component model; Tier 2: custom-page-sizes, threads; Tier 3 (branch-hinting, stack-switching, compact-imports) later | the per-target expected-failures files | proposals complete, per target |
+| Python API | **wasmtime-py** at the pinned version: its public classes and **its own test suite** (`tests/`) | wasmtime-py's tests run against w2py through a shim (`import w2py as wasmtime`), plus an API-surface test that diffs `dir()` of every public class against wasmtime-py's | wasmtime-py tests passed; missing names |
+| CLI | the `wasmtime` binary at the pinned version: `run`, `compile`, `wast`, `settings`, the option groups `-W` (wasm features), `-S` (WASI), `-O`, `-D` | the option list scraped from `wasmtime --help` / `run --help` of the pinned version, not copied by hand | options accepted (or deliberately refused, DECISIONS.md) |
+| WASI | p1: `wasi_snapshot_preview1.witx` (`WebAssembly/WASI`, legacy/preview1); p2: the WIT packages `wasi:cli`, `wasi:io`, `wasi:filesystem`, `wasi:clocks`, `wasi:random`, `wasi:sockets`, `wasi:http` | `WebAssembly/wasi-testsuite` (p1 at least; check its p2 coverage), the chosen host's own conformance tests | WASI tests passed |
+| everything the suites miss | Wasmtime's behaviour wherever the spec leaves room (NaN, trap codes, stack limits) | differential fuzzing: `wasm-tools smith` modules run on every target and on wasmtime | fuzz hours without a divergence |
+
+When the pinned wasmtime / wasmtime-py version moves, the API-surface diff and the scraped CLI options
+show what is new; the spec commit moves the same way, in small steps.
+
+`FEATURES.md` becomes generated from the expected-failures files (feature × target), not hand-written.
+
 ## Development dependencies (never runtime)
 
 | tool | why |
