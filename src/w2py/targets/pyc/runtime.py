@@ -3,13 +3,7 @@
 
 import struct as _st, math as _m
 
-
-class Trap(Exception):
-    """A wasm trap. `code` is a name from Wasmtime's TrapCode (D6), e.g. "UNREACHABLE"."""
-
-    def __init__(self, message, code=None):
-        Exception.__init__(self, message)
-        self.code = code
+from w2py.targets.base import Trap, TrapCode
 
 
 INF = float("inf")
@@ -57,32 +51,32 @@ def _grow(M, maxpages, n):
 
 def _mcopy(M, d, s, n):
     if d + n > len(M) or s + n > len(M):
-        raise Trap("out of bounds memory access", "MEMORY_OUT_OF_BOUNDS")
+        raise Trap(TrapCode.MEMORY_OUT_OF_BOUNDS, "out of bounds memory access")
     M[d : d + n] = M[s : s + n]
 
 
 def _mfill(M, d, v, n):
     if d + n > len(M):
-        raise Trap("out of bounds memory access", "MEMORY_OUT_OF_BOUNDS")
+        raise Trap(TrapCode.MEMORY_OUT_OF_BOUNDS, "out of bounds memory access")
     M[d : d + n] = bytes([v & 255]) * n
 
 
 def _eseg(T, o, fs):
     o &= 0xFFFFFFFF
     if o + len(fs) > len(T):
-        raise Trap("out of bounds table access", "TABLE_OUT_OF_BOUNDS")
+        raise Trap(TrapCode.TABLE_OUT_OF_BOUNDS, "out of bounds table access")
     T[o : o + len(fs)] = fs
 
 
 def _tget(T, i):
     if i >= len(T):
-        raise Trap("out of bounds table access", "TABLE_OUT_OF_BOUNDS")
+        raise Trap(TrapCode.TABLE_OUT_OF_BOUNDS, "out of bounds table access")
     return T[i]
 
 
 def _tset(T, i, v):
     if i >= len(T):
-        raise Trap("out of bounds table access", "TABLE_OUT_OF_BOUNDS")
+        raise Trap(TrapCode.TABLE_OUT_OF_BOUNDS, "out of bounds table access")
     T[i] = v
 
 
@@ -97,48 +91,48 @@ def _tgrow(TX, n, v):
 
 def _tfill(T, i, v, n):
     if i + n > len(T):
-        raise Trap("out of bounds table access", "TABLE_OUT_OF_BOUNDS")
+        raise Trap(TrapCode.TABLE_OUT_OF_BOUNDS, "out of bounds table access")
     T[i : i + n] = [v] * n
 
 
 def _tcopy(D, S, d, s, n):
     if d + n > len(D) or s + n > len(S):
-        raise Trap("out of bounds table access", "TABLE_OUT_OF_BOUNDS")
+        raise Trap(TrapCode.TABLE_OUT_OF_BOUNDS, "out of bounds table access")
     D[d : d + n] = S[s : s + n]
 
 
 def _tinit(T, S, d, s, n):
     if d + n > len(T) or s + n > len(S):
-        raise Trap("out of bounds table access", "TABLE_OUT_OF_BOUNDS")
+        raise Trap(TrapCode.TABLE_OUT_OF_BOUNDS, "out of bounds table access")
     T[d : d + n] = S[s : s + n]
 
 
 def _dseg(M, o, d):
     o &= 0xFFFFFFFF
     if o + len(d) > len(M):
-        raise Trap("out of bounds memory access", "MEMORY_OUT_OF_BOUNDS")
+        raise Trap(TrapCode.MEMORY_OUT_OF_BOUNDS, "out of bounds memory access")
     M[o : o + len(d)] = d
 
 
 def _toob():
-    raise Trap("undefined element", "TABLE_OUT_OF_BOUNDS")
+    raise Trap(TrapCode.TABLE_OUT_OF_BOUNDS, "undefined element")
 
 
 def _tnull():
-    raise Trap("uninitialized element", "INDIRECT_CALL_TO_NULL")
+    raise Trap(TrapCode.INDIRECT_CALL_TO_NULL, "uninitialized element")
 
 
 def _tsig():
-    raise Trap("indirect call type mismatch", "BAD_SIGNATURE")
+    raise Trap(TrapCode.BAD_SIGNATURE, "indirect call type mismatch")
 
 
 def _tnullfn():
-    raise Trap("null function reference", "NULL_REFERENCE")
+    raise Trap(TrapCode.NULL_REFERENCE, "null function reference")
 
 
 def _nonnull(x):
     if x is None:
-        raise Trap("null reference", "NULL_REFERENCE")
+        raise Trap(TrapCode.NULL_REFERENCE, "null reference")
     return x
 
 
@@ -181,25 +175,6 @@ class _TC:
     def __init__(self, f, a):
         self.f = f
         self.a = a
-
-
-def _export(f):
-    """Wrap an exported function: Python errors that mean a trap become `Trap` (provisional)."""
-
-    def w(*a):
-        try:
-            return f(*a)
-        except Trap:
-            raise
-        except (IndexError, _st.error):
-            raise Trap("out of bounds memory access", "MEMORY_OUT_OF_BOUNDS") from None
-        except ZeroDivisionError:
-            raise Trap("integer divide by zero", "INTEGER_DIVISION_BY_ZERO") from None
-        except RecursionError:
-            raise Trap("call stack exhausted", "STACK_OVERFLOW") from None
-
-    w.s = f.s  # type signature, checked by call_indirect
-    return w
 
 
 def _pc(x):
@@ -246,9 +221,9 @@ def _divs32(a, b):
     a = (a ^ 0x80000000) - 0x80000000
     b = (b ^ 0x80000000) - 0x80000000
     if b == 0:
-        raise Trap("integer divide by zero", "INTEGER_DIVISION_BY_ZERO")
+        raise Trap(TrapCode.INTEGER_DIVISION_BY_ZERO, "integer divide by zero")
     if a == -0x80000000 and b == -1:
-        raise Trap("integer overflow", "INTEGER_OVERFLOW")
+        raise Trap(TrapCode.INTEGER_OVERFLOW, "integer overflow")
     q = abs(a) // abs(b)
     return (-q if (a < 0) != (b < 0) else q) & 0xFFFFFFFF
 
@@ -257,7 +232,7 @@ def _rems32(a, b):
     a = (a ^ 0x80000000) - 0x80000000
     b = (b ^ 0x80000000) - 0x80000000
     if b == 0:
-        raise Trap("integer divide by zero", "INTEGER_DIVISION_BY_ZERO")
+        raise Trap(TrapCode.INTEGER_DIVISION_BY_ZERO, "integer divide by zero")
     r = abs(a) % abs(b)
     return (-r if a < 0 else r) & 0xFFFFFFFF
 
@@ -267,9 +242,9 @@ def _divs64(a, b):
     a = (a ^ h) - h
     b = (b ^ h) - h
     if b == 0:
-        raise Trap("integer divide by zero", "INTEGER_DIVISION_BY_ZERO")
+        raise Trap(TrapCode.INTEGER_DIVISION_BY_ZERO, "integer divide by zero")
     if a == -h and b == -1:
-        raise Trap("integer overflow", "INTEGER_OVERFLOW")
+        raise Trap(TrapCode.INTEGER_OVERFLOW, "integer overflow")
     q = abs(a) // abs(b)
     return (-q if (a < 0) != (b < 0) else q) & 0xFFFFFFFFFFFFFFFF
 
@@ -279,7 +254,7 @@ def _rems64(a, b):
     a = (a ^ h) - h
     b = (b ^ h) - h
     if b == 0:
-        raise Trap("integer divide by zero", "INTEGER_DIVISION_BY_ZERO")
+        raise Trap(TrapCode.INTEGER_DIVISION_BY_ZERO, "integer divide by zero")
     r = abs(a) % abs(b)
     return (-r if a < 0 else r) & 0xFFFFFFFFFFFFFFFF
 
@@ -346,10 +321,10 @@ _copysign = _m.copysign
 
 def _tr(x, lo, hi):
     if x != x:
-        raise Trap("invalid conversion to integer", "BAD_CONVERSION_TO_INTEGER")
+        raise Trap(TrapCode.BAD_CONVERSION_TO_INTEGER, "invalid conversion to integer")
     t = _m.trunc(x) if x not in (INF, -INF) else None
     if t is None or not (lo <= t <= hi):
-        raise Trap("integer overflow", "INTEGER_OVERFLOW")
+        raise Trap(TrapCode.INTEGER_OVERFLOW, "integer overflow")
     return t
 
 
@@ -430,6 +405,7 @@ _NAMES = [
 ]
 __all__ = _NAMES + [
     "Trap",
+    "TrapCode",
     "INF",
     "NAN",
     "U32",

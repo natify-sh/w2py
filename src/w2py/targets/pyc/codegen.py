@@ -4,8 +4,8 @@
 import os
 import struct
 
-from w2py.frontend.binary import F32, F64, I32, I64, M32, M64, parse
-from w2py.frontend.validate import validate, valtype_key
+from w2py.frontend.binary import F32, F64, I32, I64, M32, M64
+from w2py.frontend.validate import valtype_key
 
 BRTREE = int(
     os.environ.get("W2PY_BT", "4")
@@ -535,7 +535,7 @@ class FuncGen:
                 s.dead = True
                 continue
             if op == 0x00:
-                s.emit('raise Trap("unreachable", "UNREACHABLE")')
+                s.emit('raise Trap(TrapCode.UNREACHABLE, "unreachable")')
                 s.dead = True
                 continue
             if op == 0x01:
@@ -1411,7 +1411,7 @@ class ModGen:
         ex = []
         for n, k, i in mod["exports"]:
             if k == 0:
-                ex.append("%r: _export(%s)" % (n, s.fname(i)))
+                ex.append("%r: %s" % (n, s.fname(i)))
             elif k == 1:
                 ex.append("%r: TX%d" % (n, i))
             elif k == 2:
@@ -1425,7 +1425,6 @@ class ModGen:
         return "\n\n".join(out) + "\n"
 
 
-def generate(wasm: bytes) -> str:
-    mod = parse(wasm)
-    validate(mod)  # also decodes the bodies into mod["insns"]
+def generate(mod: dict) -> str:
+    """Source for a module that `parse` and `validate` have processed."""
     return ModGen(mod).gen()

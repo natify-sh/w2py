@@ -1,6 +1,4 @@
 align.wast:949  gap: decoder does not support the construct (block type / memarg memory index)
-annotations.wast:129  gap: table import / unknown import kind
-annotations.wast:98  gap: table import / unknown import kind
 data.wast:532  gap: opcode not implemented
 data.wast:542  earlier module of the file did not load (name or export missing)
 data.wast:543  earlier module of the file did not load (name or export missing)
@@ -35,15 +33,6 @@ instance.wast:56  earlier module of the file did not load
 instance.wast:57  earlier module of the file did not load
 instance.wast:62  gap: table import / unknown import kind
 linking.wast:112  gap: table import / unknown import kind
-linking.wast:50  translator crashes on a valid module (TypeError, not a validator matter)
-linking.wast:68  earlier module of the file did not load (name or export missing)
-linking.wast:69  earlier module of the file did not load (name or export missing)
-linking.wast:71  earlier module of the file did not load (name or export missing)
-linking.wast:72  earlier module of the file did not load (name or export missing)
-linking.wast:75  earlier module of the file did not load (name or export missing)
-linking.wast:77  earlier module of the file did not load (name or export missing)
-linking.wast:81  earlier module of the file did not load (name or export missing)
-linking.wast:83  earlier module of the file did not load (name or export missing)
 ref_null.wast:1  gap: init expression
 ref_null.wast:16  earlier module of the file did not load
 ref_null.wast:17  earlier module of the file did not load

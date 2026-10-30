@@ -1,185 +1,113 @@
-# pyright: reportPrivateUsage=false, reportUnknownMemberType=false, reportUnknownVariableType=false
-"""The `pyc` target as a SpecEngine (docs/specs/S0001): an adapter over package internals.
+# pyright: reportUnknownVariableType=false, reportUnknownMemberType=false, reportUnknownArgumentType=false
+"""The `pyc` target as a SpecEngine (docs/specs/S0001): a thin adapter over S0002 (select, compile,
+instantiate, call).
 
-Values: i32/i64 are signed at the interface and unsigned inside `pyc`; f32/f64 are bit patterns at
-the interface and Python floats inside. References: null is None, an
-externref is the runner's ExternRef, a funcref is the function object.
+Values: i32/i64 are signed at the interface and unsigned `Raw` below; f32/f64 are bit patterns at
+both. References: null is None, an externref is the runner's ExternRef, a funcref is the function
+object (a `pyc` reference passes through the `Raw` slot as it is until stage 2).
 """
 
 import struct
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Mapping, Sequence
 from typing import Any, cast
 
 from tests.spec.engine import FuncRef, Instance, LinkError, LoadError, Module, Trap, TrapCode, Value
-from w2py.frontend.binary import ImplLimit, Malformed, parse
-from w2py.frontend.validate import Invalid, functype_key, valtype_key
-from w2py.targets.pyc import Trap as PycTrap
-from w2py.targets.pyc import load, translate
-from w2py.targets.pyc import runtime as rt
+from w2py.frontend.binary import F32, F64, I32, I64, ImplLimit, Malformed, parse
+from w2py.frontend.validate import Invalid, validate
+from w2py.runtime import link
+from w2py.runtime.store import StoreState
+from w2py.targets import base
 
-I32, I64, F32, F64 = 0x7F, 0x7E, 0x7D, 0x7C
-FUNCREF, EXTERNREF = 0x70, 0x6F
-_f32_i32 = cast(Callable[[int], float], rt._f32_i32)
-_f64_i64 = cast(Callable[[int], float], rt._f64_i64)
-_i32_f32 = cast(Callable[[float], int], rt._i32_f32)
-_i64_f64 = cast(Callable[[float], int], rt._i64_f64)
 _PARSE_ERRORS = (AssertionError, IndexError, ValueError, struct.error, UnicodeDecodeError)
+_MASK = {I32: 0xFFFFFFFF, I64: 0xFFFFFFFFFFFFFFFF, F32: 0xFFFFFFFF, F64: 0xFFFFFFFFFFFFFFFF}
 
 
 class _Module:
-    def __init__(self, wasm: bytes, parsed: dict[str, Any]) -> None:
-        self.wasm = wasm
-        self.imports: list[tuple[Any, ...]] = parsed["imports"]
-        self.ttypes: list[Any] = parsed["ttypes"]
-        self.types: list[tuple[list[int], list[int]]] = parsed["types"]
-        nimp = sum(1 for im in self.imports if im[0] == "func")
-        gl = [im[3] for im in self.imports if im[0] == "global"] + [
-            (g[0], g[1]) for g in parsed["globals"]
-        ]
-        self.kinds: dict[str, int] = {}
-        self.functypes: dict[str, tuple[list[int], list[int]]] = {}
-        self.globaltypes: dict[str, tuple[int, int]] = {}
-        self.keys: dict[str, Any] = {}  # structural identity of an exported function / global type
-        for name, kind, idx in parsed["exports"]:
-            self.kinds[name] = kind
-            if kind == 0:
-                tidx = cast(
-                    int, self.imports[idx][3] if idx < nimp else parsed["funcs"][idx - nimp]
-                )
-                self.functypes[name] = self.types[tidx]
-                self.keys[name] = functype_key(self.types, tidx)
-            elif kind == 1:
-                self.keys[name] = valtype_key(self.types, parsed["ttypes"][idx])
-            elif kind == 3:
-                self.globaltypes[name] = gl[idx]
-                self.keys[name] = _gkey(self.types, gl[idx])
+    def __init__(self, mod: base.ValidModule, target: base.Target, compiled: object) -> None:
+        self.mod = mod
+        self.target = target
+        self.compiled = compiled
 
 
 class _Instance:
-    def __init__(self, module: _Module, exports: dict[str, Any]) -> None:
-        self.module = module
-        self.exports = exports
+    def __init__(self, module: base.ValidModule, instance: base.TargetInstance) -> None:
+        self.provider = link.Provider(module, instance)
 
 
-def _gkey(types: list[Any], g: tuple[Any, int]) -> tuple[Any, int]:
-    return (valtype_key(types, g[0]), g[1])
+def _isref(ty: Any) -> bool:
+    return ty.__class__ is tuple or ty in (0x70, 0x6F)
 
 
-def _to_internal(ty: Any, v: Value) -> Any:
-    if ty.__class__ is tuple:  # (ref null? ht): a function or an extern reference
-        ty = EXTERNREF if ty[1] == -17 else FUNCREF
-    if ty in (
-        FUNCREF,
-        EXTERNREF,
-    ):  # null is None, an ExternRef stays itself, a FuncRef is its function
+def _to_raw(ty: Any, v: Value) -> Any:
+    if _isref(ty):  # a reference: null, ExternRef or the function
         return v.handle if isinstance(v, FuncRef) else v
     if not isinstance(v, int):
         raise NotImplementedError("reference values unsupported")
-    if ty == I32:
-        return v & 0xFFFFFFFF
-    if ty == I64:
-        return v & 0xFFFFFFFFFFFFFFFF
-    if ty == F32:
-        return _f32_i32(v)
-    if ty == F64:
-        return _f64_i64(v)
-    raise NotImplementedError(f"value type {ty:#x} unsupported")
+    return v & _MASK[ty]
 
 
-def _from_internal(ty: Any, v: Any) -> Value:
-    if ty.__class__ is tuple:
-        ty = EXTERNREF if ty[1] == -17 else FUNCREF
-    if ty == FUNCREF:
-        return None if v is None else FuncRef(v)
-    if ty == EXTERNREF:
-        return cast(Value, v)
-    if ty == I32:
-        return cast(int, v) - ((v & 0x80000000) << 1)
-    if ty == I64:
-        return cast(int, v) - ((v & 0x8000000000000000) << 1)
-    if ty == F32:
-        return _i32_f32(v)
-    if ty == F64:
-        return _i64_f64(v)
-    raise NotImplementedError(f"value type {ty:#x} unsupported")
+def _from_raw(ty: Any, r: Any) -> Value:
+    if _isref(ty):
+        if (ty[1] == -17) if ty.__class__ is tuple else (ty == 0x6F):
+            return cast(Value, r)
+        return None if r is None else FuncRef(r)
+    if ty in (I32, I64):
+        return cast(int, r) - ((r & (_MASK[ty] + 1 >> 1)) << 1)
+    return cast(int, r)
 
 
-def _trap(e: PycTrap) -> Exception:
-    code = getattr(e, "code", None)
-    if code is None:
-        return e
-    return Trap(TrapCode[code], str(e))
+def _trap(e: base.Trap) -> Exception:
+    return Trap(TrapCode[e.code.name], str(e))
 
 
 class PycEngine:
+    def __init__(self) -> None:
+        self.store = StoreState()
+
     def load(self, wasm: bytes) -> Module:
         try:
             try:
-                parsed = parse(wasm)
+                mod = parse(wasm)
             except (ImplLimit, NotImplementedError) as e:  # not a verdict on the module
                 raise LoadError(f"{type(e).__name__}: {e}") from None
-            translate(wasm)  # decode errors surface here; NotImplementedError is a target gap
+            validate(mod)
+            target = base.select(mod, ["pyc"])
+            compiled = target.compile(mod)  # NotImplementedError is a target gap
         except Malformed as e:
             raise LoadError(str(e), "malformed") from None
         except Invalid as e:
             raise LoadError(str(e), "invalid") from None
         except _PARSE_ERRORS as e:
             raise LoadError(f"{type(e).__name__}: {e}") from None
-        return _Module(wasm, parsed)
+        return _Module(mod, target, compiled)
 
     def instantiate(self, module: Module, imports: Mapping[str, Instance]) -> Instance:
         m = cast(_Module, module)
-        wired: dict[str, dict[str, Any]] = {}
-        kinds = {"func": 0, "table": 1, "mem": 2, "global": 3}
-        ntab = 0
-        for kind, mod, name, desc in m.imports:
-            src = imports.get(mod)
-            if src is None or cast(_Instance, src).module.kinds.get(name) != kinds[kind]:
-                raise LinkError(f"unknown import {mod}.{name}")
-            inst = cast(_Instance, src)
-            ex = inst.exports[name]
-            if kind == "func":
-                ok = inst.module.keys[name] == functype_key(m.types, desc)
-            elif kind == "global":
-                ok = inst.module.keys[name] == _gkey(m.types, desc)
-            else:
-                size = len(ex) >> 16 if kind == "mem" else len(ex.t)
-                if kind == "table":
-                    ok = inst.module.keys[name] == valtype_key(m.types, m.ttypes[ntab])
-                    ntab += 1
-                else:
-                    ok = True
-                ok = (
-                    ok
-                    and size >= desc[0]
-                    and (desc[1] is None or (ex.max is not None and ex.max <= desc[1]))
-                )
-            if not ok:
-                raise LinkError(f"incompatible import type {mod}.{name}")
-            wired.setdefault(mod, {})[name] = ex
+        providers = {k: cast(_Instance, v).provider for k, v in imports.items()}
         try:
-            return _Instance(m, load(m.wasm, wired))
-        except PycTrap as e:
+            externs = link.resolve(m.mod, providers)
+            return _Instance(m.mod, m.target.instantiate(m.compiled, externs, self.store))
+        except link.LinkError as e:
+            raise LinkError(str(e)) from None
+        except base.Trap as e:
             raise _trap(e) from None
 
     def call(self, instance: Instance, name: str, args: Sequence[Value]) -> list[Value]:
-        inst = cast(_Instance, instance)
-        ps, rs = inst.module.functypes.get(name, (None, None))
-        if ps is None or rs is None:
+        mod, inst = cast(_Instance, instance).provider
+        idx = next((i for n, k, i in mod["exports"] if n == name and k == 0), None)
+        if idx is None:
             raise LookupError(f"no exported function {name}")
-        raw = [_to_internal(t, a) for t, a in zip(ps, args, strict=True)]
+        ps, rs = link.func_type(mod, idx)
+        raw = [_to_raw(t, a) for t, a in zip(ps, args, strict=True)]
         try:
-            res = inst.exports[name](*raw)
-        except PycTrap as e:
+            res = inst.call(idx, raw)
+        except base.Trap as e:
             raise _trap(e) from None
-        if len(rs) == 0:
-            return []
-        vals = [res] if len(rs) == 1 else list(res)
-        return [_from_internal(t, v) for t, v in zip(rs, vals, strict=True)]
+        return [_from_raw(t, v) for t, v in zip(rs, res, strict=True)]
 
     def get_global(self, instance: Instance, name: str) -> Value:
-        inst = cast(_Instance, instance)
-        gt = inst.module.globaltypes.get(name)
-        if gt is None:
+        mod, inst = cast(_Instance, instance).provider
+        idx = next((i for n, k, i in mod["exports"] if n == name and k == 3), None)
+        if idx is None:
             raise LookupError(f"no exported global {name}")
-        return _from_internal(gt[0], inst.exports[name].get())
+        return _from_raw(link.global_type(mod, idx)[0], inst.global_get(idx))
