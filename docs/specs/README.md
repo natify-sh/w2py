@@ -12,4 +12,4 @@ lifecycle: [STANDARDS.md](../STANDARDS.md).
 
 | id | title | status | owner |
 |---|---|---|---|
-| [S0001](S0001-engine-interface.md) | Engine interface of the spec-suite runner | draft | maintainer |
+| [S0001](S0001-engine-interface.md) | Engine interface of the spec-suite runner | approved | maintainer |

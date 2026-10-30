@@ -50,11 +50,12 @@ tools installed on CPython 3.11, 3.15 and 3.15t; PyPy 3.11 is first checked in C
 ## The spec test suite
 
 * Source: `WebAssembly/spec` `test/core` (+ `simd/`, and the proposal repositories for features not
-  merged yet), converted with `wast2json`. Pin the commit; move it in small steps.
+  merged yet), converted with `wasm-tools json-from-wast` (`wasm-tools-package`). Pin the commit;
+  move it in small steps. The contract is [S0001](specs/S0001-engine-interface.md).
 * One harness, many targets: the JSON commands (`module`, `register`, `assert_return`,
   `assert_trap`, `assert_exhaustion`, `assert_invalid`, `assert_malformed`, `assert_unlinkable`,
-  `assert_uninstantiable`, `action`) are executed through the **public w2py API**, parametrised over
-  targets (`pytest -k target`). Unlike pywasm, `assert_invalid` / `assert_malformed` are real tests
+  `assert_uninstantiable`, `action`) are executed through the internal engine interface of S0001, one
+  CLI run per engine (`python -m tests.spec.run --engine NAME`), never through the public API. Unlike pywasm, `assert_invalid` / `assert_malformed` are real tests
   of our validator.
 * Expected failures are listed per target in a file in the repo (feature not implemented yet), so
   progress is visible and regressions fail.

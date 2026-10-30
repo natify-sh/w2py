@@ -2,7 +2,7 @@
 title: Engine interface of the spec-suite runner
 kind: spec
 id: S0001
-status: draft
+status: approved
 related: [D1, D5, D6, D10, D11, D19, R3]
 owner: maintainer
 updated: 2026-10-30
@@ -262,10 +262,7 @@ result and on an xpass).
 * **In-process only**: one abort (already real for wasmtime-py) loses the whole run.
 
 ## Open questions
-* The 14 text commands with a `binary_filename` are run (they test our decoder and validator, not
-  WAT); skipping them instead is a one-line change if the maintainer prefers it.
-* [TESTING.md](../TESTING.md) says the suite runs "through the public w2py API … (`pytest -k
-  target`)"; on approval it should say: through this interface, as a CLI per engine.
+* None at approval.
 
 ## Changes
 * 2026-10-30: created (draft).
@@ -273,3 +270,4 @@ result and on an xpass).
 * 2026-10-30: converter `wasm-tools json-from-wast` 1.262.0 replaces `wast2json` (97/97 files);
   `module_definition` / `module_instance`; signed i32/i64; null reference types; `either` entries;
   text commands with `binary_filename` run; spectest via `wasm-tools parse`.
+* 2026-10-30: approved by the maintainer (the 14 text commands with `binary_filename` run).
