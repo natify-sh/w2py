@@ -198,3 +198,16 @@ Lua 5.4 and LuaJIT are not w2py targets, now or later. The experiment gave littl
 (Lua 5.4 271 it/s, LuaJIT 1 873 it/s, against ~15 000 for the x86-64 JIT and no use from Python);
 it stays in `poc/` (`w2lua.py`, `w2luajit.py`, `run_lua.py`) as a record and as evidence for D17.
 D17 (language-neutral shared layers) is unchanged.
+
+### D21. No WAT parser of our own; WAT through wasm-tools, optionally
+Status: accepted · Date: 2026-10-30 · Supersedes: — · Evidence: —
+
+w2py reads the binary format only and will not contain a text-format (WAT) parser: a full WAT grammar
+(folded expressions, every proposal, GC type syntax, annotations) is a project of its own and adds
+nothing to the compiler or the targets. Who needs WAT uses `wasm-tools parse`. In phase 6 the public
+API may accept WAT when the optional extra `wasm-tools-package` is installed, calling it
+automatically; without it, text input gets a clear error (a deliberate deviation from wasmtime-py,
+which accepts WAT everywhere). The package keeps no runtime dependency (D1): the extra is optional.
+Tests write modules in WAT and build them with `wasm-tools` at development time. The 662 spec
+commands that test only WAT parsing (text `assert_malformed`, S0001) stay `skip` permanently: with
+the extra they would test wasm-tools, not w2py. This settles D3's "`.wat` may be accepted later".
