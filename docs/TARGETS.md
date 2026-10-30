@@ -118,7 +118,7 @@ with real numbers for both.
 | `jit-x86_64-win64` | Windows | — | other argument registers, shadow space, `VirtualAlloc` |
 | `jit-aarch64` | Linux, macOS (Apple Silicon: `MAP_JIT`), Windows on ARM, Android (Termux) | — | the second architecture (or `jit-riscv64`, ROADMAP phase 4); its integer core proves the split before the opcode set is widened |
 | `jit-riscv64`, `jit-armv7`, `jit-mips32` (Ingenic X2000, little-endian), `jit-ppc64le`, `jit-loongarch64` | as available | — | QEMU user-mode in CI; candidates for copy-and-patch |
-| `lua` / `luajit` | Lua 5.4, LuaJIT | CoreMark | **not a w2py target**: an experiment showing the IR serves other languages (271 / 1 873 it/s); the shared layers stay language-neutral so such backends remain possible (DECISIONS.md D17) |
+| `lua` / `luajit` | Lua 5.4, LuaJIT | CoreMark | **not a w2py target** (D20, rejected; code stays in `poc/`): an experiment showing the IR serves other languages (271 / 1 873 it/s); the shared layers stay language-neutral so such backends remain possible (DECISIONS.md D17) |
 | `mypyc` | CPython + mypyc runtime | CoreMark | **dropped**: needs `librt` at run time (a dependency) and is 9× slower than wasm2c for a native build |
 
 **MicroPython's own native emitters as JIT back ends (research).** Our JIT is the same idea as

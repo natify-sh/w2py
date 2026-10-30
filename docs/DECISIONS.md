@@ -95,7 +95,7 @@ Status: accepted · Date: 2026-10-26 · Supersedes: — · Evidence: —
 * **mypyc target** — dropped: needs `librt` at run time (a dependency) and a native build is better
   served by wasm2c/wasmext.
 * **Lua / LuaJIT backends** — parked as an experiment proving the IR is language-neutral (LuaJIT
-  1 873 it/s); not part of w2py.
+  1 873 it/s); not part of w2py. Superseded by D20 (rejected).
 * **`--trust-align` memoryview access** — rejected: no gain on CPython, ×20 slower on PyPy.
 * **Function inlining in `pyc`** — opt-in only: neutral on CPython 3.13, ~+5 % on PyPy.
 * **pywasm as the base** — rejected as a base (interpreter, ×150–400 slower, needs Python ≥ 3.11 — `match`, `typing.Self` — no
@@ -190,3 +190,11 @@ and PyPy 3.11; actions are pinned by commit SHA. Tooling (ruff, pyright) targets
   versions cost CI time and block newer syntax and typing.
 * Generated `pyc` code's floor follows the package floor unless a target says otherwise; the
   MicroPython flavour is separate.
+
+### D20. Lua / LuaJIT rejected as a target
+Status: accepted · Date: 2026-10-30 · Supersedes: D12 (the Lua item) · Evidence: BENCHMARKS.md, CoreMark
+
+Lua 5.4 and LuaJIT are not w2py targets, now or later. The experiment gave little for its cost
+(Lua 5.4 271 it/s, LuaJIT 1 873 it/s, against ~15 000 for the x86-64 JIT and no use from Python);
+it stays in `poc/` (`w2lua.py`, `w2luajit.py`, `run_lua.py`) as a record and as evidence for D17.
+D17 (language-neutral shared layers) is unchanged.
