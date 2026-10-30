@@ -365,3 +365,60 @@ def test_memory_index_in_memarg_is_not_implemented() -> None:
     wasm = bytes.fromhex("0061736d010000000104016000000302010005030100010a0b0109004100284201001a0b")
     with pytest.raises(NotImplementedError, match="multi-memory"):
         load(wasm, {})
+
+
+def _effect_before_trap(wat: str, imports: dict[str, dict[str, object]] | None = None) -> object:
+    from wasmtime import wat2wasm
+
+    return load(wat2wasm(wat), imports or {})  # pyright: ignore[reportArgumentType]
+
+
+def test_trap_precedes_later_call() -> None:
+    seen: list[int] = []
+    ex = _effect_before_trap(
+        '(module (import "env" "host" (func $host (param i32)))'
+        ' (func (export "f") (param i32) (result i32)'
+        "  (block (result i32) (i32.div_s (local.get 0) (i32.const 0))"
+        " (call $host (local.get 0)))))",
+        {"env": {"host": seen.append}},
+    )
+    with pytest.raises(Trap):
+        ex["f"](5)  # pyright: ignore[reportIndexIssue]
+    assert seen == []
+
+
+def test_trap_load_precedes_call() -> None:
+    seen: list[int] = []
+    ex = _effect_before_trap(
+        '(module (import "env" "host" (func $host (param i32))) (memory 1)'
+        ' (func (export "f") (param i32) (result i32)'
+        "  (block (result i32) (i32.load (local.get 0)) (call $host (local.get 0)))))",
+        {"env": {"host": seen.append}},
+    )
+    with pytest.raises(Trap):
+        ex["f"](0x7FFFFFFF)  # pyright: ignore[reportIndexIssue]
+    assert seen == []
+
+
+def test_trap_rem_precedes_global_set() -> None:
+    ex = _effect_before_trap(
+        '(module (global $g (mut i32) (i32.const 1)) (func (export "f") (param i64)'
+        "  (block (result i64) (i64.rem_s (local.get 0) (i64.const 0))"
+        " (global.set $g (i32.const 9))) drop)"
+        ' (func (export "g") (result i32) (global.get $g)))'
+    )
+    with pytest.raises(Trap):
+        ex["f"](5)  # pyright: ignore[reportIndexIssue]
+    assert ex["g"]() == 1  # pyright: ignore[reportIndexIssue]
+
+
+def test_trap_trunc_precedes_store() -> None:
+    ex = _effect_before_trap(
+        '(module (memory 1) (func (export "f") (param f32)'
+        "  (block (result i32) (i32.trunc_f32_s (local.get 0))"
+        " (i32.store8 (i32.const 0) (i32.const 7))) drop)"
+        ' (func (export "r") (result i32) (i32.load8_u (i32.const 0))))'
+    )
+    with pytest.raises(Trap):
+        ex["f"](float("nan"))  # pyright: ignore[reportIndexIssue]
+    assert ex["r"]() == 0  # pyright: ignore[reportIndexIssue]

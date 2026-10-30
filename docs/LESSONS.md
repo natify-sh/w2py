@@ -122,3 +122,10 @@ What went wrong or surprised us while building the PoC, so it is not found again
     `nan`, undefined names in the generated module, so a module with such a global initialiser failed
     to load (`select.wast`, found while fixing NaN constants). Emit special values through an exact
     constructor from their bits (`_f64_i64(0x…)`). Found: pyc loop, 2026-10-30.
+30. **A lazy stack must also keep trap order against side effects.** The `pyc` flush helpers chose
+    what to materialise by what an expression *reads* (`m`, `g`, locals), not by whether it may trap,
+    so `(i32.div_s x 0)` left pending on the stack ran after a following `call`, `global.set` or
+    `store` (the host was called before the trap; wasmtime and jit-x86_64 trap first). Also `flush`
+    skipped constant-only expressions, and `i32.const 1; i32.const 0; i32.div_s` is one. Every flush
+    before a side effect now includes the `x` flag, loads carry `x`, and `flush` never skips an `x`
+    value (`test_trap_*` in `tests/test_pyc.py`). Found: pyc loop, 2026-10-30.

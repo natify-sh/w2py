@@ -200,21 +200,21 @@ class FuncGen:
 
     def flush(s, pred=lambda e: not e.pure_const or True):
         for i, e in enumerate(s.stack):
-            if e.k or (e.pure_const and e.c[:1] not in "pl"):
+            if e.k or (e.pure_const and not e.x and e.c[:1] not in "pl"):
                 continue
             if pred(e):
                 s.materialize(i)
 
     def flush_all(s):
         for i, e in enumerate(s.stack):
-            if not e.k and not e.pure_const:
+            if not e.k and (not e.pure_const or e.x):
                 s.materialize(i)
 
     def flush_mem(s):
-        s.flush(lambda e: e.m)
+        s.flush(lambda e: e.m or e.x)
 
     def flush_call(s):
-        s.flush(lambda e: e.m or e.g)
+        s.flush(lambda e: e.m or e.g or e.x)
 
     def flush_trapping(s):
         """a branch, return or unreachable discards the stack below its arity: what may trap runs first"""
@@ -224,7 +224,7 @@ class FuncGen:
         s.flush(lambda e: name in e.Ls)
 
     def flush_global(s, gname):
-        s.flush(lambda e: gname in e.g)
+        s.flush(lambda e: gname in e.g or e.x)
 
     # --- block types
     def bt(s, b):
@@ -724,7 +724,7 @@ class FuncGen:
             a = pop()
             off = x[1]
             ad = n(a) if off == 0 else "%s+%d" % (n(a), off)
-            d = dep(a, m=True)
+            d = dep(a, m=True, x=True)  # a load can trap on a bad address
             L = {
                 0x28: ("U32(M,%s)[0]", I32, M32),
                 0x29: ("U64(M,%s)[0]", I64, M64),
