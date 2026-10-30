@@ -13,7 +13,15 @@ def run_check(root: Path) -> subprocess.CompletedProcess[str]:
 
 
 def copy_repo(dst: Path) -> Path:
-    for rel in ("tools/features.py", "docs", "tests/spec/xfail"):
+    for rel in (
+        "tools/features.py",
+        "docs",
+        "tests/__init__.py",
+        "tests/spec/__init__.py",
+        "tests/spec/claims.py",
+        "tests/spec/counts.json",
+        "tests/spec/xfail",
+    ):
         src = ROOT / rel
         if src.is_dir():
             shutil.copytree(src, dst / rel)
