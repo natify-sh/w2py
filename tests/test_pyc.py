@@ -91,6 +91,44 @@ def test_block_params_loop_and_if() -> None:
     assert ex["g"](5, 0) == 0xFFFFFFF1
 
 
+def _tail_call_module() -> bytes:
+    def fn(ret: int, tail: str) -> str:
+        return f"00200045044041{ret:02x}0f0b200041016b" + tail + "0b"
+
+    code = "04" + "".join(
+        f"{len(b) // 2:02x}{b}"
+        for b in (fn(7, "1200"), fn(1, "1202"), fn(0, "1201"), fn(9, "4100130000"))
+    )
+    return bytes.fromhex(
+        "0061736d01000000"
+        "0106"
+        "0160017f017f"
+        "0305"
+        "0400000000"
+        "0404"
+        "01700001"
+        "070d"
+        "03"
+        "01630000"
+        "01650001"
+        "01690003"
+        "0907"
+        "01"
+        "004100"
+        "0b"
+        "0103"
+        "0a%02x" % (len(code) // 2) + code
+    )
+
+
+def test_tail_calls_run_in_constant_stack() -> None:
+    ex = load(_tail_call_module(), {})
+    assert ex["c"](1_000_000) == 7  # self return_call
+    assert ex["e"](1_000_000) == 1  # mutual even/odd
+    assert ex["e"](100_001) == 0
+    assert ex["i"](100_000) == 9  # return_call_indirect
+
+
 def _wasm_module() -> bytes:
     def sec(i: int, body: bytes) -> bytes:
         return bytes([i, len(body)]) + body

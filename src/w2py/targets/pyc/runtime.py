@@ -161,6 +161,16 @@ class _Global:
         self.get = get
 
 
+class _TC:
+    """A pending tail call: function `f` (a body, not a wrapper) and its argument tuple `a`."""
+
+    __slots__ = ("f", "a")
+
+    def __init__(self, f, a):
+        self.f = f
+        self.a = a
+
+
 def _export(f):
     """Wrap an exported function: Python errors that mean a trap become `Trap` (provisional)."""
 

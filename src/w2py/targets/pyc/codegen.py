@@ -515,6 +515,9 @@ class FuncGen:
             s.simple(x)
         body = s.lines
         fname = "f%d" % s.fidx
+        tc = s.fidx in s.mg.tc
+        if tc:
+            fname += "_b"
         args = ", ".join(s.lname(j) for j in range(len(s.params)))
         head = ["def %s(%s):" % (fname, args)]
         if s.globals_set:
@@ -535,6 +538,14 @@ class FuncGen:
             head.append("    _br = 0")
         if not body:
             body = ["    pass"]
+        if tc:
+            body += [
+                "def f%d(%s):" % (s.fidx, args),
+                "    r = %s(%s)" % (fname, args),
+                "    while r.__class__ is _TC:",
+                "        r = r.f(*r.a)",
+                "    return r",
+            ]
         return "\n".join(head + body) + "\n"
 
     def end_frame(s):
@@ -707,7 +718,9 @@ class FuncGen:
             s.emit("%s = _grow(M,_MAXPAGES,%s)" % (t, n(v)))
             push(E(t, I32, M32, k=True))
             return
-        if op == 0x10 or op == 0x11:
+        if op in (0x10, 0x11, 0x12, 0x13):
+            tail = op >= 0x12
+            op -= 2 if tail else 0
             if op == 0x10:
                 fi = x[1]
                 ps, rs = mg.ftype(fi)
@@ -730,6 +743,17 @@ class FuncGen:
                 s.emit("if %s != %r:" % (q, mg.sig(*mg.types[x[1]])))
                 s.emit("    _tsig()")
             ac = ", ".join(n(a) if a.t in (I32, I64) else a.c for a in args)
+            if tail:
+                # tail call: a function with tail calls returns a _TC that its wrapper runs (constant stack)
+                tup = "(%s)" % (ac + "," if ac else "")
+                if op == 0x11:
+                    s.emit('return _TC(getattr(%s, "t", %s), %s)' % (callee, callee, tup))
+                elif fi in s.mg.tc:
+                    s.emit("return _TC(%s_b, %s)" % (callee, tup))
+                else:
+                    s.emit("return %s(%s)" % (callee, ac))
+                s.dead = True
+                return
             call = "%s(%s)" % (callee, ac)
             if not rs:
                 s.emit(call)
@@ -1195,6 +1219,12 @@ class ModGen:
         s.timports = [i for i in im if i[0] == "table"]
         s.mimports = [i for i in im if i[0] == "mem"]
         s.ttypes = mod["ttypes"]
+        # functions containing return_call / return_call_indirect: body `f<i>_b` + trampoline wrapper `f<i>`
+        s.tc = {
+            s.nimp + k
+            for k, ins in enumerate(mod["insns"])
+            if any(x[0] in (0x12, 0x13) for x in ins)
+        }
         s.gtypes = [i[3][0] for i in s.gimports] + [g[0] for g in mod["globals"]]
         s.gmut = [i[3][1] for i in s.gimports] + [g[1] for g in mod["globals"]]
         s.ginit = [("i32", 0)] * len(s.gimports) + [g[2] for g in mod["globals"]]
@@ -1294,6 +1324,8 @@ class ModGen:
         for k, ((locs, _), tidx) in enumerate(zip(mod["codes"], mod["funcs"])):
             out.append(FuncGen(s, s.nimp + k, tidx, locs, mod["insns"][k]).gen())
             out.append("f%d.s = %r" % (s.nimp + k, s.sig(*s.types[tidx])))
+            if s.nimp + k in s.tc:
+                out.append("f%d.t = f%d_b" % (s.nimp + k, s.nimp + k))
         for i, im in enumerate(s.fimports):
             L.append("    I%d = imports[%r][%r]" % (i, im[1], im[2]))
         L += gi
