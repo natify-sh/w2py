@@ -110,3 +110,22 @@ def test_table_ops_are_validated() -> None:
         check(
             b"\0asm\1\0\0\0" + base + sec(10, b"\x01" + bytes([len(fill) + 2, 0]) + fill + b"\x0b")
         )
+
+
+def test_typed_references_are_validated() -> None:
+    uninit = bytes.fromhex(
+        "0061736d01000000010401600000030201000a0a01080101646f20001a0b"
+    )  # (func (local (ref extern)) (drop (local.get 0)))
+    with pytest.raises(Invalid, match="uninitialized local"):
+        check(uninit)
+    funcref_call = bytes.fromhex(
+        "0061736d0100000001080260000060017000030201010a08010600200014000b"
+    )  # (func (param funcref) (call_ref $t (local.get 0)))
+    with pytest.raises(Invalid, match="type mismatch"):
+        check(funcref_call)
+    set_first = bytes.fromhex(
+        "0061736d010000000106016001646f00030201000a0e010c0101646f2000210120011a0b"
+    )
+    m = parse(set_first)
+    validate(m)
+    assert m["validated"]

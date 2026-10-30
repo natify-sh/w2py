@@ -39,7 +39,7 @@
         "multiMemory": null,
         "multiValue": [
           "partial",
-          "xfail 169 (if 5, br_if 1, br_table 162, func 1); mostly: earlier module of the file did not load"
+          "xfail 5 (if 5); mostly: earlier module of the file did not load"
         ],
         "mutableGlobals": [
           "partial",
@@ -49,7 +49,7 @@
         "profiles": null,
         "referenceTypes": [
           "partial",
-          "xfail 56 (ref_null 34, ref 12, table 9, select 1); mostly: earlier module of the file did not load"
+          "xfail 34 (ref_null 34); mostly: earlier module of the file did not load"
         ],
         "relaxedDeadCodeValidation": null,
         "relaxedSimd": null,
@@ -60,17 +60,11 @@
         "simd": null,
         "stackSwitching": null,
         "stringref": null,
-        "tailCall": [
-          "partial",
-          "xfail 49 (return_call 1, return_call_indirect 1, return_call_ref 47); mostly: earlier module of the file did not load"
-        ],
+        "tailCall": true,
         "threads": null,
         "typeImports": null,
         "typeReflection": null,
-        "typedFunctionReferences": [
-          "partial",
-          "xfail 114 (call_ref 29, br_on_null 10, br_on_non_null 12, ref_as_non_null 7, local_init 9, return_call_ref 47); mostly: earlier module of the file did not load"
-        ],
+        "typedFunctionReferences": true,
         "wasmCApi": null,
         "webContentSecurityPolicy": null,
         "wideArithmetic": null

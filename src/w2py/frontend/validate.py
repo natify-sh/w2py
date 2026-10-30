@@ -3,10 +3,10 @@
 
 `validate(mod)` takes the dict of `frontend.binary.parse`, decodes every function body once (stored
 in `mod["insns"]`, so a code generator does not decode again) and raises `Invalid` for a module that
-breaks a validation rule. A valid construct this front end cannot validate (typed function
-references, tag exports, instructions outside the core set) ends validation of that module without
-a verdict (it is left to the code generator as before): never `Invalid`, because a wrong "invalid"
-on a valid module would be a wrong kind. Constructs the reader does not decode (GC, SIMD,
+breaks a validation rule. A valid construct this front end cannot validate (GC heap types, tag
+exports, instructions outside the core set) ends validation of that module without a verdict (it
+is left to the code generator as before): never `Invalid`, because a wrong "invalid" on a valid
+module would be a wrong kind. Constructs the reader does not decode (GC, SIMD,
 exceptions, 64-bit memories, some table instructions) are its `NotImplementedError`.
 
 Basic pyright mode: the module dict and the instruction tuples are untyped data of the reader.
@@ -129,24 +129,67 @@ def _limits(lim: tuple[int, int | None], cap: int, what: str) -> None:
         raise Invalid("size minimum must not be greater than maximum")
 
 
-def _vt(t: int) -> int:
-    if t in (0x63, 0x64):
-        raise _Unsupported("typed function references")
+def _vt(t, ntypes: int):
+    """A type index in a reference type must exist; GC heap types are unsupported."""
+    if t.__class__ is tuple:
+        if t[1] >= ntypes:
+            raise Invalid("unknown type")
+        if t[1] < -17:
+            raise _Unsupported("heap type")
     return t
 
 
-def _sub(a: int, b: int) -> bool:
-    """Segment type `a` fits table type `b` (0x64 is (ref func), 0x63 (ref null func))."""
-    return a == b or (a == 0x64 and b in (FUNCREF, 0x63))
+def _isref(t) -> bool:
+    return t.__class__ is tuple or t in (FUNCREF, EXTERNREF)
 
 
-def _ref(ht: int) -> int:
-    """Reference type of a `ref.null` heap type (-16: func, -17: extern)."""
-    if ht == -16:
-        return FUNCREF
-    if ht == -17:
-        return EXTERNREF
-    raise _Unsupported("heap type")
+def _nn(t):
+    """(nullable, heap type) of a reference type: funcref is (1, -16), externref (1, -17)."""
+    return (1, -16) if t == FUNCREF else (1, -17) if t == EXTERNREF else t
+
+
+def functype_key(types: list, i: int, stack: tuple = ()) -> tuple:
+    """Structural identity of function type `i` (equal keys: equivalent types, also across modules);
+    a reference back to a type being unfolded is ("^", depth)."""
+    if i in stack:
+        return ("^", len(stack) - stack.index(i))
+    st = stack + (i,)
+    return tuple(tuple(valtype_key(types, t, st) for t in ts) for ts in types[i])
+
+
+def valtype_key(types: list, t, stack: tuple = ()):
+    if t.__class__ is tuple and t[1] >= 0:
+        return (t[0], functype_key(types, t[1], stack))
+    return t
+
+
+def _match(types: list, a, b) -> bool:
+    """Value type `a` is a subtype of `b` (spec: matching; function types match if same shape)."""
+    if a == b:
+        return True
+    if not (_isref(a) and _isref(b)):
+        return False
+    (an, ah), (bn, bh) = _nn(a), _nn(b)
+    if an and not bn:
+        return False
+    return (
+        ah == bh
+        or (bh == -16 and ah >= 0)
+        or (ah >= 0 and bh >= 0 and functype_key(types, ah) == functype_key(types, bh))
+    )
+
+
+def _rmatch(types: list, a: list, b: list) -> bool:
+    return len(a) == len(b) and all(_match(types, x, y) for x, y in zip(a, b, strict=True))
+
+
+def _ref(c, ht: int):
+    """Reference type of a `ref.null` heap type (-16: func, -17: extern, else a type index)."""
+    if ht >= len(c.types):
+        raise Invalid("unknown type")
+    if ht < -17:
+        raise _Unsupported("heap type")
+    return FUNCREF if ht == -16 else EXTERNREF if ht == -17 else (1, ht)
 
 
 class _Ctx:
@@ -155,9 +198,8 @@ class _Ctx:
     def __init__(self, mod: dict) -> None:
         self.types = mod["types"]
         imps = mod["imports"]
-        self.funcs = [self.types[i[3]] for i in imps if i[0] == "func"] + [
-            self.types[t] for t in mod["funcs"]
-        ]
+        self.ftidx = [i[3] for i in imps if i[0] == "func"] + mod["funcs"]
+        self.funcs = [self.types[t] for t in self.ftidx]
         self.ttypes = mod["ttypes"]
         self.nmems = sum(1 for i in imps if i[0] == "mem") + len(mod["mems"])
         self.gtypes = [i[3][0] for i in imps if i[0] == "global"] + [g[0] for g in mod["globals"]]
@@ -167,7 +209,7 @@ class _Ctx:
         self.refs: set[int] = set()
 
 
-def _const(c: _Ctx, e: tuple, nglobals: int) -> int:
+def _const(c: _Ctx, e: tuple, nglobals: int):
     """Type of a constant expression (parser tuples); only globals below `nglobals` are visible."""
     k = e[0]
     if k == "bad":
@@ -188,9 +230,9 @@ def _const(c: _Ctx, e: tuple, nglobals: int) -> int:
     if k == "func":
         if e[1] >= len(c.funcs):
             raise Invalid("unknown function")
-        return FUNCREF
+        return (0, c.ftidx[e[1]])
     if k == "null":
-        return _ref(e[1])
+        return _ref(c, e[1])
     if e[1] >= nglobals:
         raise Invalid("unknown global")
     if c.gmut[e[1]]:
@@ -211,23 +253,23 @@ def _validate(mod: dict) -> None:
     # decode all bodies first: an unsupported instruction wins over any verdict
     mod["insns"] = [decode(body) for _, body in mod["codes"]]
     types = mod["types"]
-    for ps, rs in types:
+    nt = len(types)
+    for i, (ps, rs) in enumerate(
+        types
+    ):  # a type outside a rec group sees only itself and earlier ones
         for t in (*ps, *rs):
-            _vt(t)
+            _vt(t, i + 1)
     imps = mod["imports"]
     for im in imps:
         if im[0] == "global":
-            _vt(im[3][0])
+            _vt(im[3][0], nt)
     for g in mod["globals"]:
-        _vt(g[0])
-    for ti, _, rt, _ in mod["elem_info"]:  # a nullable segment type never fits a (ref ht) table
-        if ti is not None and ti < len(mod["ttypes"]) and mod["ttypes"][ti] == 0x64 and rt != 0x64:
-            raise Invalid("type mismatch")
-    for t in mod["ttypes"]:
-        _vt(t)
+        _vt(g[0], nt)
+    for t in (*mod["ttypes"], *(e[2] for e in mod["elem_info"])):
+        _vt(t, nt)
     for locs, _ in mod["codes"]:
         for t in locs:
-            _vt(t)
+            _vt(t, nt)
     for i in (*(im[3] for im in imps if im[0] == "func"), *mod["funcs"]):
         if i >= len(types):
             raise Invalid("unknown type")
@@ -252,13 +294,16 @@ def _validate(mod: dict) -> None:
         if kind == 0:
             c.refs.add(idx)
     for i, (t, _, init) in enumerate(mod["globals"]):
-        if _const(c, init, nimpg + i) != t:
+        if not _match(c.types, _const(c, init, nimpg + i), t):
             raise Invalid("type mismatch")
     ng = len(c.gtypes)
     for t, init in zip(
         mod["ttypes"][len(c.ttypes) - len(mod["tables"]) :], mod["tinit"], strict=True
     ):
-        if init is not None and _const(c, init, ng) != t:
+        if init is None:
+            if t.__class__ is tuple and not t[0]:  # a non-nullable table needs an initializer
+                raise Invalid("type mismatch")
+        elif not _match(c.types, _const(c, init, ng), t):
             raise Invalid("type mismatch")
     seen = set()
     counts = (len(c.funcs), len(c.ttypes), c.nmems, ng)
@@ -279,12 +324,12 @@ def _validate(mod: dict) -> None:
         if ti is not None:
             if ti >= len(c.ttypes):
                 raise Invalid("unknown table")
-            if not _sub(rt, c.ttypes[ti]):
+            if not _match(c.types, rt, c.ttypes[ti]):
                 raise Invalid("type mismatch")
             if _const(c, off, ng) != I32:
                 raise Invalid("type mismatch")
         for e in items:
-            if _const(c, e, ng) != rt and not (rt == 0x64 and e[0] == "func"):
+            if not _match(c.types, _const(c, e, ng), rt):
                 raise Invalid("type mismatch")
     for (off, _), mi in zip(mod["datas"], mod["data_mem"], strict=True):
         if mi is not None:
@@ -298,37 +343,42 @@ def _validate(mod: dict) -> None:
         _body(c, ps + locs, len(ps), rs, insns)
 
 
-def _body(c: _Ctx, lt: list[int], nparams: int, results: list[int], insns: list[tuple]) -> None:
+def _body(c: _Ctx, lt: list, nparams: int, results: list, insns: list[tuple]) -> None:
     types, funcs, ttypes, gtypes = c.types, c.funcs, c.ttypes, c.gtypes
     nl = len(lt)
-    vals: list[int] = []
+    vals: list = []
     ctl: list[list] = [
-        [0x02, [], results, 0, False]
-    ]  # frames: opcode, start, end, height, unreachable
+        [0x02, [], results, 0, False, 0]
+    ]  # frames: opcode, start, end, height, unreachable, height of `inits`
+    # local initialisation: a local of a non-nullable type is set only after a local.set / tee; the
+    # sets of a block are undone when it ends (spec appendix, "initialization of locals")
+    init = [j < nparams or lt[j].__class__ is not tuple or bool(lt[j][0]) for j in range(nl)]
+    inits: list[int] = []
+    ntypes = len(types)
 
-    def pop(expect: int = UNKNOWN) -> int:
+    def pop(expect=UNKNOWN):
         f = ctl[-1]
         if len(vals) == f[3]:
             if f[4]:
                 return UNKNOWN
             raise Invalid("type mismatch")
         x = vals.pop()
-        if expect and x and x != expect:
+        if expect and x and not _match(types, x, expect):
             raise Invalid("type mismatch")
         return x
 
-    def popn(ts: list[int]) -> list[int]:
+    def popn(ts: list) -> list:
         return [pop(t) for t in reversed(ts)][::-1]
 
-    def label(n: int) -> list[int]:
+    def label(n: int) -> list:
         if n >= len(ctl):
             raise Invalid("unknown label")
         f = ctl[-1 - n]
         return f[1] if f[0] == 0x03 else f[2]
 
-    def enter(op: int, ps: list[int], rs: list[int]) -> None:
+    def enter(op: int, ps: list, rs: list) -> None:
         popn(ps)
-        ctl.append([op, ps, rs, len(vals), False])
+        ctl.append([op, ps, rs, len(vals), False, len(inits)])
         vals.extend(ps)
 
     def exit_() -> list:
@@ -336,6 +386,8 @@ def _body(c: _Ctx, lt: list[int], nparams: int, results: list[int], insns: list[
         popn(f[2])
         if len(vals) != f[3]:
             raise Invalid("type mismatch")
+        while len(inits) > f[5]:
+            init[inits.pop()] = False
         return ctl.pop()
 
     def unreachable() -> None:
@@ -343,7 +395,7 @@ def _body(c: _Ctx, lt: list[int], nparams: int, results: list[int], insns: list[
         del vals[f[3] :]
         f[4] = True
 
-    def table(t: int) -> int:
+    def table(t: int):
         if t >= len(ttypes):
             raise Invalid("unknown table")
         return ttypes[t]
@@ -376,16 +428,18 @@ def _body(c: _Ctx, lt: list[int], nparams: int, results: list[int], insns: list[
         elif op == 0x20:
             if ins[1] >= nl:
                 raise Invalid("unknown local")
+            if not init[ins[1]]:
+                raise Invalid("uninitialized local")
             vals.append(lt[ins[1]])
-        elif op == 0x21:
+        elif op in (0x21, 0x22):
             if ins[1] >= nl:
                 raise Invalid("unknown local")
             pop(lt[ins[1]])
-        elif op == 0x22:
-            if ins[1] >= nl:
-                raise Invalid("unknown local")
-            pop(lt[ins[1]])
-            vals.append(lt[ins[1]])
+            if not init[ins[1]]:
+                init[ins[1]] = True
+                inits.append(ins[1])
+            if op == 0x22:
+                vals.append(lt[ins[1]])
         elif op in (0x02, 0x03, 0x04):
             if op == 0x04:
                 pop(I32)
@@ -394,16 +448,18 @@ def _body(c: _Ctx, lt: list[int], nparams: int, results: list[int], insns: list[
                 if bt[1] >= len(types):
                     raise Invalid("unknown type")
                 bt = types[bt[1]]
+            for t in bt[1]:
+                _vt(t, ntypes)
             enter(op, bt[0], bt[1])
         elif op == 0x05:
             f = exit_()
             if f[0] != 0x04:
                 raise Invalid("else without if")
-            ctl.append([0x05, f[1], f[2], len(vals), False])
+            ctl.append([0x05, f[1], f[2], len(vals), False, len(inits)])
             vals.extend(f[1])
         elif op == 0x0B:
             f = exit_()
-            if f[0] == 0x04 and f[1] != f[2]:
+            if f[0] == 0x04 and not _rmatch(types, f[1], f[2]):
                 raise Invalid("type mismatch")
             vals.extend(f[2])
         elif op == 0x0C:
@@ -437,7 +493,7 @@ def _body(c: _Ctx, lt: list[int], nparams: int, results: list[int], insns: list[
             popn(funcs[ins[1]][0])
             vals.extend(funcs[ins[1]][1])
         elif op in (0x11, 0x13):
-            if table(ins[2]) != FUNCREF:
+            if not _match(types, table(ins[2]), FUNCREF):
                 raise Invalid("type mismatch")
             if ins[1] >= len(types):
                 raise Invalid("unknown type")
@@ -447,17 +503,29 @@ def _body(c: _Ctx, lt: list[int], nparams: int, results: list[int], insns: list[
             if op == 0x11:
                 vals.extend(rs)
             else:
-                if rs != results:
+                if not _rmatch(types, rs, results):
                     raise Invalid("type mismatch")
                 unreachable()
         elif op == 0x12:
             if ins[1] >= len(funcs):
                 raise Invalid("unknown function")
             ps, rs = funcs[ins[1]]
-            if rs != results:
+            if not _rmatch(types, rs, results):
                 raise Invalid("type mismatch")
             popn(ps)
             unreachable()
+        elif op in (0x14, 0x15):
+            if ins[1] >= len(types):
+                raise Invalid("unknown type")
+            pop((1, ins[1]))
+            ps, rs = types[ins[1]]
+            if op == 0x15 and not _rmatch(types, rs, results):
+                raise Invalid("type mismatch")
+            popn(ps)
+            if op == 0x14:
+                vals.extend(rs)
+            else:
+                unreachable()
         elif op == 0x1A:
             pop()
         elif op == 0x1B:
@@ -465,13 +533,13 @@ def _body(c: _Ctx, lt: list[int], nparams: int, results: list[int], insns: list[
             if len(ins) == 2:  # typed select
                 if len(ins[1]) != 1:
                     raise Invalid("invalid result arity")
-                t = ins[1][0]
+                t = _vt(ins[1][0], ntypes)
                 pop(t)
                 pop(t)
                 vals.append(t)
             else:
                 a, b = pop(), pop()
-                if a in (FUNCREF, EXTERNREF) or b in (FUNCREF, EXTERNREF) or (a and b and a != b):
+                if _isref(a) or _isref(b) or (a and b and a != b):
                     raise Invalid("type mismatch")
                 vals.append(a or b)
         elif op in (0x23, 0x24):
@@ -499,7 +567,7 @@ def _body(c: _Ctx, lt: list[int], nparams: int, results: list[int], insns: list[
             pop(I32)
             vals.append(I32)
         elif op == 0xD0:
-            vals.append(_ref(ins[1]))
+            vals.append(_ref(c, ins[1]))
         elif op == 0xD1:
             if pop() in (I32, I64, F32, F64):
                 raise Invalid("type mismatch")
@@ -509,18 +577,38 @@ def _body(c: _Ctx, lt: list[int], nparams: int, results: list[int], insns: list[
                 raise Invalid("unknown function")
             if ins[1] not in c.refs:
                 raise Invalid("undeclared function reference")
-            vals.append(FUNCREF)
+            vals.append((0, c.ftidx[ins[1]]))
+        elif op == 0xD4:
+            x = pop()
+            if x and not _isref(x):
+                raise Invalid("type mismatch")
+            vals.append((0, _nn(x)[1]) if x else UNKNOWN)
+        elif op in (0xD5, 0xD6):
+            ts = label(ins[1])
+            if op == 0xD5:
+                x = pop()
+                if x and not _isref(x):
+                    raise Invalid("type mismatch")
+                popn(ts)
+                vals.extend(ts)
+                vals.append((0, _nn(x)[1]) if x else UNKNOWN)
+            else:
+                if not ts or not _isref(ts[-1]):
+                    raise Invalid("type mismatch")
+                pop((1, _nn(ts[-1])[1]))
+                popn(ts[:-1])
+                vals.extend(ts[:-1])
         elif op == 0xFC0C:
             if ins[1] >= len(c.etypes):
                 raise Invalid("unknown elem segment")
-            if not _sub(c.etypes[ins[1]], table(ins[2])):
+            if not _match(types, c.etypes[ins[1]], table(ins[2])):
                 raise Invalid("type mismatch")
             popn(list(BULK3))
         elif op == 0xFC0D:
             if ins[1] >= len(c.etypes):
                 raise Invalid("unknown elem segment")
         elif op == 0xFC0E:
-            if table(ins[1]) != table(ins[2]):
+            if not _match(types, table(ins[2]), table(ins[1])):
                 raise Invalid("type mismatch")
             popn(list(BULK3))
         elif op == 0xFC0F:

@@ -5,7 +5,7 @@ import os
 import struct
 
 from w2py.frontend.binary import F32, F64, I32, I64, M32, M64, parse
-from w2py.frontend.validate import validate
+from w2py.frontend.validate import validate, valtype_key
 
 BRTREE = int(
     os.environ.get("W2PY_BT", "4")
@@ -240,7 +240,7 @@ class FuncGen:
                 info[i] = [False, True]
             elif op == 0x0B:
                 st.pop()
-            elif op in (0x0C, 0x0D):
+            elif op in (0x0C, 0x0D, 0xD5, 0xD6):
                 t = st[-1 - ins[1]]
                 info[t][0] = True
                 if ins[1] != 0:
@@ -450,6 +450,31 @@ class FuncGen:
                 if not jumped:
                     s.nest(s.ctl[-1], "else:")
                 continue
+            if op in (0xD5, 0xD6):  # br_on_null / br_on_non_null: br_if on the reference itself
+                v = s.pop()
+                s.flush_all()
+                t = s.newtmp(v.t)
+                s.emit("%s = %s" % (t, v.c))
+                ref = E(t, v.t, k=True)
+                d = x[1]
+                T = s.ctl[-1 - d]
+                if op == 0xD5:
+                    if d == 0 and T.mode == "nest":
+                        s.nest(T, "if %s is not None:" % t)
+                        st.append(ref)
+                        continue
+                else:
+                    st.append(ref)  # the branch carries the reference
+                m = s.open("if %s is %sNone:" % (t, "" if op == 0xD5 else "not "))
+                jumped = s.br_code(d)
+                s.close(m)
+                if not jumped:
+                    s.nest(s.ctl[-1], "else:")
+                if op == 0xD5:
+                    st.append(ref)
+                else:
+                    st.pop()
+                continue
             if op == 0x0E:  # br_table
                 e = s.pop()
                 idx = s.n(e)
@@ -530,7 +555,9 @@ class FuncGen:
         inits = [s.lname(j) for j in range(len(s.params), len(s.ltypes))]
         fl = [s.lname(j) for j in range(len(s.params), len(s.ltypes)) if s.ltypes[j] in (F32, F64)]
         rl = [
-            s.lname(j) for j in range(len(s.params), len(s.ltypes)) if s.ltypes[j] in (0x70, 0x6F)
+            s.lname(j)
+            for j in range(len(s.params), len(s.ltypes))
+            if s.ltypes[j].__class__ is tuple or s.ltypes[j] in (0x70, 0x6F)
         ]
         il = [v for v in inits if v not in fl and v not in rl]
         if rl:
@@ -732,18 +759,27 @@ class FuncGen:
             s.emit("%s = _grow(M,_MAXPAGES,%s)" % (t, n(v)))
             push(E(t, I32, M32, k=True))
             return
-        if op in (0x10, 0x11, 0x12, 0x13):
-            tail = op >= 0x12
-            op -= 2 if tail else 0
+        if op in (0x10, 0x11, 0x12, 0x13, 0x14, 0x15):
+            base = {0x12: 0x10, 0x13: 0x11, 0x15: 0x14}.get(op, op)
+            tail = base != op
+            op = base
             if op == 0x10:
                 fi = x[1]
                 ps, rs = mg.ftype(fi)
                 callee = mg.fname(fi)
             else:
                 ps, rs = mg.types[x[1]]
+                if op == 0x14:  # args then the reference are evaluated before the null check
+                    for i in range(len(s.stack) - len(ps) - 1, len(s.stack)):
+                        if (s.stack[i].m or s.stack[i].x) and not s.stack[i].k:
+                            s.materialize(i)
                 ix = pop()
             args = s.popn(len(ps))
             s.flush_call()
+            if op == 0x14:
+                callee = s.newtmp()
+                s.emit("%s = %s" % (callee, ix.c))
+                s.emit("if %s is None: _tnullfn()" % callee)
             if op == 0x11:
                 callee = s.newtmp()
                 q = s.newtmp()
@@ -760,7 +796,7 @@ class FuncGen:
             if tail:
                 # tail call: a function with tail calls returns a _TC that its wrapper runs (constant stack)
                 tup = "(%s)" % (ac + "," if ac else "")
-                if op == 0x11:
+                if op in (0x11, 0x14):
                     s.emit('return _TC(getattr(%s, "t", %s), %s)' % (callee, callee, tup))
                 elif fi in s.mg.tc:
                     s.emit("return _TC(%s_b, %s)" % (callee, tup))
@@ -1161,6 +1197,10 @@ class FuncGen:
         if op == 0xD0:
             push(E("None", 0x70 if x[1] == -16 else 0x6F, k=True))
             return
+        if op == 0xD4:
+            a = pop()
+            push(E("_nonnull(%s)" % a.c, a.t, **dep(a, x=True)))
+            return
         if op == 0xD1:
             a = pop()
             push(E("(%s is None)" % a.c, "bool", 1, **dep(a)))
@@ -1241,7 +1281,7 @@ class ModGen:
         s.tc = {
             s.nimp + k
             for k, ins in enumerate(mod["insns"])
-            if any(x[0] in (0x12, 0x13) for x in ins)
+            if any(x[0] in (0x12, 0x13, 0x15) for x in ins)
         }
         s.gtypes = [i[3][0] for i in s.gimports] + [g[0] for g in mod["globals"]]
         s.gmut = [i[3][1] for i in s.gimports] + [g[1] for g in mod["globals"]]
@@ -1259,9 +1299,8 @@ class ModGen:
             return s.types[s.fimports[fi][3]]
         return s.types[s.mod["funcs"][fi - s.nimp]]
 
-    @staticmethod
-    def sig(ps, rs):
-        return "%s>%s" % (",".join(map(str, ps)), ",".join(map(str, rs)))
+    def sig(s, ps, rs):
+        return ">".join(",".join(str(valtype_key(s.types, t)) for t in ts) for ts in (ps, rs))
 
     def fname(s, fi):
         if fi < s.nimp:

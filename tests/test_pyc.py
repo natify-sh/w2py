@@ -261,3 +261,30 @@ def test_discarded_operands_keep_their_traps_and_effects() -> None:
     ex = load(bytes.fromhex(call), {})
     ex["f"]()
     assert ex["g"].get() == 9
+
+
+# (type $t (func (param i32) (result i32))) with call_ref / return_call_ref / ref.as_non_null /
+# br_on_null / br_on_non_null on (ref $t) and (ref null $t)
+TYPED_REFS = bytes.fromhex(
+    "0061736d0100000001100360017f017f6000017f60016300017f030807000001020002020730060463616c6c"
+    "0001046e756c6c0002026e6e0003047461696c00040662726e756c6c00050962726e6f6e6e756c6c00060905"
+    "01030001000a51070700200041016a0b08002000d20014000b08004101d00014000b090041012000d414000b"
+    "08002000d20015000b1000024041052000d50014000f0b417f0b110041050264002000d600417f0f0b14000b"
+    "001e046e616d65010401000166030b02050100016c060100016c040401000174"
+)
+
+
+def test_typed_function_references() -> None:
+    ex = load(TYPED_REFS, {})
+    assert ex["call"](4) == 5
+    assert ex["tail"](9) == 10
+    f = ex["call"]
+    assert ex["nn"](f) == 2
+    assert ex["brnull"](f) == 6
+    assert ex["brnull"](None) == 0xFFFFFFFF
+    assert ex["brnonnull"](f) == 6
+    assert ex["brnonnull"](None) == 0xFFFFFFFF
+    with pytest.raises(Trap, match="null function reference"):
+        ex["null"]()
+    with pytest.raises(Trap, match="null reference"):
+        ex["nn"](None)

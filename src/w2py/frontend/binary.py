@@ -78,6 +78,14 @@ def _illegal(op):
     raise Malformed("illegal opcode %#x" % op)
 
 
+def _reftype(nullable, ht):
+    """(ref null func) / (ref null extern) are the bytes 0x70 / 0x6F; any other reference type is
+    the tuple (nullable, heap type), the heap type a type index or a negative abstract-type code."""
+    if nullable and ht in (-16, -17):
+        return 0x70 if ht == -16 else 0x6F
+    return (int(nullable), ht)
+
+
 class R:
     def __init__(s, b, p=0):
         s.b, s.p, s.n = b, p, len(b)  # n: end of what may be read (the enclosing section)
@@ -139,9 +147,8 @@ class R:
         b = s.u8()
         if b in (0x70, 0x6F) or (not refs and b in (I32, I64, F32, F64)):
             return b
-        if b in (0x63, 0x64):  # (ref null? ht): parsed, the type itself is not supported
-            s.ht()
-            return b
+        if b in (0x63, 0x64):  # (ref null? ht)
+            return _reftype(b == 0x63, s.ht())
         if b in UNSUPPORTED_TYPES:
             raise NotImplementedError("value type %#x" % b)
         raise Malformed("malformed reference type" if refs else "malformed value type")
@@ -303,7 +310,7 @@ def parse(data):
                 # bit 0: not active; bit 1: explicit table (active) / declarative; bit 2: expressions
                 ti = r.u() if fl & 3 == 2 else 0
                 off = initexpr() if not fl & 1 else None
-                rt = 0x70 if fl & 4 else 0x64  # function indices are (ref func)
+                rt = 0x70 if fl & 4 else (0, -16)  # function indices are (ref func)
                 if fl & 3:
                     if fl & 4:
                         rt = r.vt(True)
@@ -390,6 +397,8 @@ def decode(body):
             elif b in TN:
                 r.p += 1
                 bt = ([], [b])
+            elif b in (0x63, 0x64):
+                bt = ([], [r.vt()])
             else:
                 idx = r.s(33)
                 if idx < 0:

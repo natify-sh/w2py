@@ -66,11 +66,11 @@ over the top-level `test/core` files only; `jit-x86_64` has not started. `mpy` i
 | Fixed-width SIMD (`simd`) | 5 | since 0.33 | - | - |
 | Stack Switching (`stackSwitching`) | 3 | - | - | - |
 | Reference-Typed Strings (`stringref`) | 1 | - | - | - |
-| Tail Call (`tailCall`) | 5 | since 22 | partial | - |
+| Tail Call (`tailCall`) | 5 | since 22 | yes | - |
 | Threads (`threads`) | 4 | since 15 | - | - |
 | Type Imports (`typeImports`) | 1 | - | - | - |
 | Type Reflection for JS API (`typeReflection`) | 1 | - | - | - |
-| Typed Function References (`typedFunctionReferences`) | 5 | since 47 | partial | - |
+| Typed Function References (`typedFunctionReferences`) | 5 | since 47 | yes | - |
 | WebAssembly C and C++ API (`wasmCApi`) | 1 | - | - | - |
 | Web Content Security Policy (`webContentSecurityPolicy`) | 5 | - | - | - |
 | Wide Arithmetic (`wideArithmetic`) | 4 | flag | - | - |

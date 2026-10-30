@@ -132,6 +132,16 @@ def _tsig():
     raise Trap("indirect call type mismatch", "BAD_SIGNATURE")
 
 
+def _tnullfn():
+    raise Trap("null function reference", "NULL_REFERENCE")
+
+
+def _nonnull(x):
+    if x is None:
+        raise Trap("null reference", "NULL_REFERENCE")
+    return x
+
+
 class _Mem(bytearray):
     """A linear memory; `max` is its declared maximum in pages (None: none). Shared by import."""
 

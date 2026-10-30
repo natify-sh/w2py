@@ -12,7 +12,7 @@ from typing import Any, cast
 
 from tests.spec.engine import FuncRef, Instance, LinkError, LoadError, Module, Trap, TrapCode, Value
 from w2py.frontend.binary import ImplLimit, Malformed, parse
-from w2py.frontend.validate import Invalid
+from w2py.frontend.validate import Invalid, functype_key, valtype_key
 from w2py.targets.pyc import Trap as PycTrap
 from w2py.targets.pyc import load, translate
 from w2py.targets.pyc import runtime as rt
@@ -30,6 +30,7 @@ class _Module:
     def __init__(self, wasm: bytes, parsed: dict[str, Any]) -> None:
         self.wasm = wasm
         self.imports: list[tuple[Any, ...]] = parsed["imports"]
+        self.ttypes: list[Any] = parsed["ttypes"]
         self.types: list[tuple[list[int], list[int]]] = parsed["types"]
         nimp = sum(1 for im in self.imports if im[0] == "func")
         gl = [im[3] for im in self.imports if im[0] == "global"] + [
@@ -38,13 +39,20 @@ class _Module:
         self.kinds: dict[str, int] = {}
         self.functypes: dict[str, tuple[list[int], list[int]]] = {}
         self.globaltypes: dict[str, tuple[int, int]] = {}
+        self.keys: dict[str, Any] = {}  # structural identity of an exported function / global type
         for name, kind, idx in parsed["exports"]:
             self.kinds[name] = kind
             if kind == 0:
-                tidx = self.imports[idx][3] if idx < nimp else parsed["funcs"][idx - nimp]
+                tidx = cast(
+                    int, self.imports[idx][3] if idx < nimp else parsed["funcs"][idx - nimp]
+                )
                 self.functypes[name] = self.types[tidx]
+                self.keys[name] = functype_key(self.types, tidx)
+            elif kind == 1:
+                self.keys[name] = valtype_key(self.types, parsed["ttypes"][idx])
             elif kind == 3:
                 self.globaltypes[name] = gl[idx]
+                self.keys[name] = _gkey(self.types, gl[idx])
 
 
 class _Instance:
@@ -53,7 +61,13 @@ class _Instance:
         self.exports = exports
 
 
-def _to_internal(ty: int, v: Value) -> Any:
+def _gkey(types: list[Any], g: tuple[Any, int]) -> tuple[Any, int]:
+    return (valtype_key(types, g[0]), g[1])
+
+
+def _to_internal(ty: Any, v: Value) -> Any:
+    if ty.__class__ is tuple:  # (ref null? ht): a function or an extern reference
+        ty = EXTERNREF if ty[1] == -17 else FUNCREF
     if ty in (
         FUNCREF,
         EXTERNREF,
@@ -72,7 +86,9 @@ def _to_internal(ty: int, v: Value) -> Any:
     raise NotImplementedError(f"value type {ty:#x} unsupported")
 
 
-def _from_internal(ty: int, v: Any) -> Value:
+def _from_internal(ty: Any, v: Any) -> Value:
+    if ty.__class__ is tuple:
+        ty = EXTERNREF if ty[1] == -17 else FUNCREF
     if ty == FUNCREF:
         return None if v is None else FuncRef(v)
     if ty == EXTERNREF:
@@ -115,6 +131,7 @@ class PycEngine:
         m = cast(_Module, module)
         wired: dict[str, dict[str, Any]] = {}
         kinds = {"func": 0, "table": 1, "mem": 2, "global": 3}
+        ntab = 0
         for kind, mod, name, desc in m.imports:
             src = imports.get(mod)
             if src is None or cast(_Instance, src).module.kinds.get(name) != kinds[kind]:
@@ -122,13 +139,20 @@ class PycEngine:
             inst = cast(_Instance, src)
             ex = inst.exports[name]
             if kind == "func":
-                ok = inst.module.functypes[name] == m.types[desc]
+                ok = inst.module.keys[name] == functype_key(m.types, desc)
             elif kind == "global":
-                ok = inst.module.globaltypes[name] == desc
+                ok = inst.module.keys[name] == _gkey(m.types, desc)
             else:
                 size = len(ex) >> 16 if kind == "mem" else len(ex.t)
-                ok = size >= desc[0] and (
-                    desc[1] is None or (ex.max is not None and ex.max <= desc[1])
+                if kind == "table":
+                    ok = inst.module.keys[name] == valtype_key(m.types, m.ttypes[ntab])
+                    ntab += 1
+                else:
+                    ok = True
+                ok = (
+                    ok
+                    and size >= desc[0]
+                    and (desc[1] is None or (ex.max is not None and ex.max <= desc[1]))
                 )
             if not ok:
                 raise LinkError(f"incompatible import type {mod}.{name}")
