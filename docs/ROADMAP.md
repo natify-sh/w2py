@@ -16,8 +16,8 @@ The first goal is not a feature but a **measurement**: every later change should
 
 1. **Skeleton** (phase 0): the repository under natify-sh with the working name `w2py` (renaming later is
    cheap); `pyproject.toml` with no runtime dependencies and a development group — `wasmtime` (the
-   oracle), `pytest`, `wabt-package` (for `wast2json`); CI on CPython 3.8 and the latest, plus PyPy, on
-   Linux x86-64. Minimum Python 3.8 for now (open question 1).
+   oracle), `pytest`, `wabt-package` (for `wast2json`); CI on CPython 3.11–3.15, 3.15t and PyPy 3.11, on
+   Linux x86-64. Minimum Python 3.11 (D19).
 2. **The spec-suite runner** (phase 1, the most important step): convert `WebAssembly/spec` at a pinned
    commit with `wast2json`; a runner for the commands (`module`, `assert_return`, `assert_trap`,
    `assert_invalid`, …) over a **tiny internal engine interface** — load a module, instantiate, call an
@@ -89,7 +89,7 @@ lacks a feature reports it through `Target.supports` and the module runs on anot
   `w2py.py` into `frontend/` and `ir/`; the code generators become `targets/pyc` and `targets/jit/x86_64`.
 * `pyproject.toml` with **no** runtime dependencies and a development group (wasmtime pinned as the
   oracle, pywasm, pytest; wabt / wasm-tools / meld as external tools).
-* CI skeleton: CPython 3.8–latest + PyPy on Linux x86-64.
+* CI skeleton: CPython 3.11–3.15 + 3.15t + PyPy 3.11 on Linux x86-64.
 
 ## Phase 1 — frontend complete
 * Full binary reader for every proposal Wasmtime supports (FEATURES.md); the validator (type checking
@@ -184,8 +184,8 @@ lacks a feature reports it through `Target.supports` and the module runs on anot
   encoder test and the integer-core spec commands; the shared core does not change.
 
 ## Open questions
-1. **Minimum Python.** Generated `pyc` code runs on 3.8 (3.4 with `--legacy`); the JIT needs only
-   `ctypes` + `mmap` (measured on 3.8 and 3.13). The floor should follow the targets, not the WASI host.
+1. **Minimum Python.** Resolved by D19: 3.11 (the PoC's 3.8 and 3.4 `--legacy` measurements stay as
+   history).
 2. **The WASI host.** fusedwasi's Python twin (candidate, not tried with w2py; declares Python 3.10+),
    an own implementation, or another; and what WASI means on MicroPython (open question 6).
 3. **Parallelism of `pyc` guests**: yield points only, or also subinterpreters (3.12+/3.14),

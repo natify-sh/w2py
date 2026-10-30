@@ -176,3 +176,17 @@ the output must carry its runtime). Consequences:
   the C reference loader become optional (D15 narrowed).
 * Possible exception, later and optional: a standalone export with minimal embedded helpers for
   MicroPython devices, where the runtime package costs flash.
+
+### D19. Minimum Python 3.11; tested 3.11–3.15, 3.15t and PyPy 3.11
+Status: accepted · Date: 2026-10-30 · Supersedes: — · Evidence: —
+
+`requires-python = ">=3.11"`. CI runs CPython 3.11, 3.12, 3.13, 3.14, 3.15, the free-threaded 3.15t,
+and PyPy 3.11; actions are pinned by commit SHA. Tooling (ruff, pyright) targets 3.11.
+
+* **Why**: current versions only. The free-threaded build matters for "one thread per store" and long
+  calls (ARCHITECTURE.md). wasmtime 50 needs ≥ 3.9 and `wabt-package` ≥ 3.11 anyway, so a lower floor
+  would need skip markers for the oracle.
+* **Rejected: a 3.8 floor.** It worked in the PoC (the 3.8 measurements stay as history), but EOL
+  versions cost CI time and block newer syntax and typing.
+* Generated `pyc` code's floor follows the package floor unless a target says otherwise; the
+  MicroPython flavour is separate.

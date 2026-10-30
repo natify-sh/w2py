@@ -15,6 +15,5 @@ def test_imports_only_stdlib() -> None:
     )
     out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True)
     names = {n for n in out.stdout.split() if n}
-    allowed = getattr(sys, "stdlib_module_names", None)
-    extra = {n for n in names if n != "w2py" and allowed is not None and n not in allowed}
+    extra = {n for n in names if n != "w2py" and n not in sys.stdlib_module_names}
     assert not extra

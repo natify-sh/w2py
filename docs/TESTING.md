@@ -44,8 +44,8 @@ show what is new; the spec commit moves the same way, in small steps.
 
 The runtime package itself declares **no** dependencies; these live in a development group.
 The Python ones are the uv `dev` group in `pyproject.toml` (`uv sync`); wasmtime 50.0.1 needs
-Python ≥ 3.9 and `wabt-package` ≥ 3.11, so tests that need the oracle or `wast2json` skip where they
-are absent (the CPython 3.8 job runs the rest).
+Python ≥ 3.9 and `wabt-package` ≥ 3.11; with the floor at 3.11 (D19) no markers are needed (all dev
+tools installed on CPython 3.11, 3.15 and 3.15t; PyPy 3.11 is first checked in CI).
 
 ## The spec test suite
 
@@ -81,7 +81,7 @@ are absent (the CPython 3.8 job runs the rest).
 
 | axis | values |
 |---|---|
-| Python | CPython 3.8 (or the chosen floor), 3.10, 3.12, 3.13, latest; PyPy 3.10+; free-threaded build later |
+| Python | CPython 3.11, 3.12, 3.13, 3.14, 3.15, 3.15t (free-threaded); PyPy 3.11 (D19) |
 | OS | Linux x86-64, Linux aarch64, macOS arm64 (MAP_JIT), Windows x86-64 |
 | target | `pyc` everywhere; `jit-*` where the machine matches; `mpy` with the MicroPython unix port |
 | emulated | QEMU user-mode for riscv64, armv7, mips32el as JIT targets appear |

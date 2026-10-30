@@ -112,7 +112,7 @@ with real numbers for both.
 
 | target | runs on | state in the PoC | notes |
 |---|---|---|---|
-| `pyc` | CPython ≥ 3.8 (3.4 with `--legacy`), PyPy | CoreMark | floor for everything; artifact = code object; the fastest pure-Python option on PyPy (2 300–2 900 it/s) |
+| `pyc` | CPython ≥ 3.11 (D19; PoC measured down to 3.8), PyPy | CoreMark | floor for everything; artifact = code object; the fastest pure-Python option on PyPy (2 300–2 900 it/s) |
 | `mpy` | MicroPython (unix port tested, 1.29.0) | CoreMark | `.mpy` ahead of time or source on device; `@native` (94 it/s); next: viper code, i.e. MicroPython's own emitters as native back ends for every MCU architecture (below) |
 | `jit-x86_64-sysv` | Linux, macOS (Intel), BSDs | CoreMark (`w2jit2`) | 15 337 it/s; needs the rest of the opcode set, `memory.grow`, nested entry |
 | `jit-x86_64-win64` | Windows | — | other argument registers, shadow space, `VirtualAlloc` |
