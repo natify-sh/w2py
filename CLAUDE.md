@@ -40,6 +40,73 @@ The maintainer communicates in Ukrainian; code, comments, commit messages and do
   into `docs/BENCHMARKS.md` with the conditions; correctness claims come with tests.
 * **Semantics first.** A faster code generator that fails a spec test is not faster.
 
+## How work is organised: one orchestrator, one subagent per step
+
+The main session is the **orchestrator**. It does not implement steps itself: it chooses the next
+step, writes the brief, hands it to a subagent, **verifies** the result and fixes what the subagent
+got wrong. Every step of implementation, investigation or measurement is done by a subagent with a
+fresh context, so the main session keeps the whole picture and stays small.
+
+### Which model does what
+
+| role | model | agent (`.claude/agents/`) | typical steps |
+|---|---|---|---|
+| **orchestrator** (main session) | **Opus** | — | pick the next step from the metric, write briefs, verify, fix small mistakes, keep the docs true, ask the maintainer |
+| implementer | **Sonnet** | `implementer` | the spec-failure loop (a group of failing commands → fixed), porting PoC code into the package, the front end, the validator, `pyc`, runtime objects, tests |
+| JIT engineer | **Opus** | `jit-engineer` | machine-code generation, the context ABI, registers across calls, the signal handler, a new architecture, bugs that need bisecting |
+| reviewer | **Opus** | `reviewer` | an independent read of a high-stakes diff (JIT, ABI, artifact format, traps), with a fresh context and without the implementer's conclusions |
+| runner | **Haiku** | `runner` | run the spec suite / benchmarks and report numbers, group failures, update tables in `docs/BENCHMARKS.md`, mechanical edits |
+
+The heavy model plans and checks; the code is written by the model that writes small, direct code;
+mechanical work goes to the cheapest. Opus implements only where Sonnet's result would not be
+trusted (the JIT), and then always with a plan approved first and a review after.
+
+### A step, from start to end
+
+1. **Choose** (orchestrator). The next step comes from the metric — the largest group of failing spec
+   commands for the current target — or from `BRIEF.md`, "Where to start". One step = one goal that a
+   command can confirm. If it cannot be stated that way, it is not a step yet.
+2. **Brief** (orchestrator), using the template below. A subagent knows only what the brief says.
+3. **Do** (subagent). Works only inside the brief's scope. If the step needs more than the scope or
+   the budget, **stops and reports** instead of widening it.
+4. **Report** (subagent): what changed (files, line counts), the exact commands run and their
+   output, numbers before/after, what is left, questions. No claims without the command that shows
+   them.
+5. **Verify** (orchestrator) — never accept a report as it is:
+   * run the acceptance commands **itself** and compare with the report;
+   * read the diff: inside the scope? under the budget? no new dependency, no abstraction without a
+     second real use, no public-API work before its phase, no unrelated edits or reformatting?
+   * docs: `docs/BENCHMARKS.md` for any speed claim, `docs/DECISIONS.md` for any decision,
+     `docs/LESSONS.md` for a trap found on the way, the expected-failures file updated;
+   * for JIT, ABI, artifact-format or trap changes: a `reviewer` subagent reads the diff with no access
+     to the implementer's reasoning.
+6. **Fix** (orchestrator). A small mistake (≲ 20 lines, obvious) is fixed in the main session. Anything
+   larger goes back to a subagent with a precise list of what is wrong; a second failure on the same
+   point is escalated to the maintainer.
+7. **Close**: one commit per step (what and why, the numbers), then the next step.
+
+### The brief (template)
+
+```
+Goal:        <one sentence, as a result a command shows: "spec group i64.* passes on pyc">
+Context:     <what exists, which files; what was tried and ruled out>
+Read first:  <the 1–3 documents or files that matter; not the whole docs/>
+Scope:       <files/directories that may change>      Out of scope: <what must not change>
+Budget:      <~N lines of diff; stop and report if more is needed>
+Acceptance:  <exact commands + expected result, e.g. pytest -k "i64 and pyc" → 0 failures;
+              CoreMark still passes its self-check; BENCHMARKS row added if speed changed>
+Report:      files changed, commands run with output, numbers before/after, open questions
+```
+
+### Against over-engineering (applies to every agent)
+
+* The smallest change that makes the acceptance command pass. No code "for later".
+* No new module, class, layer, plugin point or config option unless the brief names the need; no
+  abstraction before its second real use.
+* Do not touch the public API, the CLI or WASI before their phase, even "while you are there".
+* No rewrite of working code that the step does not require; no drive-by reformatting.
+* When unsure between two designs, implement neither: report both with their costs.
+
 ## Working on the code
 * The PoC in `poc/` is the reference for how things were done and measured; it is not the package.
   Port from it deliberately (phase 0), keep it runnable for comparisons.
