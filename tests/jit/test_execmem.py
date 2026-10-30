@@ -1,0 +1,81 @@
+"""Executable memory is W^X (R2, S0003): never writable and executable at once."""
+
+import ctypes
+import sys
+from pathlib import Path
+
+import pytest
+
+from tests.jit import need
+from w2py.targets.base import TARGETS
+from w2py.targets.jit.common.execmem import ExecMem, load
+from w2py.targets.jit.x86_64.encoder import RAX, RCX, RDI, RSI, Asm
+
+MAPS = Path("/proc/self/maps")
+
+
+def usable() -> None:
+    need(TARGETS["jit-x86_64"]().probe() is None, "x86-64 executable memory")
+
+
+def perms(lo: int, size: int) -> str | None:
+    """The permissions of the mappings overlapping [lo, lo+size) (only ours: the interpreter, e.g.
+    PyPy's JIT, may map RWX elsewhere); asserts none is writable and executable."""
+    found: set[str] = set()
+    for line in MAPS.read_text().splitlines():
+        rng, p = line.split()[:2]
+        a, b = (int(x, 16) for x in rng.split("-"))
+        if a < lo + size and lo < b:
+            assert not ("w" in p and "x" in p), f"writable and executable: {line}"
+            found.add(p)
+    assert len(found) <= 1, found
+    return found.pop() if found else None
+
+
+def test_w_xor_x() -> None:
+    usable()
+    need(MAPS.exists(), "/proc/self/maps")
+    a = Asm()
+    a.endbr64()
+    a.mov_imm(RAX, 7)
+    a.ret()
+    mem = ExecMem(10)
+    addr, size = mem.addr, mem.size
+    assert perms(addr, size) == "rw-p"
+    mem.write(a.finish())
+    assert perms(addr, size) == "rw-p"
+    mem.seal()
+    assert perms(addr, size) == "r-xp"
+    with pytest.raises(ValueError):
+        mem.write(b"\xc3")
+    assert ctypes.CFUNCTYPE(ctypes.c_int)(mem.addr)() == 7
+    mem.free()
+    assert perms(addr, size) is None
+
+
+def test_generated_loop() -> None:
+    """sum(a*b for i in range(n)) with a backward jcc: labels resolve to running code."""
+    usable()
+    need(sys.platform != "win32", "SysV arguments")
+    a = Asm()
+    a.endbr64()
+    loop, done = a.label(), a.label()
+    a.alu("xor", RAX, RAX)  # eax = 0 (64-bit result zero-extended)
+    a.test(RDI, RDI, w=True)
+    a.jcc("le", done, short=True)
+    a.bind(loop)
+    a.mov(RCX, RSI, w=True)
+    a.imul(RCX, RSI, w=True)
+    a.alu("add", RAX, RCX, w=True)
+    a.alu_imm("sub", RDI, 1, w=True)
+    a.jcc("ne", loop)
+    a.bind(done)
+    a.ret()
+    mem = load(a.finish())
+    try:
+        f = ctypes.CFUNCTYPE(ctypes.c_int64, ctypes.c_int64, ctypes.c_int64)(mem.addr)
+        assert f(10, 3) == 90
+        assert f(0, 3) == 0
+        assert f(1000, -(1 << 20)) == 1000 << 40
+    finally:
+        mem.free()

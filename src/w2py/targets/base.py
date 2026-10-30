@@ -91,12 +91,21 @@ def _pyc() -> Target:
     return PycTarget()
 
 
-TARGETS: dict[str, Callable[[], Target]] = {"pyc": _pyc}
+def _jit_x86_64() -> Target:
+    from w2py.targets.jit.x86_64 import JitX86_64Target
+
+    return JitX86_64Target()
+
+
+TARGETS: dict[str, Callable[[], Target]] = {"pyc": _pyc, "jit-x86_64": _jit_x86_64}
 
 
 @cache
 def _probe(name: str) -> str | None:
-    return TARGETS[name]().probe()
+    target = TARGETS[name]()
+    if not getattr(target, "ready", True):  # S0002 step 2 guard; removed in step 3
+        return "not ready"
+    return target.probe()
 
 
 def target_order(choice: str | None = None) -> list[str]:
