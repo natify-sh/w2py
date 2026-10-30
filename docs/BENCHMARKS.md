@@ -232,3 +232,15 @@ functions (inlining), 8 527 → 8 097 instructions, 19.5 → 18.0 KB. Pairs in o
 w2lua output loaded as source or as `string.dump` bytecode (stripped) inside lupa: load 2.4–2.9 ms →
 0.1–0.2 ms (Lua 5.4, 130 → 76 KB), 1.8–2.6 → 0.0–0.1 ms (LuaJIT, 109 → 48 KB); CoreMark unchanged
 (Lua 5.4 416–456, LuaJIT 2 547–2 754 it/s).
+
+## `pyc` in the package vs the PoC (phase 0 port)
+
+* Date: 2026-10-30 · commit: the "port PoC front end and pyc" step on `phase0-skeleton` · machine:
+  Intel Xeon @ 2.10 GHz, 4 cores (`nproc`) · CPython 3.13.17.
+* Commands: `uv run python tools/run_coremark_pyc.py poc/in/core.wasm` vs
+  `cd poc && python3 w2py.py in/core.wasm out/core.py && python3 run_pyc.py out/core.pyc`.
+* Result (CoreMark it/s, self-check passed, runs alternated): package 90.3, 96.1, 96.0, 98.5, 95.9,
+  97.1, 99.7; PoC 99.6, 100.3, 91.0, 96.4, 95.4, 94.3, 101.7. Medians ≈ 97 / 96: same within noise
+  (±5 it/s on this machine).
+* Conditions: helpers imported from `w2py.targets.pyc.runtime` (D18) instead of pasted into the
+  generated module; no measurable cost.
