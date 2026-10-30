@@ -56,7 +56,11 @@ class TrapCode(Enum):          # Wasmtime's names (D6); a member is added when a
     NULL_REFERENCE = auto()
 
 class EngineError(Exception): ...    # base class; not raised itself
-class LoadError(EngineError): ...    # load(): malformed or invalid module
+class LoadError(EngineError):        # load(): malformed or invalid module
+    def __init__(self, message: str = "",
+                 kind: Literal["malformed", "invalid"] | None = None) -> None:
+        super().__init__(message)
+        self.kind = kind             # None: the engine cannot tell (Wasmtime)
 class LinkError(EngineError): ...    # instantiate(): unknown import, incompatible import type
 class Trap(EngineError):
     def __init__(self, code: TrapCode, message: str = "") -> None:
@@ -191,7 +195,9 @@ vs any `FuncRef`. externref: `ExternRef` equality. `expected` without `value` (a
 
 **Errors.** `assert_malformed` and `assert_invalid` both accept `LoadError`: the oracle cannot tell
 them apart (measured: of 1 304 binary `assert_invalid` modules Wasmtime reports 151 as parse errors;
-of 708 binary `assert_malformed`, 20 as compile errors). Link texts (`unknown import`, `incompatible
+of 708 binary `assert_malformed`, 20 as compile errors). Our engines set `LoadError.kind`; when it is
+not `None` it must equal the command (`assert_malformed` → `"malformed"`, `assert_invalid` →
+`"invalid"`), otherwise the command fails with reason `wrong kind`. Link texts (`unknown import`, `incompatible
 import type`) are not matched. Trap texts map to codes exactly (an unknown text fails the command, so
 a moved pin shows new texts); verified on Wasmtime for all 539 + 15 + 34 trap commands:
 
@@ -235,7 +241,8 @@ python3 tools/check_docs.py                # exit 0
 `test_runner.py` covers: f32 `0x7FC00000`, `0xFFC00000` canonical; `0x7FC00001` arithmetic only;
 `0x7FA00000` neither, but equal to `"2141192192"`; the same for f64; i32 `"4294967295"` vs
 `0xFFFFFFFF` (pass) and `-1` (fail); a v128 NaN lane; funcref `"0"`; externref; `either`; ids on a
-shared line; xfail parsing, `stale`; exit codes with a fake engine (wrong result → 1, xpass → 1).
+shared line; `LoadError(kind="invalid")` on `assert_malformed` fails, `kind=None` passes;
+xfail parsing, `stale`; exit codes with a fake engine (wrong result → 1, xpass → 1).
 
 ## Alternatives considered
 * **A wasmtime-py-shaped API now** (Store, Linker, Func objects): that is phase 6; four operations
@@ -254,11 +261,10 @@ shared line; xfail parsing, `stale`; exit codes with a fake engine (wrong result
 * **In-process only**: one abort (already real for wasmtime-py) loses the whole run.
 
 ## Open questions
-* The 602 text-module commands: keep them as `skip` outside the metric, or convert them later (a
-  WAT parser is optional, ARCHITECTURE.md)?
 * The 5 unconverted files: wait for a wabt release, or convert just those with `wasm-tools`?
 * [TESTING.md](../TESTING.md) says the suite runs "through the public w2py API … (`pytest -k
   target`)"; on approval it should say: through this interface, as a CLI per engine.
 
 ## Changes
 * 2026-10-30: created (draft).
+* 2026-10-30: `LoadError.kind` added (maintainer); text modules stay `skip`, outside the metric.
