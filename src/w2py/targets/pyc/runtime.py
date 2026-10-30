@@ -23,7 +23,6 @@ U64 = _st.Struct("<Q").unpack_from
 U16 = _st.Struct("<H").unpack_from
 S16 = _st.Struct("<h").unpack_from
 S8 = _st.Struct("<b").unpack_from
-F32L = _st.Struct("<f").unpack_from
 F64L = _st.Struct("<d").unpack_from
 P32 = _st.Struct("<I").pack_into
 P64 = _st.Struct("<Q").pack_into
@@ -32,6 +31,9 @@ F64S = _st.Struct("<d").pack_into
 
 
 def F32S(m, a, v):
+    if v != v:
+        P32(m, a, _i32_f32(v))
+        return
     try:
         _pi("<f", m, a, v)
     except OverflowError:
@@ -287,20 +289,28 @@ def _fsqrt(x):
     return _m.sqrt(x)
 
 
-def _fceil(x):
-    return float(_m.ceil(x)) if x == x and x not in (INF, -INF) and x != 0 else x
+def _fceil(x):  # NaN: x*1.0 quiets it, as Wasmtime does
+    if x != x:
+        return x * 1.0
+    return _m.copysign(float(_m.ceil(x)), x) if x not in (INF, -INF) and x != 0 else x
 
 
 def _ffloor(x):
-    return float(_m.floor(x)) if x == x and x not in (INF, -INF) and x != 0 else x
+    if x != x:
+        return x * 1.0
+    return float(_m.floor(x)) if x not in (INF, -INF) and x != 0 else x
 
 
 def _ftrunc(x):
-    return float(_m.trunc(x)) if x == x and x not in (INF, -INF) and x != 0 else x
+    if x != x:
+        return x * 1.0
+    return _m.copysign(float(_m.trunc(x)), x) if x not in (INF, -INF) and x != 0 else x
 
 
 def _fnearest(x):
-    if x != x or x in (INF, -INF) or x == 0:
+    if x != x:
+        return x * 1.0
+    if x in (INF, -INF) or x == 0:
         return x
     return _m.copysign(float(round(x)), x)
 
@@ -376,11 +386,25 @@ def _tsat_u64(x):
 
 
 def _i32_f32(x):
+    if x != x:  # an f32 NaN is the double NaN with the payload << 29
+        b = _i64_f64(x)
+        return (b >> 32) & 0x80000000 | 0x7F800000 | (b >> 29) & 0x7FFFFF
     return _st.unpack("<I", _st.pack("<f", x))[0]
 
 
 def _f32_i32(x):
+    if x & 0x7F800000 == 0x7F800000 and x & 0x7FFFFF:
+        return _f64_i64((x & 0x80000000) << 32 | 0x7FF0000000000000 | (x & 0x7FFFFF) << 29)
     return _st.unpack("<f", _st.pack("<I", x))[0]
+
+
+def _i64_f32(x):  # one rounding: fold the bits below 53 into a sticky bit, then round to f32
+    n = abs(x)
+    s = n.bit_length() - 53
+    if s > 0:
+        n = n >> s | (n & ((1 << s) - 1) != 0)
+        return _f32(_m.copysign(_m.ldexp(float(n), s), x))
+    return _f32(float(x))
 
 
 def _i64_f64(x):
@@ -404,7 +428,6 @@ __all__ = _NAMES + [
     "U16",
     "S16",
     "S8",
-    "F32L",
     "F64L",
     "P32",
     "P64",

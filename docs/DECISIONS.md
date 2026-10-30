@@ -307,3 +307,15 @@ max, or 2³²−1). A `pyc` table is a Python list (8 bytes per slot plus the ob
 grow can exhaust the interpreter's memory instead of failing the instruction; Wasmtime has no such
 default cap (measured). The cap becomes a store limit (`StoreLimits.table_elements`) in phase 6; the
 JIT targets will use the same number until then so `pyc` and JIT behave alike (D25).
+
+### D28. `pyc` keeps floats as Python floats; f32 NaN payloads ride in the double's high bits
+Status: accepted · Date: 2026-10-30 · Supersedes: — · Evidence: spec run on pyc +83 (NaN/conversion causes), CoreMark unchanged
+
+f32 and f64 stay Python floats in `pyc` (no f32-as-integer representation: it would make f32
+arithmetic 3–5× slower). An f32 NaN is held as the double NaN with the same sign and its 23-bit
+payload shifted left by 29, the quiet bit as is; conversions between f32 bits and floats use integer
+bit arithmetic on the NaN path only (`struct` `'<f'` quiets signalling NaNs). NaNs are quieted only
+where Wasmtime quiets them: arithmetic, promote/demote (`x*1.0`), floor/ceil/trunc/nearest; moves,
+loads/stores, reinterpret, select, neg/abs/copysign keep bits exactly. f32 arithmetic is computed in
+double and re-rounded to f32 once per operation (proved exact for add/sub/mul/div/sqrt); i64→f32 is
+rounded once (sticky bit). A JIT libcall for an f32 operation reuses the same helpers (D25 parity).

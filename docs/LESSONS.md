@@ -115,3 +115,7 @@ What went wrong or surprised us while building the PoC, so it is not found again
     `trunc`, `call`) must be evaluated even when its value is discarded. Still open: `select`
     evaluates only the arm it picks, so a trapping operand in the other arm would not trap (no spec
     test hits it; a differential/fuzz case should). Found: pyc loop, 2026-10-30.
+29. **Never write a float into generated source with `repr`.** `repr(inf)`/`repr(nan)` give `inf`/
+    `nan`, undefined names in the generated module, so a module with such a global initialiser failed
+    to load (`select.wast`, found while fixing NaN constants). Emit special values through an exact
+    constructor from their bits (`_f64_i64(0x…)`). Found: pyc loop, 2026-10-30.

@@ -2,6 +2,7 @@
 """Wasm -> Python source (ported from poc/w2py.py): operand stack elimination and structured control flow."""
 
 import os
+import struct
 
 from w2py.frontend.binary import F32, F64, I32, I64, M32, M64, parse
 from w2py.frontend.validate import validate
@@ -39,7 +40,7 @@ def dep(*es, **kw):
 
 def flit(v):
     if v != v:
-        return "NAN"
+        return "_f64_i64(%#x)" % struct.unpack("<Q", struct.pack("<d", v))[0]
     if v in (float("inf"), float("-inf")):
         return "INF" if v > 0 else "(-INF)"
     r = repr(v)
@@ -669,7 +670,7 @@ class FuncGen:
             L = {
                 0x28: ("U32(M,%s)[0]", I32, M32),
                 0x29: ("U64(M,%s)[0]", I64, M64),
-                0x2A: ("F32L(M,%s)[0]", F32, None),
+                0x2A: ("_f32_i32(U32(M,%s)[0])", F32, None),
                 0x2B: ("F64L(M,%s)[0]", F64, None),
                 0x2C: ("S8(M,%s)[0]", I32, None),
                 0x2D: ("M[%s]", I32, 255),
@@ -1092,14 +1093,18 @@ class FuncGen:
         if op in (0xB2, 0xB4, 0xB7, 0xB9):
             a = pop()
             c = "float(%s)" % sgn(a)
-            if op in (0xB2, 0xB4):
+            if op == 0xB4:
+                c = "_i64_f32(%s)" % sgn(a)
+            elif op == 0xB2:
                 c = "_f32(%s)" % c
             push(E(c, F32 if op < 0xB7 else F64, None, **dep(a)))
             return
         if op in (0xB3, 0xB5, 0xB8, 0xBA):
             a = pop()
             c = "float(%s)" % n(a)
-            if op in (0xB3, 0xB5):
+            if op == 0xB5:
+                c = "_i64_f32(%s)" % n(a)
+            elif op == 0xB3:
                 c = "_f32(%s)" % c
             push(E(c, F32 if op < 0xB7 else F64, None, **dep(a)))
             return
@@ -1109,7 +1114,7 @@ class FuncGen:
             return
         if op == 0xBB:
             a = pop()
-            push(E(a.c, F64, None, **dep(a)))
+            push(E("(%s*1.0)" % a.c, F64, None, **dep(a)))
             return
         if op == 0xBC:
             a = pop()
@@ -1266,6 +1271,8 @@ class ModGen:
             return s.gname(init[1])
         if init[0] == "func":
             return s.fname(init[1])
+        if init[0] in ("f32", "f64"):
+            return flit(init[1])
         return "None" if init[0] == "null" else repr(init[1])
 
     def gen(s):

@@ -2,7 +2,7 @@
 """The `pyc` target as a SpecEngine (docs/specs/S0001): an adapter over package internals.
 
 Values: i32/i64 are signed at the interface and unsigned inside `pyc`; f32/f64 are bit patterns at
-the interface and Python floats inside (NaN payloads can be lost). References: null is None, an
+the interface and Python floats inside. References: null is None, an
 externref is the runner's ExternRef, a funcref is the function object.
 """
 

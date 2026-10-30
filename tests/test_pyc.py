@@ -1,3 +1,4 @@
+# pyright: reportPrivateUsage=false, reportUnknownMemberType=false, reportUnknownVariableType=false
 import os
 
 import pytest
@@ -194,3 +195,33 @@ def test_dropped_out_of_bounds_load_traps() -> None:
     mod += "0a0e010c00" + "20002d00ffffffff0f1a0b"
     with pytest.raises(Trap):
         load(bytes.fromhex(mod), {})["f"](0)
+
+
+# (func (export "f") (param i32) (result i32)
+#   local.get 0 f32.reinterpret_i32 f32.neg i32.reinterpret_f32)
+NEG32 = bytes.fromhex(
+    "0061736d0100000001060160017f017f03020100" + "07050101660000" + "0a0901070020" + "00be8cbc0b"
+)
+
+
+def test_f32_nan_payload_kept() -> None:
+    from w2py.targets.pyc import runtime as rt
+
+    assert load(NEG32, {})["f"](0x7FA00001) == 0xFFA00001  # sNaN stays signalling, payload kept
+    assert rt._i32_f32(rt._f32_i32(0x7FA00000)) == 0x7FA00000
+    assert rt._i64_f64(rt._f64_i64(0x7FF4000000000001)) == 0x7FF4000000000001
+    m = bytearray(8)
+    rt.F32S(m, 0, rt._f32_i32(0xFFA00003))
+    assert rt._i32_f32(rt._f32_i32(rt.U32(m, 0)[0])) == 0xFFA00003 == rt.U32(m, 0)[0]
+
+
+def test_float_rounding_helpers() -> None:
+    from w2py.targets.pyc import runtime as rt
+
+    assert str(rt._fceil(-0.5)) == "-0.0" and str(rt._ftrunc(-0.5)) == "-0.0"
+    assert rt._i64_f64(rt._fnearest(rt._f64_i64(0x7FF4000000000000))) == 0x7FFC000000000000
+    assert rt._i64_f64(rt._f64_i64(0x7FF4000000000000) * 1.0) == 0x7FFC000000000000  # promote
+    # 2^53 + 2^29 + 1 is just above a f32 tie: single rounding goes up, double rounding down
+    x = (1 << 53) + (1 << 29) + 1
+    assert rt._i64_f32(x) == float((1 << 53) + (1 << 30))
+    assert rt._i64_f32(-x) == -float((1 << 53) + (1 << 30))
