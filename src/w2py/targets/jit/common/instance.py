@@ -14,16 +14,24 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import Any, cast
 
+from w2py.frontend import validate
 from w2py.runtime.store import StoreState
 from w2py.targets.base import Extern, HostError, HostFunc, Raw, Trap, TrapCode
-from w2py.targets.jit.common.compiler import M32, M64, WIDE, Compiled, f32_bits, f64_bits
+from w2py.targets.jit.common.compiler import M32, M64, NARROW, Compiled, f32_bits, f64_bits
 from w2py.targets.jit.common.context import (
+    DATA_DROP,
+    ELEM_DROP,
     HOST_BRIDGE,
     INTERRUPT,
+    LIBCALLS,
     MEMORY_GROW,
+    MEMORY_INIT,
     NSTACK_LIMIT,
+    RECORD,
     STATUS_HOST_ERROR,
     STATUS_INTERRUPT,
+    TABLE_GROW,
+    TABLE_INIT,
     VSTACK_LIMIT,
     Layout,
 )
@@ -39,6 +47,29 @@ MAX_PAGES = 1 << 16
 DEFAULT_BUDGET = 512 << 10  # Wasmtime's default `max_wasm_stack` (D6)
 UNKNOWN_STACK_BUDGET = 128 << 10  # when the thread's stack bounds cannot be read or are implausible
 PLAUSIBLE_STACK = 1 << 30  # more stack than this below the entry: the bounds are not trusted
+TABLE_LIMIT = 10_000_000  # elements: pyc's cap (D27), so both targets fail the same table.grow
+_TYPE_IDS: dict[Any, int] = {}  # canonical function type ids of the process (structural keys)
+_TYPE_IDS_LOCK = threading.Lock()  # stores on different threads register types concurrently
+
+
+def type_id(types: Any, ti: int) -> int:
+    """The canonical id of function type `ti` of a module: equal for equivalent types of any
+    module (never 0)."""
+    key: Any = validate.functype_key(types, ti)  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+    with _TYPE_IDS_LOCK:  # the size read and the insert must be one step: ids stay distinct
+        return _TYPE_IDS.setdefault(key, len(_TYPE_IDS) + 1)
+
+
+def mask(t: Any) -> int:
+    return M32 if t in NARROW else M64
+
+
+def isref(t: Any) -> bool:
+    return t.__class__ is tuple or t in (0x70, 0x6F)
+
+
+def isextern(t: Any) -> bool:
+    return t == 0x6F or t.__class__ is tuple and t[1] in (-17, -14)
 
 
 @dataclass(frozen=True)
@@ -51,6 +82,15 @@ class Trampolines:
     keep: object = None  # the code area
 
 
+@dataclass(frozen=True)
+class FuncRef:
+    """A non-null funcref outside the code: the address of its function record, valid only in
+    the store (`_StoreStacks`) that made it."""
+
+    addr: int
+    store: object
+
+
 class _StoreStacks:
     """Per store: the value stack, the JIT entries active on it, and the native limit set by the
     first of them."""
@@ -61,6 +101,36 @@ class _StoreStacks:
         self.vsp = self.vstack.addr  # next free slot: above the innermost host call's slots
         self.nlimit = 0
         self.active = 0  # JIT entries in progress (wasm -> host -> wasm nests them)
+        # reference values at the boundary (S0002: opaque objects, None = null): an externref is
+        # a handle (index + 1) of the object kept here for the store's lifetime; a funcref is a
+        # record address, seen by the host as a `FuncRef` (one object per address)
+        self.externs: list[object] = []
+        self.extern_ids: dict[int, int] = {}
+        self.funcrefs: dict[int, FuncRef] = {}
+
+    def to_raw(self, t: Any, v: object) -> int:
+        if v is None:
+            return 0
+        if not isextern(t):
+            # a record of another store would run on that store's context and value stack
+            if not isinstance(v, FuncRef) or v.store is not self:
+                raise TypeError(f"not a function reference of this store: {v!r}")
+            return v.addr
+        h = self.extern_ids.get(id(v))
+        if h is None:
+            self.externs.append(v)
+            h = self.extern_ids[id(v)] = len(self.externs)
+        return h
+
+    def from_raw(self, t: Any, r: int) -> object:
+        if not r:
+            return None
+        if isextern(t):
+            return self.externs[r - 1]
+        ref = self.funcrefs.get(r)
+        if ref is None:
+            ref = self.funcrefs[r] = FuncRef(r, self)
+        return ref
 
 
 def _stacks(store: StoreState) -> _StoreStacks:
@@ -165,6 +235,7 @@ class Memory:
         self.pages = pages
         self.max = MAX_PAGES if maximum is None else min(maximum, MAX_PAGES)
         self.declared = maximum  # the type's maximum, for import checks
+        self.store: object = None  # the owning StoreState (set by JitInstance)
         self.users: list[tuple[ctypes.Array[ctypes.c_uint64], int]] = []
 
     def bind(self, ctx: "ctypes.Array[ctypes.c_uint64]", word: int) -> None:
@@ -186,6 +257,66 @@ class Memory:
         return old
 
 
+class Table:
+    """A table: `size` element words (a record address or an extern handle, 0 = null) in a
+    ctypes array that grows by reallocation; `grow` rewrites the base and size words of every
+    context bound to it (code reads them at each use and never across a host call)."""
+
+    def __init__(self, size: int, maximum: int | None, init: int = 0, store: object = None) -> None:
+        self.size, self.declared, self.store = size, maximum, store
+        self.max = min(TABLE_LIMIT, M32 if maximum is None else maximum)
+        self.buf = (ctypes.c_uint64 * max(size, 1))()
+        if init:
+            self.buf[:size] = [init] * size
+        self.users: list[tuple[ctypes.Array[ctypes.c_uint64], int]] = []
+
+    def bind(self, ctx: "ctypes.Array[ctypes.c_uint64]", word: int) -> None:
+        ctx[word], ctx[word + 1] = ctypes.addressof(self.buf), self.size
+        self.users.append((ctx, word))
+
+    def grow(self, delta: int, init: int) -> int:
+        """table.grow: the old size, or -1 (as u32)."""
+        old = self.size
+        if delta > self.max - old:
+            return M32
+        if old + delta > len(self.buf):
+            buf = (ctypes.c_uint64 * max(old + delta, 2 * len(self.buf)))()
+            ctypes.memmove(buf, self.buf, 8 * old)
+            self.buf = buf
+        if init:
+            self.buf[old : old + delta] = [init] * delta
+        self.size = old + delta
+        for ctx, word in self.users:
+            ctx[word], ctx[word + 1] = ctypes.addressof(self.buf), self.size
+        return old
+
+    def write(self, at: int, values: Sequence[int]) -> None:
+        """Elements `at`... (table.init, segments): all or nothing."""
+        if at + len(values) > self.size:
+            raise Trap(TrapCode.TABLE_OUT_OF_BOUNDS, "out of bounds table access")
+        self.buf[at : at + len(values)] = list(values)
+
+
+def _no_service(args: Sequence[Raw]) -> list[Raw]:
+    raise RuntimeError("JIT code called a runtime service this instance does not provide")
+
+
+def _check_store(store: StoreState, kind: str, value: object) -> None:
+    """Imports come from the same store only (as Wasmtime): a table, function, memory or global
+    of another store would let code run on that store's contexts and value stack."""
+    owner = (
+        value.inst.store
+        if isinstance(value, JitFunc)
+        else value.owner.store
+        if isinstance(value, GlobalCell) and isinstance(value.owner, Instance)
+        else getattr(value, "store", None)
+        if isinstance(value, (Table, Memory))
+        else None
+    )
+    if owner is not None and owner is not store:
+        raise ValueError(f"{kind} import belongs to another store")
+
+
 class Instance:
     """`funcs`: (code offset, result count) of each defined function; function indices count the
     imports first. `imports`: (host function, parameter count, result masks)."""
@@ -199,12 +330,17 @@ class Instance:
         imports: Sequence[tuple[HostFunc, int, Sequence[int]]] = (),
         memory: Memory | None = None,
         nglobals: int = 0,
+        layout: Layout | None = None,
     ) -> None:
         self.store, self.tramp, self.funcs = store, tramp, funcs
         self.nimports = len(imports)
-        self.layout = Layout(memories=1 if memory else 0, globals=nglobals, imports=len(imports))
+        self.layout = layout or Layout(
+            memories=1 if memory else 0, globals=nglobals, imports=len(imports)
+        )
         self.ctx = (ctypes.c_uint64 * self.layout.words)()
         self.ctx[HOST_BRIDGE] = tramp.bridge
+        st = _stacks(store)  # call_indirect may enter this context without `call`: limits now
+        self.ctx[NSTACK_LIMIT], self.ctx[VSTACK_LIMIT] = st.nlimit, st.vtop
         self.code: ExecMem = load(code)
         self.entry = ENTRY(tramp.entry)
         self.callbacks = [HOST(self._host(*im)) for im in imports]  # kept alive here
@@ -218,6 +354,13 @@ class Instance:
                 ctypes.cast(grow, ctypes.c_void_p).value or 0
             )
         self.memory = memory
+        # every libcall word is callable: one the instance does not provide reports an error
+        # instead of the bridge calling address 0 (a subclass replaces the ones it serves)
+        missing = HOST(self._host(_no_service, 0, []))
+        self.callbacks.append(missing)
+        for j in range(LIBCALLS):
+            if not self.ctx[self.layout.libcall(j)]:
+                self.ctx[self.layout.libcall(j)] = ctypes.cast(missing, ctypes.c_void_p).value or 0
         store.instances.append(self)
 
     def call(self, func_index: int, args: Sequence[Raw]) -> list[Raw]:
@@ -228,7 +371,12 @@ class Instance:
         try:
             if st.active == 1:  # no JIT frame below, whatever the store's depth
                 st.vsp = st.vstack.addr
-                st.nlimit = self._nstack_limit(st.vsp)
+                nlimit = self._nstack_limit(st.vsp)
+                if nlimit != st.nlimit:  # every context: call_indirect switches between them
+                    st.nlimit = nlimit
+                    for inst in store.instances:
+                        if isinstance(inst, Instance):
+                            inst.ctx[NSTACK_LIMIT] = nlimit
             frame, n = st.vsp, max(len(args), nres)
             if frame + 8 * n > st.vtop:
                 raise Trap(TrapCode.STACK_OVERFLOW, "call stack exhausted")
@@ -326,9 +474,41 @@ class GlobalCell:
     owner: object
 
 
+class JitFunc:
+    """An exported function of a JIT instance: a `HostFunc` for imports (the host path), and the
+    contents of its function record for a table element in another instance of the store."""
+
+    def __init__(self, inst: "JitInstance", idx: int) -> None:
+        self.inst, self.idx = inst, idx
+
+    def __call__(self, args: Sequence[Raw]) -> list[Raw]:
+        return self.inst.call(self.idx, args)
+
+    def record(self) -> tuple[int, int, int]:
+        inst = self.inst
+        offset = inst.funcs[self.idx - inst.nimports][0]
+        tid = type_id(inst.module["types"], inst.ftypes[self.idx])
+        return inst.code.addr + offset, tid, ctypes.addressof(inst.ctx)
+
+
+def _ref_host(st: _StoreStacks, f: HostFunc, ps: Sequence[Any], rs: Sequence[Any]) -> HostFunc:
+    """A host function whose signature has references: they cross as objects (S0002)."""
+
+    def call(args: Sequence[Raw]) -> list[Raw]:
+        objs: list[Any] = [
+            st.from_raw(t, a) if isref(t) else a for t, a in zip(ps, args, strict=True)
+        ]
+        res = f(objs)
+        return [st.to_raw(t, r) if isref(t) else r for t, r in zip(rs, res, strict=True)]
+
+    return cast(HostFunc, call)
+
+
 class JitInstance(Instance):
     """An instance of a compiled module (S0002 `TargetInstance`): imports wired into the
-    context, globals initialised, active data segments written, the start function run."""
+    context, function records and signature ids written, tables bound, globals initialised,
+    element and data segments applied (in that order, as the spec does), the start function
+    run."""
 
     def __init__(
         self,
@@ -339,43 +519,97 @@ class JitInstance(Instance):
         owner: str,
     ) -> None:
         mod = self.module = c.module
+        types = mod["types"]
         self.owner = owner
+        st = _stacks(store)
         hosts: list[tuple[HostFunc, int, Sequence[int]]] = []
+        self.hosts: list[HostFunc] = []
         memory: Memory | None = None
+        tables: list[Table] = []
         self.gaddr: list[int] = []
         self.cells: list[GlobalCell] = []  # keeps the owners of imported globals alive
         for im, ext in zip(mod["imports"], imports, strict=True):
+            _check_store(store, im[0], ext.value)
             if im[0] == "func":
-                ps, rs = mod["types"][im[3]]
-                masks = [M64 if t in WIDE else M32 for t in rs]
-                hosts.append((cast(HostFunc, ext.value), len(ps), masks))
+                ps, rs = types[im[3]]
+                f = cast(HostFunc, ext.value)
+                self.hosts.append(f)
+                if any(isref(t) for t in (*ps, *rs)):
+                    f = _ref_host(st, f, ps, rs)
+                hosts.append((f, len(ps), [mask(t) for t in rs]))
             elif im[0] == "mem":
                 memory = cast(Memory, ext.value)
+            elif im[0] == "table":
+                tables.append(cast(Table, ext.value))
             else:
                 self.cells.append(cast(GlobalCell, ext.value))
         if mod["mems"]:
             memory = Memory(*mod["mems"][0])
-        self.hosts = [h[0] for h in hosts]
-        ng = len(self.cells) + len(mod["globals"])
-        super().__init__(store, tramp, c.code, c.funcs, hosts, memory, ng)
-        assert self.layout == c.layout
-        base = ctypes.addressof(self.ctx)
+            memory.store = store
+        self.ftypes: list[int] = [im[3] for im in mod["imports"] if im[0] == "func"] + mod["funcs"]
+        self.gtypes = [im[3][0] for im in mod["imports"] if im[0] == "global"]
+        self.gtypes += [g[0] for g in mod["globals"]]
+        ng = len(self.gtypes)
+        super().__init__(store, tramp, c.code, c.funcs, hosts, memory, ng, c.layout)
+        lay, ctx = self.layout, self.ctx
+        base = ctypes.addressof(ctx)
+        self.records = {f: base + 8 * lay.record(r) for r, f in enumerate(c.records)}
+        for f, addr in self.records.items():
+            v = self.hosts[f] if f < self.nimports else None
+            if f >= self.nimports:
+                rec = JitFunc(self, f).record()
+            elif isinstance(v, JitFunc) and v.inst.store is store:
+                rec = v.record()  # a direct call into the exporting instance
+            else:  # a host function: the module's thunk calls it through the bridge
+                rec = (self.code.addr + c.thunks[f], type_id(types, self.ftypes[f]), base)
+            word = (addr - base) // 8
+            ctx[word : word + RECORD] = list(rec)
+        for k, ti in enumerate(c.sigs):
+            ctx[lay.sig(k)] = type_id(types, ti)
         for i in range(ng):
-            word = self.layout.global_(i)
+            word = lay.global_(i)
             if i < len(self.cells):
-                self.ctx[word] = self.cells[i].addr
+                ctx[word] = self.cells[i].addr
                 self.gaddr.append(self.cells[i].addr)
             else:
                 t, _, init = mod["globals"][i - len(self.cells)]
-                self.ctx[word] = self._const(init) & (M64 if t in WIDE else M32)
+                ctx[word] = self._const(init) & mask(t)
                 self.gaddr.append(base + 8 * word)
-        for (off, data), mi in zip(mod["datas"], mod["data_mem"], strict=True):
+        for (mn, mx), init in zip(mod["tables"], mod["tinit"], strict=True):
+            tables.append(Table(mn, mx, 0 if init is None else self._const(init), store))
+        for i, t in enumerate(tables):
+            t.bind(ctx, lay.table(i))
+        self.tables = tables
+        # segments, as the runtime services table.init / memory.init see them (dropped: empty)
+        self.elems = [[self._const(e) for e in items] for _, _, _, items in mod["elem_info"]]
+        self.datas = [bytes(d) for _, d in mod["datas"]]
+        services: list[tuple[int, Callable[[Sequence[Raw]], Sequence[Raw]], int, int]] = []
+        if tables:
+            services.append((TABLE_GROW, self._table_grow, 3, 1))
+        if self.elems:
+            services += [(TABLE_INIT, self._table_init, 5, 0), (ELEM_DROP, self._elem_drop, 1, 0)]
+        if self.datas:  # data.drop needs no memory (a module may have passive data only)
+            services.append((DATA_DROP, self._data_drop, 1, 0))
+        if self.datas and memory:
+            services.append((MEMORY_INIT, self._memory_init, 4, 0))
+        for j, fn, nargs, nres in services:  # runtime services (libcalls), not computation (D25)
+            cb = HOST(self._host(fn, nargs, [M32] * nres))
+            self.callbacks.append(cb)
+            ctx[lay.libcall(j)] = ctypes.cast(cb, ctypes.c_void_p).value or 0
+        segs: list[tuple[int, Any, Any, Any]] = mod["elem_info"]
+        for i, ((ti, off, _, _), mode) in enumerate(zip(segs, mod["elem_mode"], strict=True)):
+            if mode == "active":
+                tables[ti].write(self._const(off) & M32, self.elems[i])
+            if mode != "passive":
+                self.elems[i] = []
+        for i, ((off, data), mi) in enumerate(zip(mod["datas"], mod["data_mem"], strict=True)):
             if mi is None:
                 continue
             o = self._const(off)
             if memory is None or o + len(data) > memory.pages << 16:
                 raise Trap(TrapCode.MEMORY_OUT_OF_BOUNDS, "out of bounds memory access")
             ctypes.memmove(memory.res.addr + o, bytes(data), len(data))
+            self.datas[i] = b""
         if mod["start"] is not None:
             self.call(mod["start"], [])
 
@@ -388,22 +622,62 @@ class JitInstance(Instance):
         if k == "f64":
             return f64_bits(e[1])
         if k == "global":
-            return self.global_get(e[1])
-        x, y, mask = self._const(e[2]), self._const(e[3]), M32 if e[1] == "i32" else M64
-        return (x + y if k == "add" else x - y if k == "sub" else x * y) & mask
+            g: int = e[1]
+            return ctypes.c_uint64.from_address(self.gaddr[g]).value
+        if k == "func":
+            return self.records[e[1]]
+        if k == "null":
+            return 0
+        x, y, m = self._const(e[2]), self._const(e[3]), M32 if e[1] == "i32" else M64
+        return (x + y if k == "add" else x - y if k == "sub" else x * y) & m
+
+    # runtime services (libcalls): arguments as the compiler put them in the slots
+    def _table_grow(self, a: Sequence[Raw]) -> list[Raw]:
+        init, delta, ti = a
+        return [self.tables[ti].grow(delta, init)]
+
+    def _table_init(self, a: Sequence[Raw]) -> list[Raw]:
+        d, s, n, seg, ti = a
+        items = self.elems[seg]
+        if s + n > len(items):
+            raise Trap(TrapCode.TABLE_OUT_OF_BOUNDS, "out of bounds table access")
+        self.tables[ti].write(d, items[s : s + n])
+        return []
+
+    def _elem_drop(self, a: Sequence[Raw]) -> list[Raw]:
+        self.elems[a[0]] = []
+        return []
+
+    def _memory_init(self, a: Sequence[Raw]) -> list[Raw]:
+        d, s, n, seg = a
+        data, memory = self.datas[seg], cast(Memory, self.memory)
+        if s + n > len(data) or d + n > memory.pages << 16:
+            raise Trap(TrapCode.MEMORY_OUT_OF_BOUNDS, "out of bounds memory access")
+        ctypes.memmove(memory.res.addr + d, data[s : s + n], n)
+        return []
+
+    def _data_drop(self, a: Sequence[Raw]) -> list[Raw]:
+        self.datas[a[0]] = b""
+        return []
 
     def call(self, func_index: int, args: Sequence[Raw]) -> list[Raw]:
-        if func_index >= self.nimports:
+        if func_index < self.nimports:
+            self.store.enter()  # an exported import: the host function itself (objects for refs)
+            try:
+                return list(self.hosts[func_index](args))
+            except HostError as e:
+                if self.store.depth == 1:
+                    raise e.exc from None
+                raise
+            finally:
+                self.store.leave()
+        ps, rs = self.module["types"][self.ftypes[func_index]]
+        if not any(isref(t) for t in (*ps, *rs)):
             return super().call(func_index, args)
-        self.store.enter()  # an exported import: the host function itself
-        try:
-            return list(self.hosts[func_index](args))
-        except HostError as e:
-            if self.store.depth == 1:
-                raise e.exc from None
-            raise
-        finally:
-            self.store.leave()
+        st = _stacks(self.store)
+        raw = [st.to_raw(t, a) if isref(t) else a for t, a in zip(ps, args, strict=True)]
+        res = super().call(func_index, raw)
+        return [st.from_raw(t, r) if isref(t) else r for t, r in zip(rs, res, strict=True)]  # pyright: ignore[reportReturnType]
 
     def export(self, name: str) -> Extern:
         exports: list[tuple[str, int, int]] = self.module["exports"]
@@ -411,23 +685,26 @@ class JitInstance(Instance):
             if n != name:
                 continue
             if kind == 0:
-                f = self.hosts[idx] if idx < self.nimports else self._export_func(idx)
+                f = self.hosts[idx] if idx < self.nimports else JitFunc(self, idx)
                 return Extern("func", self.owner, f)
+            if kind == 1:
+                return Extern("table", self.owner, self.tables[idx])
             if kind == 2:
                 return Extern("memory", self.owner, self.memory)
             if kind == 3:
                 return Extern("global", self.owner, GlobalCell(self.gaddr[idx], self))
         raise LookupError(f"no export {name}")
 
-    def _export_func(self, idx: int) -> HostFunc:
-        return lambda args: self.call(idx, args)  # another instance calls it as a host function
-
     def limits(self, name: str) -> tuple[int, int | None]:
-        if self.memory is None or not any(
-            n == name and k == 2 for n, k, _ in self.module["exports"]
-        ):
-            raise LookupError(f"no exported memory {name}")
-        return self.memory.pages, self.memory.declared
+        exports: list[tuple[str, int, int]] = self.module["exports"]
+        for n, k, idx in exports:
+            if n == name and k == 1:
+                return self.tables[idx].size, self.tables[idx].declared
+            if n == name and k == 2 and self.memory is not None:
+                return self.memory.pages, self.memory.declared
+        raise LookupError(f"no exported memory or table {name}")
 
     def global_get(self, global_index: int) -> Raw:
-        return ctypes.c_uint64.from_address(self.gaddr[global_index]).value
+        r = ctypes.c_uint64.from_address(self.gaddr[global_index]).value
+        t = self.gtypes[global_index]
+        return _stacks(self.store).from_raw(t, r) if isref(t) else r  # pyright: ignore[reportReturnType]

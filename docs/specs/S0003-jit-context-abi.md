@@ -41,10 +41,11 @@ it is not a new format. The runtime side is [S0002](S0002-target-interface.md).
 | 8 | `HOST_BRIDGE` | **new (proposed)**: address of the host-call bridge for the host's convention |
 | 9–15 | reserved | zero |
 | 16 … | memory *i*: `base`, `size_bytes` | phase 3: at most one memory |
-| … | table *i*: `base`, `size` | layout kept; a module that uses a table is `Unsupported` (S0002) |
+| … | table *i*: `base`, `size` | element words (record address / extern handle, 0 = null); step 3d |
 | … | global *i*: 1 word | defined: the value; imported: a pointer to the owner's word (same target, S0002) |
 | … | function import *i*: 1 word | address of a host function (signature below) |
 | … | libcall *j*: 1 word | **new (proposed)**: same signature; the runtime services the module uses (`memory.grow`, `table.grow`, segment init — never computation, D25), in a fixed order |
+| … | signature *k*, function record *r* | step 3d: canonical type ids for `call_indirect`; `{code, type id, context}` records (ARTIFACT.md part 3) |
 
 ### Calling conventions
 ```c
@@ -261,6 +262,40 @@ uv run pytest tests/jit -k "entry or trap or reentry or host or interrupt or sta
   in the slot that receives the result (old pages or −1), and the reload of `r13`/`r14` after every
   bridge call makes the new size visible to every frame. `memory.size` is `r14 >> 16`. The runtime
   service lives in `common/instance.py` (no `libcalls.py` module until a second service exists).
+* 2026-10-30 (step 3d): tables, `funcref`/`externref`, `call_indirect`, bulk memory. A table element
+  and a `funcref` value are one word: 0 or the address of a 3-word function record `{code, canonical
+  type id, context}` in the context of the module that took the reference (Wasmtime's `VMFuncRef`
+  shape, crates/cranelift/src/func_environ.rs); the variable part gains a signature word per type
+  `call_indirect` names and the records, after the libcalls (ARTIFACT.md part 3; same version 1).
+  Canonical type ids come from a process-wide registry of structural type keys, written into the
+  context by the runtime, so the code holds none. `call_indirect`: index (zero-extended) `≥ size` →
+  `TABLE_OUT_OF_BOUNDS`, element 0 → `INDIRECT_CALL_TO_NULL`, record id ≠ signature word →
+  `BAD_SIGNATURE` (Wasmtime's codes and order), then `push r15` + pad (alignment holds), r15 and
+  r13/r14 from the record's context, `call [record]`, r15 popped and r13/r14 reloaded. Records of
+  another JIT instance's function point into that instance (a direct call); a host function's record
+  points to a per-module thunk (`endbr64`; pad; bridge call of the import's word with r12 as the
+  slots; `ret`). Since code may now enter a context without the runtime's `call`, every context of
+  the store gets the stack limits: at creation, and whenever the outermost entry computes a
+  different native limit (LESSONS 31). Native (computation): `table.get/set/size/fill/copy`,
+  `memory.fill/copy` (bounds checked before any write; 8-byte then byte loops, backwards when the
+  destination is above the source; plain moves, rsi saved as the temporary — no `rep movs`/`std`).
+  Services (libcalls 1–5): `table.grow` (may reallocate the elements; rewrites `base`/`size` in every
+  context bound to the table; 10 000 000-element cap as `pyc`, D27), `table.init`/`elem.drop`,
+  `memory.init`/`data.drop` (segments live in the runtime). The services are methods of the
+  instance (`common/instance.py`), not a `libcalls.py` module. References cross the host boundary
+  as objects (S0002): an externref is a per-store handle of the object (kept for the store's
+  lifetime), a funcref a `FuncRef(address)`; a host function whose signature has references gets
+  them converted. Readiness: the xfail set still differs from `pyc`'s by tail calls, `call_ref`,
+  typed function references and modules without a full validator verdict, so `ready = False` stays.
+* 2026-10-30 (step 3d review): every libcall word of every context is callable (one the instance
+  does not serve reports a `RuntimeError` through the bridge, never a call to address 0;
+  `data.drop` is served without a memory). A `FuncRef` carries its store and is refused by another
+  store at the boundary (`TypeError`), and table, function, memory and global imports from another
+  store are refused at instantiation (`ValueError`), as Wasmtime refuses cross-store objects: a
+  record of another store would run on that store's context and value stack. Externrefs are host
+  objects and get a handle in whichever store receives them. The canonical type-id registry is
+  updated under a lock. Backend rule: a method reads every operand that may be in `tos` before it
+  writes `tos` (LESSONS 32; `table.set` lost its index).
 * 2026-10-30 (step 3c review): float code assumes the default MXCSR (round to nearest, no FTZ/DAZ)
   and the entry trampoline does not set it, as Wasmtime does not; a host library that changes MXCSR
   changes `nearest` and subnormal results. Tests: float operands in r10/r11

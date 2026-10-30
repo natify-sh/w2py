@@ -101,7 +101,7 @@ class Backend:
         a = self.a
         assert all(r in POOL for r in pins)
         a.bind(label)
-        a.endbr64()  # reached from the entry through a register (and from call_indirect later)
+        a.endbr64()  # reached through a register: from the entry and from call_indirect
         for r in pins:
             a.push(r)
         pad = len(pins) % 2 == 0  # rsp = 8 mod 16 on entry
@@ -741,6 +741,10 @@ class Backend:
         else:
             self.a.mov(dst.id, Mem(R15, 8 * word), w=True)
 
+    def ctx_addr(self, dst: Reg, word: int) -> None:
+        """dst = the address of context word `word` (a function record: `ref.func`)."""
+        self.a.lea(dst.id, Mem(R15, 8 * word))
+
     def ctx_store(self, word: int, src: Operand, indirect: bool) -> None:
         r = self._rm(src, RDX, True)
         if not isinstance(r, int):
@@ -751,6 +755,168 @@ class Backend:
             self.a.mov(Mem(RCX), r, w=True)
         else:
             self.a.mov(Mem(R15, 8 * word), r, w=True)
+
+    # ---------------------------------------------------------------- tables and bulk memory
+    # A table is `base` (element words) and `size` in context words `word`, `word + 1`, read at
+    # every use: table.grow may move the elements, and runs only through the host bridge.
+    def _u32(self, r: int, o: Operand) -> None:
+        """r = the i32 operand, zero-extended (a 32-bit move even from r itself, LESSONS 5)."""
+        if isinstance(o, Reg):
+            self.a.mov(r, o.id)
+        else:
+            self.move(Reg(r), o, False)
+
+    def _element(self, f: Frame, word: int, index: Operand) -> Mem:
+        """Bounds-check index (rcx) against the table's size; the element's address via rdx."""
+        a = self.a
+        self._u32(RCX, index)
+        a.alu("cmp", RCX, Mem(R15, 8 * word + 8), w=True)
+        a.jcc("ae", self._stub(f, TrapCode.TABLE_OUT_OF_BOUNDS))
+        a.mov(RDX, Mem(R15, 8 * word), w=True)
+        return Mem(RDX, 0, RCX, 8)
+
+    def table_get(self, f: Frame, dst: Reg, word: int, index: Operand) -> None:
+        self.a.mov(dst.id, self._element(f, word, index), w=True)
+
+    def table_set(self, f: Frame, word: int, index: Operand, value: Operand) -> None:
+        """The index is read (into rcx) before anything is written: either operand may be in
+        `rax`. Then `rax` is free unless it holds `value`."""
+        elem = self._element(f, word, index)
+        if not isinstance(value, Reg):
+            self.move(Reg(RAX), value, True)  # a slot or an immediate: rcx/rdx are not touched
+            value = Reg(RAX)
+        self.a.mov(elem, value.id, w=True)
+
+    def _three(self, x: Operand, y: Operand, z: Operand, wy: bool) -> None:
+        """rax = x, rdx = y, rcx = z (i32 zero-extended; y 64-bit if `wy`). rcx and rdx never hold
+        operands, so they are written first; rax (which may hold one) last."""
+        if wy and isinstance(y, Reg):
+            self.a.mov(RDX, y.id, w=True)
+        elif wy:
+            self.move(Reg(RDX), y, True)
+        else:
+            self._u32(RDX, y)
+        self._u32(RCX, z)
+        self._u32(RAX, x)
+
+    def _end_check(self, f: Frame, r: int, size: int | Mem, code: int) -> None:
+        """r + rcx (both < 2**32, no wrap in 64 bits) must not exceed `size`."""
+        a = self.a
+        a.alu("add", r, RCX, w=True)
+        a.alu("cmp", r, size, w=True)
+        a.jcc("a", self._stub(f, code))
+        a.alu("sub", r, RCX, w=True)
+
+    def _copy(self, unit: int) -> None:
+        """Copy rcx bytes from [rdx] to [rax] as memmove does: backwards when the destination is
+        above the source. 8 bytes at a time, then single bytes (`unit` 1); rsi is the temporary
+        (saved: it may hold a pinned local). Plain moves only: no `rep movs` outside x86-64-v1's
+        checked allowlist and no direction flag to restore."""
+        a = self.a
+        a.push(RSI)
+        fwd, f1, b8, b1, done = (a.label() for _ in range(5))
+        a.alu("cmp", RAX, RDX, w=True)
+        a.jcc("be", fwd)
+        a.bind(b8)
+        a.alu_imm("cmp", RCX, 8, w=True)
+        a.jcc("b", b1 if unit == 1 else done)
+        a.alu_imm("sub", RCX, 8, w=True)
+        a.mov(RSI, Mem(RDX, 0, RCX), w=True)
+        a.mov(Mem(RAX, 0, RCX), RSI, w=True)
+        a.jmp(b8)
+        if unit == 1:
+            a.bind(b1)
+            a.test(RCX, RCX, w=True)
+            a.jcc("e", done)
+            a.alu_imm("sub", RCX, 1, w=True)
+            a.movzx(RSI, Mem(RDX, 0, RCX), 8)
+            a.store8(Mem(RAX, 0, RCX), RSI)
+            a.jmp(b1)
+        a.bind(fwd)
+        a.alu_imm("cmp", RCX, 8, w=True)
+        a.jcc("b", f1 if unit == 1 else done)
+        a.mov(RSI, Mem(RDX), w=True)
+        a.mov(Mem(RAX), RSI, w=True)
+        for r in (RAX, RDX, RCX):
+            a.alu_imm("sub" if r == RCX else "add", r, 8, w=True)
+        a.jmp(fwd)
+        if unit == 1:
+            a.bind(f1)
+            a.test(RCX, RCX, w=True)
+            a.jcc("e", done)
+            a.movzx(RSI, Mem(RDX), 8)
+            a.store8(Mem(RAX), RSI)
+            for r in (RAX, RDX, RCX):
+                a.alu_imm("sub" if r == RCX else "add", r, 1, w=True)
+            a.jmp(f1)
+        a.bind(done)
+        a.pop(RSI)
+
+    def memory_copy(self, f: Frame, d: Operand, s: Operand, n: Operand) -> None:
+        """Both ranges are checked before any byte moves (bulk memory: no partial copy)."""
+        a, oob = self.a, TrapCode.MEMORY_OUT_OF_BOUNDS
+        self._three(d, s, n, False)
+        self._end_check(f, RAX, R14, oob)
+        self._end_check(f, RDX, R14, oob)
+        a.alu("add", RAX, R13, w=True)
+        a.alu("add", RDX, R13, w=True)
+        self._copy(1)
+
+    def memory_fill(self, f: Frame, d: Operand, v: Operand, n: Operand) -> None:
+        a = self.a
+        self._three(d, v, n, False)
+        self._end_check(f, RAX, R14, TrapCode.MEMORY_OUT_OF_BOUNDS)
+        a.alu("add", RAX, R13, w=True)
+        a.movzx(RDX, RDX, 8)
+        a.push(RSI)
+        a.mov_imm(RSI, 0x0101010101010101, w=True)
+        a.imul(RDX, RSI, w=True)  # the byte in all eight
+        a.pop(RSI)
+        f8, f1, done = a.label(), a.label(), a.label()
+        a.bind(f8)
+        a.alu_imm("cmp", RCX, 8, w=True)
+        a.jcc("b", f1)
+        a.mov(Mem(RAX), RDX, w=True)
+        a.alu_imm("add", RAX, 8, w=True)
+        a.alu_imm("sub", RCX, 8, w=True)
+        a.jmp(f8)
+        a.bind(f1)
+        a.test(RCX, RCX, w=True)
+        a.jcc("e", done)
+        a.store8(Mem(RAX), RDX)
+        a.alu_imm("add", RAX, 1, w=True)
+        a.alu_imm("sub", RCX, 1, w=True)
+        a.jmp(f1)
+        a.bind(done)
+
+    def table_fill(self, f: Frame, word: int, i: Operand, v: Operand, n: Operand) -> None:
+        a = self.a
+        self._three(i, v, n, True)
+        self._end_check(f, RAX, Mem(R15, 8 * word + 8), TrapCode.TABLE_OUT_OF_BOUNDS)
+        a.shift("shl", RAX, 3, w=True)
+        a.alu("add", RAX, Mem(R15, 8 * word), w=True)
+        loop, done = a.label(), a.label()
+        a.bind(loop)
+        a.test(RCX, RCX, w=True)
+        a.jcc("e", done)
+        a.mov(Mem(RAX), RDX, w=True)
+        a.alu_imm("add", RAX, 8, w=True)
+        a.alu_imm("sub", RCX, 1, w=True)
+        a.jmp(loop)
+        a.bind(done)
+
+    def table_copy(
+        self, f: Frame, dst: int, src: int, d: Operand, s: Operand, n: Operand
+    ) -> None:  # fmt: skip
+        a, oob = self.a, TrapCode.TABLE_OUT_OF_BOUNDS
+        self._three(d, s, n, False)
+        self._end_check(f, RAX, Mem(R15, 8 * dst + 8), oob)
+        self._end_check(f, RDX, Mem(R15, 8 * src + 8), oob)
+        for r, word in ((RAX, dst), (RDX, src)):
+            a.shift("shl", r, 3, w=True)
+            a.alu("add", r, Mem(R15, 8 * word), w=True)
+        a.shift("shl", RCX, 3, w=True)
+        self._copy(8)
 
     # ---------------------------------------------------------------- calls
     def _call(self, f: Frame, target: Label | Mem) -> None:
@@ -770,6 +936,55 @@ class Backend:
             a.lea(R12, Mem(R12, -8 * shift_slots))
         a.test(RAX, RAX)
         a.jcc("ne", f.unwind)
+
+    def call_indirect(
+        self, f: Frame, table: int, sig: int, index: Operand, shift_slots: int
+    ) -> None:  # fmt: skip
+        """Element `index` of the table: bounds (TABLE_OUT_OF_BOUNDS), null (INDIRECT_CALL_TO_NULL),
+        the record's canonical type id against the context's signature word (BAD_SIGNATURE), in
+        the spec's order. Then the callee runs on the record's context: r15 is saved on the native
+        stack (with a pad: 16-byte alignment holds), r13/r14 come from the callee's context and
+        are reloaded from ours after. As Wasmtime's `call_indirect` lowering (a funcref is a
+        pointer to `{code, type, vmctx}`; crates/cranelift/src/func_environ.rs), written anew."""
+        a = self.a
+        elem = self._element(f, table, index)  # the index is read before r12 moves
+        a.mov(RDX, elem, w=True)
+        a.test(RDX, RDX, w=True)
+        a.jcc("e", self._stub(f, TrapCode.INDIRECT_CALL_TO_NULL))
+        a.mov(RCX, Mem(R15, 8 * sig), w=True)
+        a.alu("cmp", RCX, Mem(RDX, 8), w=True)
+        a.jcc("ne", self._stub(f, TrapCode.BAD_SIGNATURE))
+        if shift_slots:
+            a.lea(R12, Mem(R12, 8 * shift_slots))
+        a.push(R15)
+        a.alu_imm("sub", RSP, 8, w=True)
+        a.mov(R15, Mem(RDX, 16), w=True)
+        a.mov(R13, Mem(R15, MEM0), w=True)
+        a.mov(R14, Mem(R15, MEM0 + 8), w=True)
+        self._call(f, Mem(RDX))
+        a.alu_imm("add", RSP, 8, w=True)
+        a.pop(R15)
+        a.mov(R13, Mem(R15, MEM0), w=True)
+        a.mov(R14, Mem(R15, MEM0 + 8), w=True)
+        if shift_slots:
+            a.lea(R12, Mem(R12, -8 * shift_slots))
+        a.test(RAX, RAX)
+        a.jcc("ne", f.unwind)
+
+    def host_thunk(self, word: int) -> int:
+        """The code address a function record of an imported function points to: called like a
+        wasm function (frame in r12, context in r15), it calls the import in context word `word`
+        through the host bridge with its frame as the slots and returns the bridge's status."""
+        a = self.a
+        at = len(a.buf)
+        a.endbr64()  # reached through `call [record]`
+        a.alu_imm("sub", RSP, 8, w=True)  # rsp = 8 mod 16 on entry: aligned for the bridge
+        a.mov(RDX, R12, w=True)
+        a.mov_imm(RAX, word)
+        a.call(Mem(R15, 8 * HOST_BRIDGE))
+        a.alu_imm("add", RSP, 8, w=True)
+        a.ret()
+        return at
 
     def call_host(self, f: Frame, word: int, slot: int) -> None:
         """Call the host function (import or libcall) in context word `word`; its arguments and

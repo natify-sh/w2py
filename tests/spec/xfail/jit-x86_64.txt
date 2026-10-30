@@ -1,1056 +1,55 @@
-annotations.wast:129  unsupported: tables
-annotations.wast:154  unsupported: tables
-annotations.wast:98  unsupported: tables
-binary-leb128.wast:1030  unsupported: tables
-binary-leb128.wast:1038  unsupported: tables
-binary-leb128.wast:1047  unsupported: tables
-binary-leb128.wast:1056  unsupported: tables
-binary-leb128.wast:32  unsupported: tables
-binary-leb128.wast:75  unsupported: tables
-binary-leb128.wast:87  unsupported: tables
-binary-leb128.wast:99  unsupported: tables
-binary.wast:401  unsupported: tables
-binary.wast:426  unsupported: tables
-binary.wast:779  unsupported: tables
-block.wast:3  unsupported: tables
-block.wast:353  unsupported: tables
-block.wast:354  unsupported: tables
-block.wast:355  unsupported: tables
-block.wast:356  unsupported: tables
-block.wast:357  unsupported: tables
-block.wast:359  unsupported: tables
-block.wast:360  unsupported: tables
-block.wast:361  unsupported: tables
-block.wast:363  unsupported: tables
-block.wast:364  unsupported: tables
-block.wast:365  unsupported: tables
-block.wast:367  unsupported: tables
-block.wast:368  unsupported: tables
-block.wast:369  unsupported: tables
-block.wast:371  unsupported: tables
-block.wast:372  unsupported: tables
-block.wast:374  unsupported: tables
-block.wast:375  unsupported: tables
-block.wast:377  unsupported: tables
-block.wast:378  unsupported: tables
-block.wast:379  unsupported: tables
-block.wast:381  unsupported: tables
-block.wast:382  unsupported: tables
-block.wast:384  unsupported: tables
-block.wast:385  unsupported: tables
-block.wast:386  unsupported: tables
-block.wast:387  unsupported: tables
-block.wast:388  unsupported: tables
-block.wast:389  unsupported: tables
-block.wast:390  unsupported: tables
-block.wast:391  unsupported: tables
-block.wast:392  unsupported: tables
-block.wast:394  unsupported: tables
-block.wast:395  unsupported: tables
-block.wast:396  unsupported: tables
-block.wast:397  unsupported: tables
-block.wast:398  unsupported: tables
-block.wast:399  unsupported: tables
-block.wast:400  unsupported: tables
-block.wast:402  unsupported: tables
-block.wast:403  unsupported: tables
-block.wast:404  unsupported: tables
-block.wast:407  unsupported: tables
-block.wast:408  unsupported: tables
-block.wast:410  unsupported: tables
-block.wast:411  unsupported: tables
-block.wast:412  unsupported: tables
-block.wast:413  unsupported: tables
-block.wast:414  unsupported: tables
-block.wast:415  unsupported: tables
-block.wast:417  unsupported: tables
-block.wast:419  unsupported: tables
-br.wast:3  unsupported: tables
-br.wast:372  unsupported: tables
-br.wast:373  unsupported: tables
-br.wast:374  unsupported: tables
-br.wast:375  unsupported: tables
-br.wast:376  unsupported: tables
-br.wast:377  unsupported: tables
-br.wast:378  unsupported: tables
-br.wast:379  unsupported: tables
-br.wast:381  unsupported: tables
-br.wast:382  unsupported: tables
-br.wast:383  unsupported: tables
-br.wast:384  unsupported: tables
-br.wast:385  unsupported: tables
-br.wast:387  unsupported: tables
-br.wast:388  unsupported: tables
-br.wast:389  unsupported: tables
-br.wast:390  unsupported: tables
-br.wast:392  unsupported: tables
-br.wast:393  unsupported: tables
-br.wast:394  unsupported: tables
-br.wast:396  unsupported: tables
-br.wast:398  unsupported: tables
-br.wast:399  unsupported: tables
-br.wast:400  unsupported: tables
-br.wast:402  unsupported: tables
-br.wast:403  unsupported: tables
-br.wast:404  unsupported: tables
-br.wast:406  unsupported: tables
-br.wast:407  unsupported: tables
-br.wast:409  unsupported: tables
-br.wast:410  unsupported: tables
-br.wast:411  unsupported: tables
-br.wast:412  unsupported: tables
-br.wast:413  unsupported: tables
-br.wast:415  unsupported: tables
-br.wast:416  unsupported: tables
-br.wast:417  unsupported: tables
-br.wast:418  unsupported: tables
-br.wast:419  unsupported: tables
-br.wast:420  unsupported: tables
-br.wast:422  unsupported: tables
-br.wast:423  unsupported: tables
-br.wast:424  unsupported: tables
-br.wast:425  unsupported: tables
-br.wast:427  unsupported: tables
-br.wast:428  unsupported: tables
-br.wast:429  unsupported: tables
-br.wast:430  unsupported: tables
-br.wast:431  unsupported: tables
-br.wast:433  unsupported: tables
-br.wast:434  unsupported: tables
-br.wast:435  unsupported: tables
-br.wast:437  unsupported: tables
-br.wast:438  unsupported: tables
-br.wast:440  unsupported: tables
-br.wast:441  unsupported: tables
-br.wast:442  unsupported: tables
-br.wast:443  unsupported: tables
-br.wast:444  unsupported: tables
-br.wast:445  unsupported: tables
-br.wast:447  unsupported: tables
-br.wast:449  unsupported: tables
-br.wast:450  unsupported: tables
-br.wast:451  unsupported: tables
-br.wast:453  unsupported: tables
-br.wast:455  unsupported: tables
-br.wast:456  unsupported: tables
-br.wast:457  unsupported: tables
-br.wast:459  unsupported: tables
-br.wast:461  unsupported: tables
-br.wast:463  unsupported: tables
-br.wast:464  unsupported: tables
-br.wast:465  unsupported: tables
-br.wast:466  unsupported: tables
-br.wast:467  unsupported: tables
-br.wast:468  unsupported: tables
-br_if.wast:3  unsupported: tables
-br_if.wast:372  unsupported: tables
-br_if.wast:373  unsupported: tables
-br_if.wast:374  unsupported: tables
-br_if.wast:375  unsupported: tables
-br_if.wast:377  unsupported: tables
-br_if.wast:378  unsupported: tables
-br_if.wast:379  unsupported: tables
-br_if.wast:380  unsupported: tables
-br_if.wast:382  unsupported: tables
-br_if.wast:383  unsupported: tables
-br_if.wast:384  unsupported: tables
-br_if.wast:385  unsupported: tables
-br_if.wast:386  unsupported: tables
-br_if.wast:387  unsupported: tables
-br_if.wast:389  unsupported: tables
-br_if.wast:390  unsupported: tables
-br_if.wast:391  unsupported: tables
-br_if.wast:392  unsupported: tables
-br_if.wast:393  unsupported: tables
-br_if.wast:394  unsupported: tables
-br_if.wast:396  unsupported: tables
-br_if.wast:397  unsupported: tables
-br_if.wast:398  unsupported: tables
-br_if.wast:399  unsupported: tables
-br_if.wast:400  unsupported: tables
-br_if.wast:401  unsupported: tables
-br_if.wast:403  unsupported: tables
-br_if.wast:405  unsupported: tables
-br_if.wast:406  unsupported: tables
-br_if.wast:407  unsupported: tables
-br_if.wast:408  unsupported: tables
-br_if.wast:410  unsupported: tables
-br_if.wast:411  unsupported: tables
-br_if.wast:412  unsupported: tables
-br_if.wast:414  unsupported: tables
-br_if.wast:416  unsupported: tables
-br_if.wast:417  unsupported: tables
-br_if.wast:418  unsupported: tables
-br_if.wast:419  unsupported: tables
-br_if.wast:420  unsupported: tables
-br_if.wast:421  unsupported: tables
-br_if.wast:422  unsupported: tables
-br_if.wast:423  unsupported: tables
-br_if.wast:424  unsupported: tables
-br_if.wast:425  unsupported: tables
-br_if.wast:427  unsupported: tables
-br_if.wast:428  unsupported: tables
-br_if.wast:429  unsupported: tables
-br_if.wast:430  unsupported: tables
-br_if.wast:431  unsupported: tables
-br_if.wast:433  unsupported: tables
-br_if.wast:434  unsupported: tables
-br_if.wast:435  unsupported: tables
-br_if.wast:437  unsupported: tables
-br_if.wast:438  unsupported: tables
-br_if.wast:439  unsupported: tables
-br_if.wast:440  unsupported: tables
-br_if.wast:442  unsupported: tables
-br_if.wast:443  unsupported: tables
-br_if.wast:445  unsupported: tables
-br_if.wast:446  unsupported: tables
-br_if.wast:448  unsupported: tables
-br_if.wast:449  unsupported: tables
-br_if.wast:451  unsupported: tables
-br_if.wast:452  unsupported: tables
-br_if.wast:454  unsupported: tables
-br_if.wast:455  unsupported: tables
-br_if.wast:456  unsupported: tables
-br_if.wast:457  unsupported: tables
-br_if.wast:459  unsupported: tables
-br_if.wast:460  unsupported: tables
-br_if.wast:461  unsupported: tables
-br_if.wast:462  unsupported: tables
-br_if.wast:463  unsupported: tables
-br_if.wast:464  unsupported: tables
-br_if.wast:465  unsupported: tables
-br_if.wast:467  unsupported: tables
-br_if.wast:468  unsupported: tables
-br_if.wast:469  unsupported: tables
-br_if.wast:470  unsupported: tables
-br_if.wast:471  unsupported: tables
-br_if.wast:472  unsupported: tables
-br_if.wast:473  unsupported: tables
-br_if.wast:474  unsupported: tables
-br_if.wast:475  unsupported: tables
-br_if.wast:476  unsupported: tables
-br_if.wast:477  unsupported: tables
-br_if.wast:478  unsupported: tables
-br_on_non_null.wast:1  unsupported: tables
-br_on_non_null.wast:49  unsupported: tables
-br_on_non_null.wast:51  unsupported: tables
-br_on_non_null.wast:52  unsupported: tables
-br_on_non_null.wast:53  unsupported: tables
-br_on_non_null.wast:54  unsupported: tables
-br_on_non_null.wast:55  unsupported: tables
-br_on_non_null.wast:57  unsupported: reference types
-br_on_non_null.wast:65  unsupported: tables
-br_on_non_null.wast:86  unsupported: tables
-br_on_non_null.wast:87  unsupported: tables
-br_on_null.wast:1  unsupported: tables
-br_on_null.wast:32  unsupported: tables
-br_on_null.wast:34  unsupported: tables
-br_on_null.wast:35  unsupported: tables
-br_on_null.wast:36  unsupported: tables
-br_on_null.wast:38  unsupported: reference types
-br_on_null.wast:46  unsupported: tables
-br_on_null.wast:65  unsupported: tables
-br_on_null.wast:66  unsupported: tables
-br_table.wast:1068  unsupported: tables
-br_table.wast:1069  unsupported: tables
-br_table.wast:1070  unsupported: tables
-br_table.wast:1071  unsupported: tables
-br_table.wast:1073  unsupported: tables
-br_table.wast:1074  unsupported: tables
-br_table.wast:1075  unsupported: tables
-br_table.wast:1076  unsupported: tables
-br_table.wast:1078  unsupported: tables
-br_table.wast:1079  unsupported: tables
-br_table.wast:1080  unsupported: tables
-br_table.wast:1081  unsupported: tables
-br_table.wast:1082  unsupported: tables
-br_table.wast:1083  unsupported: tables
-br_table.wast:1085  unsupported: tables
-br_table.wast:1086  unsupported: tables
-br_table.wast:1087  unsupported: tables
-br_table.wast:1088  unsupported: tables
-br_table.wast:1089  unsupported: tables
-br_table.wast:1090  unsupported: tables
-br_table.wast:1092  unsupported: tables
-br_table.wast:1093  unsupported: tables
-br_table.wast:1094  unsupported: tables
-br_table.wast:1095  unsupported: tables
-br_table.wast:1096  unsupported: tables
-br_table.wast:1097  unsupported: tables
-br_table.wast:1099  unsupported: tables
-br_table.wast:1100  unsupported: tables
-br_table.wast:1101  unsupported: tables
-br_table.wast:1102  unsupported: tables
-br_table.wast:1103  unsupported: tables
-br_table.wast:1104  unsupported: tables
-br_table.wast:1106  unsupported: tables
-br_table.wast:1107  unsupported: tables
-br_table.wast:1108  unsupported: tables
-br_table.wast:1109  unsupported: tables
-br_table.wast:1110  unsupported: tables
-br_table.wast:1111  unsupported: tables
-br_table.wast:1112  unsupported: tables
-br_table.wast:1113  unsupported: tables
-br_table.wast:1114  unsupported: tables
-br_table.wast:1115  unsupported: tables
-br_table.wast:1117  unsupported: tables
-br_table.wast:1118  unsupported: tables
-br_table.wast:1119  unsupported: tables
-br_table.wast:1120  unsupported: tables
-br_table.wast:1121  unsupported: tables
-br_table.wast:1122  unsupported: tables
-br_table.wast:1123  unsupported: tables
-br_table.wast:1124  unsupported: tables
-br_table.wast:1125  unsupported: tables
-br_table.wast:1126  unsupported: tables
-br_table.wast:1128  unsupported: tables
-br_table.wast:1129  unsupported: tables
-br_table.wast:1130  unsupported: tables
-br_table.wast:1131  unsupported: tables
-br_table.wast:1132  unsupported: tables
-br_table.wast:1133  unsupported: tables
-br_table.wast:1134  unsupported: tables
-br_table.wast:1135  unsupported: tables
-br_table.wast:1137  unsupported: tables
-br_table.wast:1138  unsupported: tables
-br_table.wast:1139  unsupported: tables
-br_table.wast:1140  unsupported: tables
-br_table.wast:1142  unsupported: tables
-br_table.wast:1143  unsupported: tables
-br_table.wast:1144  unsupported: tables
-br_table.wast:1146  unsupported: tables
-br_table.wast:1148  unsupported: tables
-br_table.wast:1149  unsupported: tables
-br_table.wast:1150  unsupported: tables
-br_table.wast:1152  unsupported: tables
-br_table.wast:1153  unsupported: tables
-br_table.wast:1154  unsupported: tables
-br_table.wast:1156  unsupported: tables
-br_table.wast:1158  unsupported: tables
-br_table.wast:1159  unsupported: tables
-br_table.wast:1160  unsupported: tables
-br_table.wast:1161  unsupported: tables
-br_table.wast:1162  unsupported: tables
-br_table.wast:1164  unsupported: tables
-br_table.wast:1165  unsupported: tables
-br_table.wast:1166  unsupported: tables
-br_table.wast:1167  unsupported: tables
-br_table.wast:1168  unsupported: tables
-br_table.wast:1170  unsupported: tables
-br_table.wast:1171  unsupported: tables
-br_table.wast:1172  unsupported: tables
-br_table.wast:1174  unsupported: tables
-br_table.wast:1175  unsupported: tables
-br_table.wast:1176  unsupported: tables
-br_table.wast:1177  unsupported: tables
-br_table.wast:1179  unsupported: tables
-br_table.wast:1180  unsupported: tables
-br_table.wast:1181  unsupported: tables
-br_table.wast:1183  unsupported: tables
-br_table.wast:1184  unsupported: tables
-br_table.wast:1186  unsupported: tables
-br_table.wast:1187  unsupported: tables
-br_table.wast:1188  unsupported: tables
-br_table.wast:1189  unsupported: tables
-br_table.wast:1191  unsupported: tables
-br_table.wast:1193  unsupported: tables
-br_table.wast:1194  unsupported: tables
-br_table.wast:1196  unsupported: tables
-br_table.wast:1198  unsupported: tables
-br_table.wast:1199  unsupported: tables
-br_table.wast:1201  unsupported: tables
-br_table.wast:1203  unsupported: tables
-br_table.wast:1205  unsupported: tables
-br_table.wast:1206  unsupported: tables
-br_table.wast:1207  unsupported: tables
-br_table.wast:1208  unsupported: tables
-br_table.wast:1209  unsupported: tables
-br_table.wast:1210  unsupported: tables
-br_table.wast:1212  unsupported: tables
-br_table.wast:1213  unsupported: tables
-br_table.wast:1214  unsupported: tables
-br_table.wast:1215  unsupported: tables
-br_table.wast:1216  unsupported: tables
-br_table.wast:1217  unsupported: tables
-br_table.wast:1219  unsupported: tables
-br_table.wast:1220  unsupported: tables
-br_table.wast:1221  unsupported: tables
-br_table.wast:1222  unsupported: tables
-br_table.wast:1223  unsupported: tables
-br_table.wast:1224  unsupported: tables
-br_table.wast:1226  unsupported: tables
-br_table.wast:1227  unsupported: tables
-br_table.wast:1228  unsupported: tables
-br_table.wast:1229  unsupported: tables
-br_table.wast:1230  unsupported: tables
-br_table.wast:1231  unsupported: tables
-br_table.wast:1233  unsupported: tables
-br_table.wast:1234  unsupported: tables
-br_table.wast:1235  unsupported: tables
-br_table.wast:1236  unsupported: tables
-br_table.wast:1237  unsupported: tables
-br_table.wast:1238  unsupported: tables
-br_table.wast:1240  unsupported: tables
-br_table.wast:1241  unsupported: tables
-br_table.wast:1242  unsupported: tables
-br_table.wast:1243  unsupported: tables
-br_table.wast:1244  unsupported: tables
-br_table.wast:1245  unsupported: tables
-br_table.wast:1247  unsupported: tables
-br_table.wast:1249  unsupported: tables
-br_table.wast:1250  unsupported: tables
-br_table.wast:1251  unsupported: tables
-br_table.wast:1253  unsupported: tables
-br_table.wast:1254  unsupported: tables
-br_table.wast:1255  unsupported: tables
-br_table.wast:1256  unsupported: tables
-br_table.wast:1257  unsupported: tables
-br_table.wast:1258  unsupported: tables
-br_table.wast:1259  unsupported: tables
-br_table.wast:1260  unsupported: tables
-br_table.wast:1261  unsupported: tables
-br_table.wast:1262  unsupported: tables
-br_table.wast:1263  unsupported: tables
-br_table.wast:1264  unsupported: tables
-br_table.wast:3  unsupported: tables
-call.wast:285  unsupported: tables
-call.wast:286  unsupported: tables
-call.wast:287  unsupported: tables
-call.wast:288  unsupported: tables
-call.wast:289  unsupported: tables
-call.wast:291  unsupported: tables
-call.wast:292  unsupported: tables
-call.wast:293  unsupported: tables
-call.wast:294  unsupported: tables
-call.wast:296  unsupported: tables
-call.wast:297  unsupported: tables
-call.wast:298  unsupported: tables
-call.wast:299  unsupported: tables
-call.wast:3  unsupported: tables
-call.wast:301  unsupported: tables
-call.wast:302  unsupported: tables
-call.wast:303  unsupported: tables
-call.wast:304  unsupported: tables
-call.wast:306  unsupported: tables
-call.wast:307  unsupported: tables
-call.wast:308  unsupported: tables
-call.wast:310  unsupported: tables
-call.wast:311  unsupported: tables
-call.wast:312  unsupported: tables
-call.wast:313  unsupported: tables
-call.wast:314  unsupported: tables
-call.wast:315  unsupported: tables
-call.wast:316  unsupported: tables
-call.wast:318  unsupported: tables
-call.wast:322  unsupported: tables
-call.wast:323  unsupported: tables
-call.wast:324  unsupported: tables
-call.wast:325  unsupported: tables
-call.wast:326  unsupported: tables
-call.wast:328  unsupported: tables
-call.wast:329  unsupported: tables
-call.wast:330  unsupported: tables
-call.wast:331  unsupported: tables
-call.wast:332  unsupported: tables
-call.wast:333  unsupported: tables
-call.wast:334  unsupported: tables
-call.wast:335  unsupported: tables
-call.wast:337  unsupported: tables
-call.wast:338  unsupported: tables
-call.wast:340  unsupported: tables
-call.wast:341  unsupported: tables
-call.wast:342  unsupported: tables
-call.wast:344  unsupported: tables
-call.wast:346  unsupported: tables
-call.wast:347  unsupported: tables
-call.wast:349  unsupported: tables
-call.wast:350  unsupported: tables
-call.wast:352  unsupported: tables
-call.wast:353  unsupported: tables
-call.wast:354  unsupported: tables
-call.wast:356  unsupported: tables
-call.wast:357  unsupported: tables
-call.wast:359  unsupported: tables
-call.wast:360  unsupported: tables
-call.wast:361  unsupported: tables
-call.wast:362  unsupported: tables
-call.wast:363  unsupported: tables
-call.wast:364  unsupported: tables
-call.wast:365  unsupported: tables
-call.wast:366  unsupported: tables
-call.wast:368  unsupported: tables
-call.wast:369  unsupported: tables
-call.wast:370  unsupported: tables
-call.wast:371  unsupported: tables
-call.wast:372  unsupported: tables
-call.wast:373  unsupported: tables
-call.wast:374  unsupported: tables
-call.wast:376  unsupported: tables
-call_indirect.wast:1047  unsupported: tables
-call_indirect.wast:3  unsupported: tables
-call_indirect.wast:471  unsupported: tables
-call_indirect.wast:472  unsupported: tables
-call_indirect.wast:473  unsupported: tables
-call_indirect.wast:474  unsupported: tables
-call_indirect.wast:475  unsupported: tables
-call_indirect.wast:477  unsupported: tables
-call_indirect.wast:479  unsupported: tables
-call_indirect.wast:480  unsupported: tables
-call_indirect.wast:481  unsupported: tables
-call_indirect.wast:482  unsupported: tables
-call_indirect.wast:484  unsupported: tables
-call_indirect.wast:485  unsupported: tables
-call_indirect.wast:486  unsupported: tables
-call_indirect.wast:487  unsupported: tables
-call_indirect.wast:489  unsupported: tables
-call_indirect.wast:490  unsupported: tables
-call_indirect.wast:491  unsupported: tables
-call_indirect.wast:493  unsupported: tables
-call_indirect.wast:494  unsupported: tables
-call_indirect.wast:495  unsupported: tables
-call_indirect.wast:496  unsupported: tables
-call_indirect.wast:497  unsupported: tables
-call_indirect.wast:498  unsupported: tables
-call_indirect.wast:499  unsupported: tables
-call_indirect.wast:500  unsupported: tables
-call_indirect.wast:501  unsupported: tables
-call_indirect.wast:502  unsupported: tables
-call_indirect.wast:504  unsupported: tables
-call_indirect.wast:505  unsupported: tables
-call_indirect.wast:506  unsupported: tables
-call_indirect.wast:507  unsupported: tables
-call_indirect.wast:508  unsupported: tables
-call_indirect.wast:509  unsupported: tables
-call_indirect.wast:511  unsupported: tables
-call_indirect.wast:512  unsupported: tables
-call_indirect.wast:513  unsupported: tables
-call_indirect.wast:514  unsupported: tables
-call_indirect.wast:515  unsupported: tables
-call_indirect.wast:516  unsupported: tables
-call_indirect.wast:518  unsupported: tables
-call_indirect.wast:519  unsupported: tables
-call_indirect.wast:520  unsupported: tables
-call_indirect.wast:521  unsupported: tables
-call_indirect.wast:522  unsupported: tables
-call_indirect.wast:523  unsupported: tables
-call_indirect.wast:525  unsupported: tables
-call_indirect.wast:526  unsupported: tables
-call_indirect.wast:527  unsupported: tables
-call_indirect.wast:528  unsupported: tables
-call_indirect.wast:529  unsupported: tables
-call_indirect.wast:530  unsupported: tables
-call_indirect.wast:532  unsupported: tables
-call_indirect.wast:533  unsupported: tables
-call_indirect.wast:534  unsupported: tables
-call_indirect.wast:535  unsupported: tables
-call_indirect.wast:537  unsupported: tables
-call_indirect.wast:538  unsupported: tables
-call_indirect.wast:539  unsupported: tables
-call_indirect.wast:540  unsupported: tables
-call_indirect.wast:542  unsupported: tables
-call_indirect.wast:543  unsupported: tables
-call_indirect.wast:544  unsupported: tables
-call_indirect.wast:545  unsupported: tables
-call_indirect.wast:547  unsupported: tables
-call_indirect.wast:548  unsupported: tables
-call_indirect.wast:549  unsupported: tables
-call_indirect.wast:550  unsupported: tables
-call_indirect.wast:552  unsupported: tables
-call_indirect.wast:553  unsupported: tables
-call_indirect.wast:554  unsupported: tables
-call_indirect.wast:555  unsupported: tables
-call_indirect.wast:556  unsupported: tables
-call_indirect.wast:558  unsupported: tables
-call_indirect.wast:559  unsupported: tables
-call_indirect.wast:560  unsupported: tables
-call_indirect.wast:561  unsupported: tables
-call_indirect.wast:562  unsupported: tables
-call_indirect.wast:564  unsupported: tables
-call_indirect.wast:565  unsupported: tables
-call_indirect.wast:566  unsupported: tables
-call_indirect.wast:567  unsupported: tables
-call_indirect.wast:568  unsupported: tables
-call_indirect.wast:570  unsupported: tables
-call_indirect.wast:571  unsupported: tables
-call_indirect.wast:572  unsupported: tables
-call_indirect.wast:573  unsupported: tables
-call_indirect.wast:574  unsupported: tables
-call_indirect.wast:576  unsupported: tables
-call_indirect.wast:577  unsupported: tables
-call_indirect.wast:578  unsupported: tables
-call_indirect.wast:579  unsupported: tables
-call_indirect.wast:580  unsupported: tables
-call_indirect.wast:581  unsupported: tables
-call_indirect.wast:582  unsupported: tables
-call_indirect.wast:583  unsupported: tables
-call_indirect.wast:585  unsupported: tables
-call_indirect.wast:586  unsupported: tables
-call_indirect.wast:588  unsupported: tables
-call_indirect.wast:589  unsupported: tables
-call_indirect.wast:590  unsupported: tables
-call_indirect.wast:592  unsupported: tables
-call_indirect.wast:594  unsupported: tables
-call_indirect.wast:595  unsupported: tables
-call_indirect.wast:597  unsupported: tables
-call_indirect.wast:598  unsupported: tables
-call_indirect.wast:600  unsupported: tables
-call_indirect.wast:601  unsupported: tables
-call_indirect.wast:603  unsupported: tables
-call_indirect.wast:604  unsupported: tables
-call_indirect.wast:605  unsupported: tables
-call_indirect.wast:606  unsupported: tables
-call_indirect.wast:607  unsupported: tables
-call_indirect.wast:608  unsupported: tables
-call_indirect.wast:609  unsupported: tables
-call_indirect.wast:610  unsupported: tables
-call_indirect.wast:612  unsupported: tables
-call_indirect.wast:613  unsupported: tables
-call_indirect.wast:614  unsupported: tables
-call_indirect.wast:615  unsupported: tables
-call_indirect.wast:616  unsupported: tables
-call_indirect.wast:617  unsupported: tables
-call_indirect.wast:618  unsupported: tables
-call_indirect.wast:623  unsupported: tables
-call_indirect.wast:650  unsupported: tables
-call_indirect.wast:651  unsupported: tables
-call_indirect.wast:652  unsupported: tables
-call_indirect.wast:654  unsupported: tables
-call_indirect.wast:655  unsupported: tables
-call_indirect.wast:656  unsupported: tables
-call_indirect.wast:657  unsupported: tables
-call_indirect.wast:659  unsupported: tables
-call_indirect.wast:660  unsupported: tables
-call_indirect.wast:661  unsupported: tables
-call_indirect.wast:662  unsupported: tables
-call_indirect.wast:663  unsupported: tables
-call_ref.wast:1  unsupported: tables
-call_ref.wast:100  unsupported: tables
-call_ref.wast:101  unsupported: tables
-call_ref.wast:102  unsupported: tables
-call_ref.wast:103  unsupported: tables
-call_ref.wast:104  unsupported: tables
-call_ref.wast:105  unsupported: tables
-call_ref.wast:107  unsupported: tables
-call_ref.wast:111  unsupported: tables
-call_ref.wast:112  unsupported: tables
-call_ref.wast:113  unsupported: tables
-call_ref.wast:114  unsupported: tables
-call_ref.wast:115  unsupported: tables
-call_ref.wast:117  unsupported: tables
-call_ref.wast:118  unsupported: tables
-call_ref.wast:119  unsupported: tables
-call_ref.wast:120  unsupported: tables
-call_ref.wast:121  unsupported: tables
-call_ref.wast:122  unsupported: tables
-call_ref.wast:123  unsupported: tables
-call_ref.wast:124  unsupported: tables
+br_on_non_null.wast:1  unsupported: typed function references
+br_on_non_null.wast:49  unsupported: typed function references
+br_on_non_null.wast:51  unsupported: typed function references
+br_on_non_null.wast:52  unsupported: typed function references
+br_on_non_null.wast:53  unsupported: typed function references
+br_on_non_null.wast:54  unsupported: typed function references
+br_on_non_null.wast:55  unsupported: typed function references
+br_on_non_null.wast:57  unsupported: typed function references
+br_on_non_null.wast:65  unsupported: typed function references
+br_on_non_null.wast:86  unsupported: typed function references
+br_on_non_null.wast:87  unsupported: typed function references
+br_on_null.wast:1  unsupported: typed function references
+br_on_null.wast:32  unsupported: typed function references
+br_on_null.wast:34  unsupported: typed function references
+br_on_null.wast:35  unsupported: typed function references
+br_on_null.wast:36  unsupported: typed function references
+br_on_null.wast:38  unsupported: typed function references
+br_on_null.wast:46  unsupported: typed function references
+br_on_null.wast:65  unsupported: typed function references
+br_on_null.wast:66  unsupported: typed function references
+call_ref.wast:1  unsupported: opcode 0x14
+call_ref.wast:100  unsupported: opcode 0x14
+call_ref.wast:101  unsupported: opcode 0x14
+call_ref.wast:102  unsupported: opcode 0x14
+call_ref.wast:103  unsupported: opcode 0x14
+call_ref.wast:104  unsupported: opcode 0x14
+call_ref.wast:105  unsupported: opcode 0x14
+call_ref.wast:107  unsupported: opcode 0x14
+call_ref.wast:111  unsupported: opcode 0x14
+call_ref.wast:112  unsupported: opcode 0x14
+call_ref.wast:113  unsupported: opcode 0x14
+call_ref.wast:114  unsupported: opcode 0x14
+call_ref.wast:115  unsupported: opcode 0x14
+call_ref.wast:117  unsupported: opcode 0x14
+call_ref.wast:118  unsupported: opcode 0x14
+call_ref.wast:119  unsupported: opcode 0x14
+call_ref.wast:120  unsupported: opcode 0x14
+call_ref.wast:121  unsupported: opcode 0x14
+call_ref.wast:122  unsupported: opcode 0x14
+call_ref.wast:123  unsupported: opcode 0x14
+call_ref.wast:124  unsupported: opcode 0x14
 call_ref.wast:129  unsupported: opcode 0x14
 call_ref.wast:136  unsupported: opcode 0x14
-call_ref.wast:138  unsupported: tables
-call_ref.wast:149  unsupported: tables
-call_ref.wast:151  unsupported: tables
-call_ref.wast:165  unsupported: tables
-call_ref.wast:94  unsupported: tables
-call_ref.wast:95  unsupported: tables
-call_ref.wast:97  unsupported: tables
-call_ref.wast:99  unsupported: tables
-data.wast:100  unsupported: tables
-data.wast:115  unsupported: tables
-data.wast:134  unsupported: tables
-data.wast:144  unsupported: tables
-data.wast:149  unsupported: tables
-data.wast:154  unsupported: tables
-data.wast:160  unsupported: tables
-data.wast:166  unsupported: tables
-data.wast:171  unsupported: tables
-data.wast:195  unsupported: tables
-data.wast:258  unsupported: tables
-data.wast:274  unsupported: tables
-data.wast:305  unsupported: tables
-data.wast:320  unsupported: tables
-data.wast:44  unsupported: tables
-data.wast:532  unsupported: bulk memory
-data.wast:542  unsupported: bulk memory
-data.wast:543  unsupported: bulk memory
-data.wast:57  unsupported: tables
-data.wast:67  unsupported: tables
-data.wast:72  unsupported: tables
-data.wast:78  unsupported: tables
-data.wast:83  unsupported: tables
-elem.wast:1007  unsupported: tables
-elem.wast:1016  unsupported: tables
-elem.wast:1017  unsupported: tables
-elem.wast:1019  unsupported: tables
-elem.wast:1020  unsupported: tables
-elem.wast:1022  unsupported: tables
-elem.wast:1023  unsupported: tables
-elem.wast:1025  unsupported: tables
-elem.wast:1029  unsupported: tables
-elem.wast:103  unsupported: tables
-elem.wast:1030  unsupported: tables
-elem.wast:1034  unsupported: reference types
-elem.wast:1043  unsupported: tables
-elem.wast:1053  unsupported: tables
-elem.wast:1057  unsupported: tables
-elem.wast:1065  unsupported: tables
-elem.wast:1066  unsupported: tables
-elem.wast:1068  unsupported: tables
-elem.wast:1076  unsupported: tables
-elem.wast:1077  unsupported: tables
-elem.wast:1079  unsupported: tables
-elem.wast:1087  unsupported: tables
-elem.wast:1088  unsupported: tables
-elem.wast:109  unsupported: tables
-elem.wast:1092  unsupported: tables
-elem.wast:1109  unsupported: tables
-elem.wast:1110  unsupported: tables
-elem.wast:1113  unsupported: tables
-elem.wast:1125  unsupported: tables
-elem.wast:1126  unsupported: tables
-elem.wast:118  unsupported: tables
-elem.wast:128  unsupported: tables
-elem.wast:135  unsupported: tables
-elem.wast:142  unsupported: tables
-elem.wast:156  unsupported: tables
-elem.wast:157  unsupported: tables
-elem.wast:161  unsupported: tables
-elem.wast:175  unsupported: tables
-elem.wast:176  unsupported: tables
-elem.wast:178  unsupported: tables
-elem.wast:182  unsupported: tables
-elem.wast:190  unsupported: tables
-elem.wast:195  unsupported: tables
-elem.wast:201  unsupported: tables
-elem.wast:205  unsupported: tables
-elem.wast:210  unsupported: tables
-elem.wast:215  unsupported: tables
-elem.wast:220  unsupported: tables
-elem.wast:226  unsupported: tables
-elem.wast:232  unsupported: tables
-elem.wast:238  unsupported: tables
-elem.wast:247  unsupported: tables
-elem.wast:252  unsupported: tables
-elem.wast:264  unsupported: tables
-elem.wast:269  unsupported: tables
-elem.wast:281  unsupported: tables
-elem.wast:286  unsupported: tables
-elem.wast:298  unsupported: tables
-elem.wast:303  unsupported: tables
-elem.wast:315  unsupported: tables
-elem.wast:320  unsupported: tables
-elem.wast:331  unsupported: tables
-elem.wast:336  unsupported: tables
-elem.wast:348  unsupported: tables
-elem.wast:353  unsupported: tables
-elem.wast:364  unsupported: tables
-elem.wast:369  unsupported: tables
-elem.wast:381  unsupported: tables
-elem.wast:386  unsupported: tables
-elem.wast:397  unsupported: tables
-elem.wast:4  unsupported: tables
-elem.wast:402  unsupported: tables
-elem.wast:414  unsupported: tables
-elem.wast:419  unsupported: tables
-elem.wast:430  unsupported: tables
-elem.wast:435  unsupported: tables
-elem.wast:448  unsupported: tables
-elem.wast:453  unsupported: tables
-elem.wast:465  unsupported: tables
-elem.wast:470  unsupported: tables
-elem.wast:482  unsupported: tables
-elem.wast:487  unsupported: tables
-elem.wast:499  unsupported: tables
-elem.wast:504  unsupported: tables
-elem.wast:539  unsupported: tables
-elem.wast:544  unsupported: tables
-elem.wast:556  unsupported: tables
-elem.wast:561  unsupported: tables
-elem.wast:573  unsupported: tables
-elem.wast:578  unsupported: tables
-elem.wast:594  unsupported: tables
-elem.wast:603  unsupported: tables
-elem.wast:612  unsupported: tables
-elem.wast:621  unsupported: tables
-elem.wast:628  unsupported: tables
-elem.wast:636  unsupported: tables
-elem.wast:645  unsupported: tables
-elem.wast:653  unsupported: tables
-elem.wast:662  unsupported: tables
-elem.wast:670  unsupported: tables
-elem.wast:679  unsupported: tables
-elem.wast:687  unsupported: tables
-elem.wast:698  unsupported: tables
-elem.wast:706  unsupported: tables
-elem.wast:708  unsupported: tables
-elem.wast:716  unsupported: tables
-elem.wast:80  unsupported: tables
-elem.wast:87  unsupported: tables
-elem.wast:897  unsupported: tables
-elem.wast:908  unsupported: tables
-elem.wast:910  unsupported: tables
-elem.wast:921  unsupported: tables
-elem.wast:926  unsupported: tables
-elem.wast:946  unsupported: tables
-elem.wast:947  unsupported: tables
-elem.wast:948  unsupported: tables
-elem.wast:950  unsupported: tables
-elem.wast:959  unsupported: tables
-elem.wast:960  unsupported: tables
-elem.wast:961  unsupported: tables
-elem.wast:963  unsupported: tables
-elem.wast:972  unsupported: tables
-elem.wast:973  unsupported: tables
-elem.wast:974  unsupported: tables
-elem.wast:98  unsupported: tables
-exports.wast:135  unsupported: tables
-exports.wast:136  unsupported: tables
-exports.wast:137  unsupported: tables
-exports.wast:139  unsupported: tables
-exports.wast:140  unsupported: tables
-exports.wast:141  unsupported: tables
-exports.wast:142  unsupported: tables
-exports.wast:143  unsupported: tables
-exports.wast:144  unsupported: tables
-exports.wast:145  unsupported: tables
-exports.wast:146  unsupported: tables
-exports.wast:147  unsupported: tables
-exports.wast:148  unsupported: tables
-exports.wast:149  unsupported: tables
-exports.wast:150  unsupported: tables
+call_ref.wast:138  unsupported: opcode 0x14
+call_ref.wast:149  unsupported: opcode 0x14
+call_ref.wast:151  unsupported: opcode 0x14
+call_ref.wast:165  unsupported: opcode 0x14
+call_ref.wast:94  unsupported: opcode 0x14
+call_ref.wast:95  unsupported: opcode 0x14
+call_ref.wast:97  unsupported: opcode 0x14
+call_ref.wast:99  unsupported: opcode 0x14
 exports.wast:71  module accepted
-func.wast:488  unsupported: tables
-func.wast:551  unsupported: tables
-func.wast:552  unsupported: tables
-func.wast:553  unsupported: tables
-func.wast:554  unsupported: tables
-func_ptrs.wast:1  unsupported: tables
-func_ptrs.wast:105  unsupported: tables
-func_ptrs.wast:106  unsupported: tables
-func_ptrs.wast:27  unsupported: tables
-func_ptrs.wast:28  unsupported: tables
-func_ptrs.wast:29  unsupported: tables
-func_ptrs.wast:30  unsupported: tables
-func_ptrs.wast:51  unsupported: tables
-func_ptrs.wast:71  unsupported: tables
-func_ptrs.wast:72  unsupported: tables
-func_ptrs.wast:73  unsupported: tables
-func_ptrs.wast:74  unsupported: tables
-func_ptrs.wast:75  unsupported: tables
-func_ptrs.wast:76  unsupported: tables
-func_ptrs.wast:77  unsupported: tables
-func_ptrs.wast:78  unsupported: tables
-func_ptrs.wast:79  unsupported: tables
-func_ptrs.wast:80  unsupported: tables
-func_ptrs.wast:82  unsupported: tables
-func_ptrs.wast:83  unsupported: tables
-func_ptrs.wast:84  unsupported: tables
-func_ptrs.wast:85  unsupported: tables
-func_ptrs.wast:86  unsupported: tables
-func_ptrs.wast:87  unsupported: tables
-func_ptrs.wast:88  unsupported: tables
-func_ptrs.wast:89  unsupported: tables
-func_ptrs.wast:90  unsupported: tables
-func_ptrs.wast:91  unsupported: tables
-func_ptrs.wast:93  unsupported: tables
-global.wast:204  unsupported: tables
-global.wast:205  unsupported: tables
-global.wast:206  unsupported: tables
-global.wast:207  unsupported: tables
-global.wast:208  unsupported: tables
-global.wast:209  unsupported: tables
-global.wast:210  unsupported: tables
-global.wast:211  unsupported: tables
-global.wast:212  unsupported: tables
-global.wast:213  unsupported: tables
-global.wast:214  unsupported: tables
-global.wast:215  unsupported: tables
-global.wast:217  unsupported: tables
-global.wast:218  unsupported: tables
-global.wast:219  unsupported: tables
-global.wast:220  unsupported: tables
-global.wast:222  unsupported: tables
-global.wast:223  unsupported: tables
-global.wast:225  unsupported: tables
-global.wast:226  unsupported: tables
-global.wast:228  unsupported: tables
-global.wast:229  unsupported: tables
-global.wast:230  unsupported: tables
-global.wast:231  unsupported: tables
-global.wast:233  unsupported: tables
-global.wast:234  unsupported: tables
-global.wast:235  unsupported: tables
-global.wast:237  unsupported: tables
-global.wast:238  unsupported: tables
-global.wast:239  unsupported: tables
-global.wast:240  unsupported: tables
-global.wast:241  unsupported: tables
-global.wast:243  unsupported: tables
-global.wast:244  unsupported: tables
-global.wast:245  unsupported: tables
-global.wast:247  unsupported: tables
-global.wast:248  unsupported: tables
-global.wast:249  unsupported: tables
-global.wast:251  unsupported: tables
-global.wast:252  unsupported: tables
-global.wast:253  unsupported: tables
-global.wast:255  unsupported: tables
-global.wast:256  unsupported: tables
-global.wast:258  unsupported: tables
-global.wast:259  unsupported: tables
-global.wast:261  unsupported: tables
-global.wast:262  unsupported: tables
-global.wast:263  unsupported: tables
-global.wast:265  unsupported: tables
-global.wast:266  unsupported: tables
-global.wast:267  unsupported: tables
-global.wast:268  unsupported: tables
-global.wast:270  unsupported: tables
-global.wast:272  unsupported: tables
-global.wast:273  unsupported: tables
-global.wast:274  unsupported: tables
-global.wast:276  unsupported: tables
-global.wast:277  unsupported: tables
-global.wast:278  unsupported: tables
-global.wast:280  unsupported: tables
-global.wast:281  unsupported: tables
-global.wast:282  unsupported: tables
-global.wast:3  unsupported: tables
-global.wast:381  unsupported: tables
-global.wast:634  unsupported: tables
-global.wast:659  unsupported: tables
-global.wast:660  unsupported: tables
-global.wast:661  unsupported: tables
-global.wast:663  unsupported: tables
-global.wast:664  unsupported: tables
-if.wast:3  unsupported: tables
-if.wast:537  unsupported: tables
-if.wast:538  unsupported: tables
-if.wast:539  unsupported: tables
-if.wast:540  unsupported: tables
-if.wast:542  unsupported: tables
-if.wast:543  unsupported: tables
-if.wast:544  unsupported: tables
-if.wast:545  unsupported: tables
-if.wast:547  unsupported: tables
-if.wast:548  unsupported: tables
-if.wast:549  unsupported: tables
-if.wast:550  unsupported: tables
-if.wast:552  unsupported: tables
-if.wast:553  unsupported: tables
-if.wast:554  unsupported: tables
-if.wast:555  unsupported: tables
-if.wast:556  unsupported: tables
-if.wast:557  unsupported: tables
-if.wast:558  unsupported: tables
-if.wast:559  unsupported: tables
-if.wast:561  unsupported: tables
-if.wast:562  unsupported: tables
-if.wast:563  unsupported: tables
-if.wast:564  unsupported: tables
-if.wast:565  unsupported: tables
-if.wast:566  unsupported: tables
-if.wast:568  unsupported: tables
-if.wast:569  unsupported: tables
-if.wast:570  unsupported: tables
-if.wast:571  unsupported: tables
-if.wast:572  unsupported: tables
-if.wast:573  unsupported: tables
-if.wast:575  unsupported: tables
-if.wast:576  unsupported: tables
-if.wast:578  unsupported: tables
-if.wast:579  unsupported: tables
-if.wast:580  unsupported: tables
-if.wast:581  unsupported: tables
-if.wast:583  unsupported: tables
-if.wast:584  unsupported: tables
-if.wast:585  unsupported: tables
-if.wast:586  unsupported: tables
-if.wast:588  unsupported: tables
-if.wast:589  unsupported: tables
-if.wast:590  unsupported: tables
-if.wast:591  unsupported: tables
-if.wast:592  unsupported: tables
-if.wast:593  unsupported: tables
-if.wast:595  unsupported: tables
-if.wast:596  unsupported: tables
-if.wast:597  unsupported: tables
-if.wast:598  unsupported: tables
-if.wast:600  unsupported: tables
-if.wast:601  unsupported: tables
-if.wast:603  unsupported: tables
-if.wast:604  unsupported: tables
-if.wast:606  unsupported: tables
-if.wast:607  unsupported: tables
-if.wast:609  unsupported: tables
-if.wast:610  unsupported: tables
-if.wast:612  unsupported: tables
-if.wast:613  unsupported: tables
-if.wast:615  unsupported: tables
-if.wast:616  unsupported: tables
-if.wast:618  unsupported: tables
-if.wast:619  unsupported: tables
-if.wast:621  unsupported: tables
-if.wast:622  unsupported: tables
-if.wast:624  unsupported: tables
-if.wast:625  unsupported: tables
-if.wast:627  unsupported: tables
-if.wast:628  unsupported: tables
-if.wast:629  unsupported: tables
-if.wast:631  unsupported: tables
-if.wast:632  unsupported: tables
-if.wast:633  unsupported: tables
-if.wast:634  unsupported: tables
-if.wast:636  unsupported: tables
-if.wast:637  unsupported: tables
-if.wast:639  unsupported: tables
-if.wast:640  unsupported: tables
-if.wast:641  unsupported: tables
-if.wast:642  unsupported: tables
-if.wast:644  unsupported: tables
-if.wast:645  unsupported: tables
-if.wast:647  unsupported: tables
-if.wast:648  unsupported: tables
-if.wast:650  unsupported: tables
-if.wast:651  unsupported: tables
-if.wast:653  unsupported: tables
-if.wast:654  unsupported: tables
-if.wast:655  unsupported: tables
-if.wast:656  unsupported: tables
-if.wast:659  unsupported: tables
-if.wast:663  unsupported: tables
-if.wast:664  unsupported: tables
-if.wast:665  unsupported: tables
-if.wast:666  unsupported: tables
-if.wast:667  unsupported: tables
-if.wast:668  unsupported: tables
-if.wast:669  unsupported: tables
-if.wast:670  unsupported: tables
-if.wast:671  unsupported: tables
-if.wast:672  unsupported: tables
-if.wast:673  unsupported: tables
-if.wast:674  unsupported: tables
-if.wast:676  unsupported: tables
-if.wast:677  unsupported: tables
-if.wast:680  unsupported: tables
-if.wast:684  unsupported: tables
-if.wast:688  unsupported: tables
-if.wast:692  unsupported: tables
-if.wast:696  unsupported: tables
-if.wast:700  unsupported: tables
-if.wast:704  unsupported: tables
-if.wast:708  unsupported: tables
-if.wast:713  unsupported: tables
-if.wast:716  unsupported: tables
-if.wast:719  unsupported: tables
-if.wast:722  unsupported: tables
-if.wast:725  unsupported: tables
-if.wast:728  unsupported: tables
-if.wast:731  unsupported: tables
-if.wast:733  unsupported: tables
-imports.wast:109  unsupported: tables
-imports.wast:116  unsupported: tables
-imports.wast:119  unsupported: tables
-imports.wast:126  unsupported: tables
 imports.wast:128  unsupported: module not fully validated
 imports.wast:129  unsupported: module not fully validated
 imports.wast:130  unsupported: module not fully validated
@@ -1059,7 +58,6 @@ imports.wast:132  unsupported: module not fully validated
 imports.wast:133  unsupported: module not fully validated
 imports.wast:134  unsupported: module not fully validated
 imports.wast:137  unsupported: module not fully validated
-imports.wast:141  unsupported: tables
 imports.wast:146  unsupported: module not fully validated
 imports.wast:150  unsupported: module not fully validated
 imports.wast:154  unsupported: module not fully validated
@@ -1077,35 +75,18 @@ imports.wast:194  unsupported: module not fully validated
 imports.wast:198  unsupported: module not fully validated
 imports.wast:202  unsupported: module not fully validated
 imports.wast:206  unsupported: module not fully validated
-imports.wast:21  unsupported: tables
 imports.wast:211  unsupported: module not fully validated
-imports.wast:215  unsupported: tables
-imports.wast:22  unsupported: tables
 imports.wast:223  unsupported: module not fully validated
-imports.wast:227  unsupported: tables
-imports.wast:23  unsupported: tables
-imports.wast:231  unsupported: tables
-imports.wast:235  unsupported: tables
-imports.wast:24  unsupported: tables
 imports.wast:240  LoadError: NotImplementedError: tag import
 imports.wast:244  LoadError: NotImplementedError: tag import
 imports.wast:248  LoadError: NotImplementedError: tag import
 imports.wast:252  LoadError: NotImplementedError: tag import
 imports.wast:256  LoadError: NotImplementedError: tag import
-imports.wast:263  unsupported: tables
-imports.wast:283  unsupported: tables
-imports.wast:284  unsupported: tables
-imports.wast:285  unsupported: tables
-imports.wast:286  unsupported: tables
-imports.wast:287  unsupported: tables
-imports.wast:288  unsupported: tables
-imports.wast:289  unsupported: tables
 imports.wast:291  unsupported: module not fully validated
 imports.wast:292  unsupported: module not fully validated
 imports.wast:293  unsupported: module not fully validated
 imports.wast:296  unsupported: module not fully validated
 imports.wast:3  unsupported: module not fully validated
-imports.wast:300  unsupported: tables
 imports.wast:305  unsupported: module not fully validated
 imports.wast:309  unsupported: module not fully validated
 imports.wast:313  unsupported: module not fully validated
@@ -1120,93 +101,12 @@ imports.wast:345  unsupported: module not fully validated
 imports.wast:349  unsupported: module not fully validated
 imports.wast:35  LoadError: NotImplementedError: tag import
 imports.wast:354  unsupported: module not fully validated
-imports.wast:358  unsupported: tables
-imports.wast:366  unsupported: tables
-imports.wast:370  unsupported: tables
-imports.wast:374  unsupported: tables
-imports.wast:381  unsupported: tables
-imports.wast:393  unsupported: tables
-imports.wast:394  unsupported: tables
-imports.wast:395  unsupported: tables
-imports.wast:396  unsupported: tables
-imports.wast:397  unsupported: tables
-imports.wast:398  unsupported: tables
-imports.wast:410  unsupported: tables
-imports.wast:411  unsupported: tables
-imports.wast:412  unsupported: tables
-imports.wast:413  unsupported: tables
-imports.wast:414  unsupported: tables
-imports.wast:415  unsupported: tables
-imports.wast:416  unsupported: tables
-imports.wast:417  unsupported: tables
-imports.wast:418  unsupported: tables
-imports.wast:419  unsupported: tables
-imports.wast:420  unsupported: tables
-imports.wast:421  unsupported: tables
-imports.wast:422  unsupported: tables
-imports.wast:423  unsupported: tables
-imports.wast:424  unsupported: tables
-imports.wast:425  unsupported: tables
-imports.wast:426  unsupported: tables
-imports.wast:427  unsupported: tables
-imports.wast:428  unsupported: tables
-imports.wast:429  unsupported: tables
-imports.wast:430  unsupported: tables
-imports.wast:431  unsupported: tables
-imports.wast:432  unsupported: tables
-imports.wast:433  unsupported: tables
-imports.wast:434  unsupported: tables
-imports.wast:435  unsupported: tables
-imports.wast:436  unsupported: tables
-imports.wast:437  unsupported: tables
-imports.wast:438  unsupported: tables
-imports.wast:441  unsupported: tables
-imports.wast:445  unsupported: tables
-imports.wast:450  unsupported: tables
-imports.wast:454  unsupported: tables
-imports.wast:458  unsupported: tables
-imports.wast:462  unsupported: tables
-imports.wast:466  unsupported: tables
-imports.wast:470  unsupported: tables
-imports.wast:475  unsupported: tables
-imports.wast:479  unsupported: tables
-imports.wast:483  unsupported: tables
-imports.wast:487  unsupported: tables
-imports.wast:494  unsupported: tables
-imports.wast:501  unsupported: tables
-imports.wast:502  unsupported: tables
-imports.wast:503  unsupported: tables
-imports.wast:504  unsupported: tables
-imports.wast:507  unsupported: tables
-imports.wast:513  unsupported: tables
-imports.wast:514  unsupported: tables
-imports.wast:515  unsupported: tables
-imports.wast:516  unsupported: tables
-imports.wast:531  unsupported: tables
-imports.wast:532  unsupported: tables
-imports.wast:533  unsupported: tables
-imports.wast:534  unsupported: tables
-imports.wast:535  unsupported: tables
-imports.wast:536  unsupported: tables
+imports.wast:441  unsupported: module not fully validated
+imports.wast:475  unsupported: module not fully validated
+imports.wast:479  unsupported: module not fully validated
 imports.wast:539  unsupported: module not fully validated
-imports.wast:543  unsupported: tables
-imports.wast:620  unsupported: tables
-imports.wast:624  unsupported: tables
 imports.wast:629  unsupported: module not fully validated
 imports.wast:633  unsupported: module not fully validated
-imports.wast:637  unsupported: tables
-imports.wast:641  unsupported: tables
-imports.wast:645  unsupported: tables
-imports.wast:649  unsupported: tables
-imports.wast:654  unsupported: tables
-imports.wast:658  unsupported: tables
-imports.wast:662  unsupported: tables
-imports.wast:666  unsupported: tables
-imports.wast:667  unsupported: tables
-imports.wast:668  unsupported: tables
-imports.wast:669  unsupported: tables
-imports.wast:670  unsupported: tables
-imports.wast:749  unsupported: tables
 imports.wast:97  LookupError: no exported function print32
 imports.wast:98  LookupError: no exported function print64
 instance.wast:10  unsupported: module not fully validated
@@ -1227,545 +127,13 @@ instance.wast:55  no current module
 instance.wast:56  no current module
 instance.wast:57  no current module
 instance.wast:62  LoadError: NotImplementedError: tag import
-left-to-right.wast:1  unsupported: tables
-left-to-right.wast:181.0  unsupported: tables
-left-to-right.wast:181.1  unsupported: tables
-left-to-right.wast:182.0  unsupported: tables
-left-to-right.wast:182.1  unsupported: tables
-left-to-right.wast:183.0  unsupported: tables
-left-to-right.wast:183.1  unsupported: tables
-left-to-right.wast:184.0  unsupported: tables
-left-to-right.wast:184.1  unsupported: tables
-left-to-right.wast:185.0  unsupported: tables
-left-to-right.wast:185.1  unsupported: tables
-left-to-right.wast:186.0  unsupported: tables
-left-to-right.wast:186.1  unsupported: tables
-left-to-right.wast:187.0  unsupported: tables
-left-to-right.wast:187.1  unsupported: tables
-left-to-right.wast:188.0  unsupported: tables
-left-to-right.wast:188.1  unsupported: tables
-left-to-right.wast:189.0  unsupported: tables
-left-to-right.wast:189.1  unsupported: tables
-left-to-right.wast:190.0  unsupported: tables
-left-to-right.wast:190.1  unsupported: tables
-left-to-right.wast:191.0  unsupported: tables
-left-to-right.wast:191.1  unsupported: tables
-left-to-right.wast:192.0  unsupported: tables
-left-to-right.wast:192.1  unsupported: tables
-left-to-right.wast:193.0  unsupported: tables
-left-to-right.wast:193.1  unsupported: tables
-left-to-right.wast:194.0  unsupported: tables
-left-to-right.wast:194.1  unsupported: tables
-left-to-right.wast:195.0  unsupported: tables
-left-to-right.wast:195.1  unsupported: tables
-left-to-right.wast:196.0  unsupported: tables
-left-to-right.wast:196.1  unsupported: tables
-left-to-right.wast:197.0  unsupported: tables
-left-to-right.wast:197.1  unsupported: tables
-left-to-right.wast:198.0  unsupported: tables
-left-to-right.wast:198.1  unsupported: tables
-left-to-right.wast:199.0  unsupported: tables
-left-to-right.wast:199.1  unsupported: tables
-left-to-right.wast:200.0  unsupported: tables
-left-to-right.wast:200.1  unsupported: tables
-left-to-right.wast:201.0  unsupported: tables
-left-to-right.wast:201.1  unsupported: tables
-left-to-right.wast:202.0  unsupported: tables
-left-to-right.wast:202.1  unsupported: tables
-left-to-right.wast:203.0  unsupported: tables
-left-to-right.wast:203.1  unsupported: tables
-left-to-right.wast:204.0  unsupported: tables
-left-to-right.wast:204.1  unsupported: tables
-left-to-right.wast:205.0  unsupported: tables
-left-to-right.wast:205.1  unsupported: tables
-left-to-right.wast:206.0  unsupported: tables
-left-to-right.wast:206.1  unsupported: tables
-left-to-right.wast:207  unsupported: tables
-left-to-right.wast:208.0  unsupported: tables
-left-to-right.wast:208.1  unsupported: tables
-left-to-right.wast:209  unsupported: tables
-left-to-right.wast:210  unsupported: tables
-left-to-right.wast:211.0  unsupported: tables
-left-to-right.wast:211.1  unsupported: tables
-left-to-right.wast:213.0  unsupported: tables
-left-to-right.wast:213.1  unsupported: tables
-left-to-right.wast:214.0  unsupported: tables
-left-to-right.wast:214.1  unsupported: tables
-left-to-right.wast:215.0  unsupported: tables
-left-to-right.wast:215.1  unsupported: tables
-left-to-right.wast:216.0  unsupported: tables
-left-to-right.wast:216.1  unsupported: tables
-left-to-right.wast:217.0  unsupported: tables
-left-to-right.wast:217.1  unsupported: tables
-left-to-right.wast:218.0  unsupported: tables
-left-to-right.wast:218.1  unsupported: tables
-left-to-right.wast:219.0  unsupported: tables
-left-to-right.wast:219.1  unsupported: tables
-left-to-right.wast:220.0  unsupported: tables
-left-to-right.wast:220.1  unsupported: tables
-left-to-right.wast:221.0  unsupported: tables
-left-to-right.wast:221.1  unsupported: tables
-left-to-right.wast:222.0  unsupported: tables
-left-to-right.wast:222.1  unsupported: tables
-left-to-right.wast:223.0  unsupported: tables
-left-to-right.wast:223.1  unsupported: tables
-left-to-right.wast:224.0  unsupported: tables
-left-to-right.wast:224.1  unsupported: tables
-left-to-right.wast:225.0  unsupported: tables
-left-to-right.wast:225.1  unsupported: tables
-left-to-right.wast:226.0  unsupported: tables
-left-to-right.wast:226.1  unsupported: tables
-left-to-right.wast:227.0  unsupported: tables
-left-to-right.wast:227.1  unsupported: tables
-left-to-right.wast:228  unsupported: tables
-left-to-right.wast:229  unsupported: tables
-left-to-right.wast:230.0  unsupported: tables
-left-to-right.wast:230.1  unsupported: tables
-left-to-right.wast:232  unsupported: tables
-left-to-right.wast:233  unsupported: tables
-linking.wast:112  unsupported: reference types
-linking.wast:133  unsupported: reference types
-linking.wast:138  unsupported: reference types
-linking.wast:142  unsupported: reference types
-linking.wast:146  unsupported: reference types
-linking.wast:151  unsupported: reference types
-linking.wast:155  unsupported: reference types
-linking.wast:159  unsupported: reference types
-linking.wast:164  unsupported: reference types
-linking.wast:168  unsupported: reference types
-linking.wast:172  unsupported: reference types
-linking.wast:176  unsupported: reference types
-linking.wast:182  unsupported: reference types
-linking.wast:186  unsupported: reference types
-linking.wast:190  unsupported: reference types
-linking.wast:194  unsupported: reference types
-linking.wast:199  unsupported: reference types
-linking.wast:203  unsupported: reference types
-linking.wast:207  unsupported: reference types
-linking.wast:211  unsupported: reference types
-linking.wast:216  unsupported: reference types
-linking.wast:22  unsupported: tables
-linking.wast:220  unsupported: reference types
-linking.wast:224  unsupported: reference types
-linking.wast:228  unsupported: reference types
-linking.wast:233  unsupported: reference types
-linking.wast:237  unsupported: reference types
-linking.wast:241  unsupported: reference types
-linking.wast:245  unsupported: reference types
-linking.wast:250  unsupported: reference types
-linking.wast:254  unsupported: reference types
-linking.wast:258  unsupported: reference types
-linking.wast:26  unsupported: tables
-linking.wast:262  unsupported: reference types
-linking.wast:269  unsupported: tables
-linking.wast:28  unsupported: tables
-linking.wast:284  unsupported: tables
-linking.wast:303  unsupported: tables
-linking.wast:304  unsupported: tables
-linking.wast:305  unsupported: tables
-linking.wast:306  unsupported: tables
-linking.wast:308  unsupported: tables
-linking.wast:309  unsupported: tables
-linking.wast:310  unsupported: tables
-linking.wast:311  unsupported: tables
-linking.wast:313  unsupported: tables
-linking.wast:314  unsupported: tables
-linking.wast:315  unsupported: tables
-linking.wast:316  unsupported: tables
-linking.wast:318  unsupported: tables
-linking.wast:319  unsupported: tables
-linking.wast:32  unsupported: tables
-linking.wast:320  unsupported: tables
-linking.wast:321  unsupported: tables
-linking.wast:323  unsupported: tables
-linking.wast:324  unsupported: tables
-linking.wast:326  unsupported: tables
-linking.wast:339  unsupported: tables
-linking.wast:340  unsupported: tables
-linking.wast:341  unsupported: tables
-linking.wast:342  unsupported: tables
-linking.wast:344  unsupported: tables
-linking.wast:345  unsupported: tables
-linking.wast:346  unsupported: tables
-linking.wast:347  unsupported: tables
-linking.wast:348  unsupported: tables
-linking.wast:350  unsupported: tables
-linking.wast:351  unsupported: tables
-linking.wast:352  unsupported: tables
-linking.wast:353  unsupported: tables
-linking.wast:354  unsupported: tables
-linking.wast:356  unsupported: tables
-linking.wast:357  unsupported: tables
-linking.wast:358  unsupported: tables
-linking.wast:359  unsupported: tables
-linking.wast:360  unsupported: tables
-linking.wast:362  unsupported: tables
-linking.wast:364  unsupported: tables
-linking.wast:379  unsupported: tables
-linking.wast:388  unsupported: tables
-linking.wast:397  unsupported: tables
-linking.wast:402  unsupported: tables
-linking.wast:410  unsupported: tables
-linking.wast:411  unsupported: tables
-linking.wast:414  unsupported: tables
-linking.wast:423  unsupported: tables
-linking.wast:426  unsupported: tables
-linking.wast:434  unsupported: tables
-linking.wast:442  unsupported: tables
-linking.wast:446  unsupported: tables
-linking.wast:451  unsupported: tables
-linking.wast:455  unsupported: tables
-linking.wast:460  unsupported: tables
-linking.wast:464  unsupported: tables
-linking.wast:542  unsupported: tables
-linking.wast:567  unsupported: tables
-linking.wast:579  unsupported: tables
-linking.wast:593  unsupported: tables
-linking.wast:609  unsupported: tables
-linking.wast:610  unsupported: tables
-linking.wast:96  unsupported: tables
-load.wast:161  unsupported: tables
-load.wast:163  unsupported: tables
-load.wast:164  unsupported: tables
-load.wast:165  unsupported: tables
-load.wast:167  unsupported: tables
-load.wast:168  unsupported: tables
-load.wast:169  unsupported: tables
-load.wast:171  unsupported: tables
-load.wast:173  unsupported: tables
-load.wast:174  unsupported: tables
-load.wast:175  unsupported: tables
-load.wast:177  unsupported: tables
-load.wast:178  unsupported: tables
-load.wast:179  unsupported: tables
-load.wast:181  unsupported: tables
-load.wast:182  unsupported: tables
-load.wast:183  unsupported: tables
-load.wast:185  unsupported: tables
-load.wast:186  unsupported: tables
-load.wast:187  unsupported: tables
-load.wast:188  unsupported: tables
-load.wast:190  unsupported: tables
-load.wast:191  unsupported: tables
-load.wast:192  unsupported: tables
-load.wast:194  unsupported: tables
-load.wast:195  unsupported: tables
-load.wast:196  unsupported: tables
-load.wast:197  unsupported: tables
-load.wast:198  unsupported: tables
-load.wast:199  unsupported: tables
-load.wast:201  unsupported: tables
-load.wast:203  unsupported: tables
-load.wast:204  unsupported: tables
-load.wast:206  unsupported: tables
-load.wast:208  unsupported: tables
-load.wast:209  unsupported: tables
-load.wast:211  unsupported: tables
-load.wast:3  unsupported: tables
-local_init.wast:21  unsupported: reference types
-local_init.wast:22  unsupported: reference types
-local_init.wast:23  unsupported: reference types
-local_init.wast:3  unsupported: reference types
-local_init.wast:66  unsupported: reference types
-local_init.wast:74  unsupported: reference types
-local_tee.wast:280  unsupported: tables
-local_tee.wast:281  unsupported: tables
-local_tee.wast:282  unsupported: tables
-local_tee.wast:283  unsupported: tables
-local_tee.wast:285  unsupported: tables
-local_tee.wast:286  unsupported: tables
-local_tee.wast:287  unsupported: tables
-local_tee.wast:288  unsupported: tables
-local_tee.wast:290  unsupported: tables
-local_tee.wast:291  unsupported: tables
-local_tee.wast:292  unsupported: tables
-local_tee.wast:294  unsupported: tables
-local_tee.wast:295  unsupported: tables
-local_tee.wast:296  unsupported: tables
-local_tee.wast:298  unsupported: tables
-local_tee.wast:3  unsupported: tables
-local_tee.wast:300  unsupported: tables
-local_tee.wast:301  unsupported: tables
-local_tee.wast:302  unsupported: tables
-local_tee.wast:304  unsupported: tables
-local_tee.wast:305  unsupported: tables
-local_tee.wast:306  unsupported: tables
-local_tee.wast:308  unsupported: tables
-local_tee.wast:310  unsupported: tables
-local_tee.wast:311  unsupported: tables
-local_tee.wast:312  unsupported: tables
-local_tee.wast:314  unsupported: tables
-local_tee.wast:315  unsupported: tables
-local_tee.wast:316  unsupported: tables
-local_tee.wast:318  unsupported: tables
-local_tee.wast:319  unsupported: tables
-local_tee.wast:320  unsupported: tables
-local_tee.wast:322  unsupported: tables
-local_tee.wast:323  unsupported: tables
-local_tee.wast:324  unsupported: tables
-local_tee.wast:325  unsupported: tables
-local_tee.wast:327  unsupported: tables
-local_tee.wast:328  unsupported: tables
-local_tee.wast:329  unsupported: tables
-local_tee.wast:331  unsupported: tables
-local_tee.wast:332  unsupported: tables
-local_tee.wast:333  unsupported: tables
-local_tee.wast:334  unsupported: tables
-local_tee.wast:335  unsupported: tables
-local_tee.wast:336  unsupported: tables
-local_tee.wast:338  unsupported: tables
-local_tee.wast:339  unsupported: tables
-local_tee.wast:340  unsupported: tables
-local_tee.wast:341  unsupported: tables
-local_tee.wast:342  unsupported: tables
-local_tee.wast:343  unsupported: tables
-local_tee.wast:344  unsupported: tables
-local_tee.wast:345  unsupported: tables
-local_tee.wast:348  unsupported: tables
-local_tee.wast:354  unsupported: tables
-local_tee.wast:361  unsupported: tables
-loop.wast:3  unsupported: tables
-loop.wast:441  unsupported: tables
-loop.wast:442  unsupported: tables
-loop.wast:443  unsupported: tables
-loop.wast:444  unsupported: tables
-loop.wast:445  unsupported: tables
-loop.wast:447  unsupported: tables
-loop.wast:448  unsupported: tables
-loop.wast:449  unsupported: tables
-loop.wast:451  unsupported: tables
-loop.wast:452  unsupported: tables
-loop.wast:453  unsupported: tables
-loop.wast:455  unsupported: tables
-loop.wast:456  unsupported: tables
-loop.wast:458  unsupported: tables
-loop.wast:459  unsupported: tables
-loop.wast:461  unsupported: tables
-loop.wast:462  unsupported: tables
-loop.wast:463  unsupported: tables
-loop.wast:465  unsupported: tables
-loop.wast:466  unsupported: tables
-loop.wast:468  unsupported: tables
-loop.wast:469  unsupported: tables
-loop.wast:470  unsupported: tables
-loop.wast:471  unsupported: tables
-loop.wast:472  unsupported: tables
-loop.wast:473  unsupported: tables
-loop.wast:474  unsupported: tables
-loop.wast:475  unsupported: tables
-loop.wast:476  unsupported: tables
-loop.wast:478  unsupported: tables
-loop.wast:479  unsupported: tables
-loop.wast:480  unsupported: tables
-loop.wast:481  unsupported: tables
-loop.wast:482  unsupported: tables
-loop.wast:483  unsupported: tables
-loop.wast:484  unsupported: tables
-loop.wast:486  unsupported: tables
-loop.wast:487  unsupported: tables
-loop.wast:488  unsupported: tables
-loop.wast:491  unsupported: tables
-loop.wast:492  unsupported: tables
-loop.wast:494  unsupported: tables
-loop.wast:495  unsupported: tables
-loop.wast:496  unsupported: tables
-loop.wast:497  unsupported: tables
-loop.wast:498  unsupported: tables
-loop.wast:499  unsupported: tables
-loop.wast:501  unsupported: tables
-loop.wast:503  unsupported: tables
-loop.wast:504  unsupported: tables
-loop.wast:505  unsupported: tables
-loop.wast:506  unsupported: tables
-loop.wast:507  unsupported: tables
-loop.wast:508  unsupported: tables
-loop.wast:510  unsupported: tables
-loop.wast:511  unsupported: tables
-loop.wast:512  unsupported: tables
-loop.wast:513  unsupported: tables
-loop.wast:514  unsupported: tables
-loop.wast:515  unsupported: tables
-loop.wast:517  unsupported: tables
-loop.wast:518  unsupported: tables
-loop.wast:519  unsupported: tables
-loop.wast:520  unsupported: tables
-loop.wast:521  unsupported: tables
-loop.wast:522  unsupported: tables
-loop.wast:523  unsupported: tables
-loop.wast:524  unsupported: tables
-loop.wast:525  unsupported: tables
-loop.wast:526  unsupported: tables
-loop.wast:527  unsupported: tables
-loop.wast:528  unsupported: tables
-loop.wast:529  unsupported: tables
-loop.wast:530  unsupported: tables
-loop.wast:531  unsupported: tables
-loop.wast:532  unsupported: tables
-loop.wast:534  unsupported: tables
-loop.wast:536  unsupported: tables
-memory_grow.wast:108  unsupported: tables
-memory_grow.wast:266  unsupported: tables
-memory_grow.wast:268  unsupported: tables
-memory_grow.wast:269  unsupported: tables
-memory_grow.wast:270  unsupported: tables
-memory_grow.wast:272  unsupported: tables
-memory_grow.wast:273  unsupported: tables
-memory_grow.wast:274  unsupported: tables
-memory_grow.wast:276  unsupported: tables
-memory_grow.wast:278  unsupported: tables
-memory_grow.wast:279  unsupported: tables
-memory_grow.wast:280  unsupported: tables
-memory_grow.wast:282  unsupported: tables
-memory_grow.wast:283  unsupported: tables
-memory_grow.wast:284  unsupported: tables
-memory_grow.wast:286  unsupported: tables
-memory_grow.wast:287  unsupported: tables
-memory_grow.wast:288  unsupported: tables
-memory_grow.wast:290  unsupported: tables
-memory_grow.wast:291  unsupported: tables
-memory_grow.wast:292  unsupported: tables
-memory_grow.wast:293  unsupported: tables
-memory_grow.wast:295  unsupported: tables
-memory_grow.wast:296  unsupported: tables
-memory_grow.wast:297  unsupported: tables
-memory_grow.wast:299  unsupported: tables
-memory_grow.wast:300  unsupported: tables
-memory_grow.wast:301  unsupported: tables
-memory_grow.wast:302  unsupported: tables
-memory_grow.wast:303  unsupported: tables
-memory_grow.wast:304  unsupported: tables
-memory_grow.wast:306  unsupported: tables
-memory_grow.wast:308  unsupported: tables
-memory_grow.wast:309  unsupported: tables
-memory_grow.wast:311  unsupported: tables
-memory_grow.wast:313  unsupported: tables
-memory_grow.wast:314  unsupported: tables
-memory_grow.wast:316  unsupported: tables
-names.wast:1095  unsupported: tables
-names.wast:1107  unsupported: tables
-nop.wast:3  unsupported: tables
-nop.wast:306  unsupported: tables
-nop.wast:307  unsupported: tables
-nop.wast:308  unsupported: tables
-nop.wast:309  unsupported: tables
-nop.wast:311  unsupported: tables
-nop.wast:312  unsupported: tables
-nop.wast:313  unsupported: tables
-nop.wast:315  unsupported: tables
-nop.wast:316  unsupported: tables
-nop.wast:317  unsupported: tables
-nop.wast:318  unsupported: tables
-nop.wast:319  unsupported: tables
-nop.wast:321  unsupported: tables
-nop.wast:322  unsupported: tables
-nop.wast:323  unsupported: tables
-nop.wast:324  unsupported: tables
-nop.wast:326  unsupported: tables
-nop.wast:327  unsupported: tables
-nop.wast:328  unsupported: tables
-nop.wast:329  unsupported: tables
-nop.wast:331  unsupported: tables
-nop.wast:332  unsupported: tables
-nop.wast:333  unsupported: tables
-nop.wast:334  unsupported: tables
-nop.wast:335  unsupported: tables
-nop.wast:336  unsupported: tables
-nop.wast:338  unsupported: tables
-nop.wast:339  unsupported: tables
-nop.wast:340  unsupported: tables
-nop.wast:342  unsupported: tables
-nop.wast:343  unsupported: tables
-nop.wast:344  unsupported: tables
-nop.wast:345  unsupported: tables
-nop.wast:347  unsupported: tables
-nop.wast:348  unsupported: tables
-nop.wast:349  unsupported: tables
-nop.wast:350  unsupported: tables
-nop.wast:352  unsupported: tables
-nop.wast:353  unsupported: tables
-nop.wast:354  unsupported: tables
-nop.wast:356  unsupported: tables
-nop.wast:357  unsupported: tables
-nop.wast:358  unsupported: tables
-nop.wast:359  unsupported: tables
-nop.wast:360  unsupported: tables
-nop.wast:362  unsupported: tables
-nop.wast:363  unsupported: tables
-nop.wast:364  unsupported: tables
-nop.wast:366  unsupported: tables
-nop.wast:367  unsupported: tables
-nop.wast:368  unsupported: tables
-nop.wast:369  unsupported: tables
-nop.wast:371  unsupported: tables
-nop.wast:372  unsupported: tables
-nop.wast:373  unsupported: tables
-nop.wast:375  unsupported: tables
-nop.wast:376  unsupported: tables
-nop.wast:377  unsupported: tables
-nop.wast:378  unsupported: tables
-nop.wast:380  unsupported: tables
-nop.wast:381  unsupported: tables
-nop.wast:382  unsupported: tables
-nop.wast:384  unsupported: tables
-nop.wast:385  unsupported: tables
-nop.wast:386  unsupported: tables
-nop.wast:387  unsupported: tables
-nop.wast:388  unsupported: tables
-nop.wast:390  unsupported: tables
-nop.wast:391  unsupported: tables
-nop.wast:392  unsupported: tables
-nop.wast:394  unsupported: tables
-nop.wast:395  unsupported: tables
-nop.wast:396  unsupported: tables
-nop.wast:398  unsupported: tables
-nop.wast:399  unsupported: tables
-nop.wast:400  unsupported: tables
-nop.wast:402  unsupported: tables
-nop.wast:403  unsupported: tables
-nop.wast:404  unsupported: tables
-nop.wast:406  unsupported: tables
-nop.wast:407  unsupported: tables
-nop.wast:408  unsupported: tables
-nop.wast:409  unsupported: tables
-ref.wast:3  unsupported: reference types
-ref_as_non_null.wast:1  unsupported: tables
-ref_as_non_null.wast:25  unsupported: tables
-ref_as_non_null.wast:27  unsupported: tables
-ref_as_non_null.wast:28  unsupported: tables
-ref_as_non_null.wast:29  unsupported: tables
-ref_as_non_null.wast:41  unsupported: reference types
-ref_func.wast:56  unsupported: tables
-ref_func.wast:57  unsupported: tables
-ref_func.wast:58  unsupported: tables
-ref_func.wast:6  unsupported: tables
-ref_func.wast:60  unsupported: tables
-ref_func.wast:61  unsupported: tables
-ref_func.wast:62  unsupported: tables
-ref_func.wast:63  unsupported: tables
-ref_func.wast:64  unsupported: tables
-ref_func.wast:65  unsupported: tables
-ref_func.wast:66  unsupported: tables
-ref_func.wast:80  unsupported: tables
-ref_is_null.wast:1  unsupported: tables
-ref_is_null.wast:44  unsupported: tables
-ref_is_null.wast:45  unsupported: tables
-ref_is_null.wast:46  unsupported: tables
-ref_is_null.wast:48  unsupported: tables
-ref_is_null.wast:50  unsupported: tables
-ref_is_null.wast:52  unsupported: tables
-ref_is_null.wast:53  unsupported: tables
-ref_is_null.wast:54  unsupported: tables
-ref_is_null.wast:56  unsupported: tables
-ref_is_null.wast:57  unsupported: tables
-ref_is_null.wast:58  unsupported: tables
-ref_is_null.wast:60  unsupported: tables
-ref_is_null.wast:62  unsupported: tables
-ref_is_null.wast:63  unsupported: tables
-ref_is_null.wast:64  unsupported: tables
-ref_is_null.wast:66  unsupported: tables
-ref_is_null.wast:67  unsupported: tables
-ref_is_null.wast:68  unsupported: tables
-ref_is_null.wast:71  unsupported: reference types
+linking.wast:112  LinkError: incompatible import type Mref_ex.g-const-func
+ref_as_non_null.wast:1  unsupported: typed function references
+ref_as_non_null.wast:25  unsupported: typed function references
+ref_as_non_null.wast:27  unsupported: typed function references
+ref_as_non_null.wast:28  unsupported: typed function references
+ref_as_non_null.wast:29  unsupported: typed function references
+ref_as_non_null.wast:41  unsupported: typed function references
 ref_null.wast:1  LoadError: NotImplementedError: value type 0x6e
 ref_null.wast:16  no current module
 ref_null.wast:17  no current module
@@ -1800,509 +168,150 @@ ref_null.wast:78  no current module
 ref_null.wast:79  no current module
 ref_null.wast:80  no current module
 ref_null.wast:81  no current module
-return.wast:224  unsupported: tables
-return.wast:225  unsupported: tables
-return.wast:226  unsupported: tables
-return.wast:227  unsupported: tables
-return.wast:229  unsupported: tables
-return.wast:230  unsupported: tables
-return.wast:231  unsupported: tables
-return.wast:232  unsupported: tables
-return.wast:234  unsupported: tables
-return.wast:235  unsupported: tables
-return.wast:237  unsupported: tables
-return.wast:238  unsupported: tables
-return.wast:239  unsupported: tables
-return.wast:240  unsupported: tables
-return.wast:242  unsupported: tables
-return.wast:243  unsupported: tables
-return.wast:244  unsupported: tables
-return.wast:245  unsupported: tables
-return.wast:247  unsupported: tables
-return.wast:248  unsupported: tables
-return.wast:249  unsupported: tables
-return.wast:251  unsupported: tables
-return.wast:253  unsupported: tables
-return.wast:254  unsupported: tables
-return.wast:255  unsupported: tables
-return.wast:257  unsupported: tables
-return.wast:258  unsupported: tables
-return.wast:259  unsupported: tables
-return.wast:261  unsupported: tables
-return.wast:263  unsupported: tables
-return.wast:264  unsupported: tables
-return.wast:265  unsupported: tables
-return.wast:266  unsupported: tables
-return.wast:267  unsupported: tables
-return.wast:269  unsupported: tables
-return.wast:270  unsupported: tables
-return.wast:271  unsupported: tables
-return.wast:272  unsupported: tables
-return.wast:273  unsupported: tables
-return.wast:275  unsupported: tables
-return.wast:276  unsupported: tables
-return.wast:277  unsupported: tables
-return.wast:279  unsupported: tables
-return.wast:280  unsupported: tables
-return.wast:281  unsupported: tables
-return.wast:282  unsupported: tables
-return.wast:284  unsupported: tables
-return.wast:285  unsupported: tables
-return.wast:286  unsupported: tables
-return.wast:288  unsupported: tables
-return.wast:289  unsupported: tables
-return.wast:291  unsupported: tables
-return.wast:292  unsupported: tables
-return.wast:293  unsupported: tables
-return.wast:294  unsupported: tables
-return.wast:296  unsupported: tables
-return.wast:298  unsupported: tables
-return.wast:299  unsupported: tables
-return.wast:3  unsupported: tables
-return.wast:301  unsupported: tables
-return.wast:303  unsupported: tables
-return.wast:304  unsupported: tables
-return.wast:306  unsupported: tables
-return.wast:308  unsupported: tables
-return_call.wast:101  unsupported: reference types
-return_call.wast:102  unsupported: reference types
-return_call.wast:103  unsupported: reference types
-return_call.wast:104  unsupported: reference types
-return_call.wast:106  unsupported: reference types
-return_call.wast:107  unsupported: reference types
-return_call.wast:108  unsupported: reference types
-return_call.wast:109  unsupported: reference types
-return_call.wast:111  unsupported: reference types
-return_call.wast:112  unsupported: reference types
-return_call.wast:113  unsupported: reference types
-return_call.wast:114  unsupported: reference types
-return_call.wast:116  unsupported: reference types
-return_call.wast:117  unsupported: reference types
-return_call.wast:118  unsupported: reference types
-return_call.wast:120  unsupported: reference types
-return_call.wast:124  unsupported: reference types
-return_call.wast:125  unsupported: reference types
-return_call.wast:126  unsupported: reference types
-return_call.wast:128  unsupported: reference types
-return_call.wast:129  unsupported: reference types
-return_call.wast:130  unsupported: reference types
-return_call.wast:131  unsupported: reference types
-return_call.wast:132  unsupported: reference types
-return_call.wast:133  unsupported: reference types
-return_call.wast:134  unsupported: reference types
-return_call.wast:135  unsupported: reference types
-return_call.wast:136  unsupported: reference types
-return_call.wast:137  unsupported: reference types
-return_call.wast:138  unsupported: reference types
-return_call.wast:139  unsupported: reference types
-return_call.wast:140  unsupported: reference types
-return_call.wast:141  unsupported: reference types
-return_call.wast:142  unsupported: reference types
+return_call.wast:101  unsupported: tail calls
+return_call.wast:102  unsupported: tail calls
+return_call.wast:103  unsupported: tail calls
+return_call.wast:104  unsupported: tail calls
+return_call.wast:106  unsupported: tail calls
+return_call.wast:107  unsupported: tail calls
+return_call.wast:108  unsupported: tail calls
+return_call.wast:109  unsupported: tail calls
+return_call.wast:111  unsupported: tail calls
+return_call.wast:112  unsupported: tail calls
+return_call.wast:113  unsupported: tail calls
+return_call.wast:114  unsupported: tail calls
+return_call.wast:116  unsupported: tail calls
+return_call.wast:117  unsupported: tail calls
+return_call.wast:118  unsupported: tail calls
+return_call.wast:120  unsupported: tail calls
+return_call.wast:124  unsupported: tail calls
+return_call.wast:125  unsupported: tail calls
+return_call.wast:126  unsupported: tail calls
+return_call.wast:128  unsupported: tail calls
+return_call.wast:129  unsupported: tail calls
+return_call.wast:130  unsupported: tail calls
+return_call.wast:131  unsupported: tail calls
+return_call.wast:132  unsupported: tail calls
+return_call.wast:133  unsupported: tail calls
+return_call.wast:134  unsupported: tail calls
+return_call.wast:135  unsupported: tail calls
+return_call.wast:136  unsupported: tail calls
+return_call.wast:137  unsupported: tail calls
+return_call.wast:138  unsupported: tail calls
+return_call.wast:139  unsupported: tail calls
+return_call.wast:140  unsupported: tail calls
+return_call.wast:141  unsupported: tail calls
+return_call.wast:142  unsupported: tail calls
 return_call.wast:184  unsupported: tail calls
 return_call.wast:189  unsupported: tail calls
-return_call.wast:3  unsupported: reference types
-return_call_indirect.wast:247  unsupported: tables
-return_call_indirect.wast:248  unsupported: tables
-return_call_indirect.wast:249  unsupported: tables
-return_call_indirect.wast:250  unsupported: tables
-return_call_indirect.wast:252  unsupported: tables
-return_call_indirect.wast:254  unsupported: tables
-return_call_indirect.wast:255  unsupported: tables
-return_call_indirect.wast:256  unsupported: tables
-return_call_indirect.wast:257  unsupported: tables
-return_call_indirect.wast:259  unsupported: tables
-return_call_indirect.wast:260  unsupported: tables
-return_call_indirect.wast:261  unsupported: tables
-return_call_indirect.wast:262  unsupported: tables
-return_call_indirect.wast:264  unsupported: tables
-return_call_indirect.wast:265  unsupported: tables
-return_call_indirect.wast:266  unsupported: tables
-return_call_indirect.wast:267  unsupported: tables
-return_call_indirect.wast:268  unsupported: tables
-return_call_indirect.wast:269  unsupported: tables
-return_call_indirect.wast:270  unsupported: tables
-return_call_indirect.wast:271  unsupported: tables
-return_call_indirect.wast:272  unsupported: tables
-return_call_indirect.wast:274  unsupported: tables
-return_call_indirect.wast:275  unsupported: tables
-return_call_indirect.wast:276  unsupported: tables
-return_call_indirect.wast:277  unsupported: tables
-return_call_indirect.wast:278  unsupported: tables
-return_call_indirect.wast:279  unsupported: tables
-return_call_indirect.wast:281  unsupported: tables
-return_call_indirect.wast:282  unsupported: tables
-return_call_indirect.wast:283  unsupported: tables
-return_call_indirect.wast:285  unsupported: tables
-return_call_indirect.wast:286  unsupported: tables
-return_call_indirect.wast:287  unsupported: tables
-return_call_indirect.wast:288  unsupported: tables
-return_call_indirect.wast:290  unsupported: tables
-return_call_indirect.wast:291  unsupported: tables
-return_call_indirect.wast:292  unsupported: tables
-return_call_indirect.wast:293  unsupported: tables
-return_call_indirect.wast:294  unsupported: tables
-return_call_indirect.wast:295  unsupported: tables
-return_call_indirect.wast:296  unsupported: tables
-return_call_indirect.wast:297  unsupported: tables
-return_call_indirect.wast:298  unsupported: tables
-return_call_indirect.wast:299  unsupported: tables
-return_call_indirect.wast:3  unsupported: tables
-return_call_indirect.wast:300  unsupported: tables
-return_call_indirect.wast:301  unsupported: tables
-return_call_indirect.wast:303  unsupported: tables
-return_call_indirect.wast:304  unsupported: tables
-return_call_indirect.wast:305  unsupported: tables
-return_call_indirect.wast:487  unsupported: tables
-return_call_indirect.wast:493  unsupported: tables
-return_call_ref.wast:168  unsupported: tables
-return_call_ref.wast:169  unsupported: tables
-return_call_ref.wast:170  unsupported: tables
-return_call_ref.wast:171  unsupported: tables
-return_call_ref.wast:173  unsupported: tables
-return_call_ref.wast:174  unsupported: tables
-return_call_ref.wast:175  unsupported: tables
-return_call_ref.wast:176  unsupported: tables
-return_call_ref.wast:178  unsupported: tables
-return_call_ref.wast:179  unsupported: tables
-return_call_ref.wast:180  unsupported: tables
-return_call_ref.wast:181  unsupported: tables
-return_call_ref.wast:183  unsupported: tables
-return_call_ref.wast:185  unsupported: tables
-return_call_ref.wast:186  unsupported: tables
-return_call_ref.wast:187  unsupported: tables
-return_call_ref.wast:189  unsupported: tables
-return_call_ref.wast:193  unsupported: tables
-return_call_ref.wast:194  unsupported: tables
-return_call_ref.wast:195  unsupported: tables
-return_call_ref.wast:197  unsupported: tables
-return_call_ref.wast:198  unsupported: tables
-return_call_ref.wast:199  unsupported: tables
-return_call_ref.wast:200  unsupported: tables
-return_call_ref.wast:201  unsupported: tables
-return_call_ref.wast:202  unsupported: tables
-return_call_ref.wast:203  unsupported: tables
-return_call_ref.wast:204  unsupported: tables
-return_call_ref.wast:205  unsupported: tables
-return_call_ref.wast:206  unsupported: tables
-return_call_ref.wast:207  unsupported: tables
-return_call_ref.wast:208  unsupported: tables
-return_call_ref.wast:213  unsupported: tables
+return_call.wast:3  unsupported: tail calls
+return_call_indirect.wast:247  unsupported: tail calls
+return_call_indirect.wast:248  unsupported: tail calls
+return_call_indirect.wast:249  unsupported: tail calls
+return_call_indirect.wast:250  unsupported: tail calls
+return_call_indirect.wast:252  unsupported: tail calls
+return_call_indirect.wast:254  unsupported: tail calls
+return_call_indirect.wast:255  unsupported: tail calls
+return_call_indirect.wast:256  unsupported: tail calls
+return_call_indirect.wast:257  unsupported: tail calls
+return_call_indirect.wast:259  unsupported: tail calls
+return_call_indirect.wast:260  unsupported: tail calls
+return_call_indirect.wast:261  unsupported: tail calls
+return_call_indirect.wast:262  unsupported: tail calls
+return_call_indirect.wast:264  unsupported: tail calls
+return_call_indirect.wast:265  unsupported: tail calls
+return_call_indirect.wast:266  unsupported: tail calls
+return_call_indirect.wast:267  unsupported: tail calls
+return_call_indirect.wast:268  unsupported: tail calls
+return_call_indirect.wast:269  unsupported: tail calls
+return_call_indirect.wast:270  unsupported: tail calls
+return_call_indirect.wast:271  unsupported: tail calls
+return_call_indirect.wast:272  unsupported: tail calls
+return_call_indirect.wast:274  unsupported: tail calls
+return_call_indirect.wast:275  unsupported: tail calls
+return_call_indirect.wast:276  unsupported: tail calls
+return_call_indirect.wast:277  unsupported: tail calls
+return_call_indirect.wast:278  unsupported: tail calls
+return_call_indirect.wast:279  unsupported: tail calls
+return_call_indirect.wast:281  unsupported: tail calls
+return_call_indirect.wast:282  unsupported: tail calls
+return_call_indirect.wast:283  unsupported: tail calls
+return_call_indirect.wast:285  unsupported: tail calls
+return_call_indirect.wast:286  unsupported: tail calls
+return_call_indirect.wast:287  unsupported: tail calls
+return_call_indirect.wast:288  unsupported: tail calls
+return_call_indirect.wast:290  unsupported: tail calls
+return_call_indirect.wast:291  unsupported: tail calls
+return_call_indirect.wast:292  unsupported: tail calls
+return_call_indirect.wast:293  unsupported: tail calls
+return_call_indirect.wast:294  unsupported: tail calls
+return_call_indirect.wast:295  unsupported: tail calls
+return_call_indirect.wast:296  unsupported: tail calls
+return_call_indirect.wast:297  unsupported: tail calls
+return_call_indirect.wast:298  unsupported: tail calls
+return_call_indirect.wast:299  unsupported: tail calls
+return_call_indirect.wast:3  unsupported: tail calls
+return_call_indirect.wast:300  unsupported: tail calls
+return_call_indirect.wast:301  unsupported: tail calls
+return_call_indirect.wast:303  unsupported: tail calls
+return_call_indirect.wast:304  unsupported: tail calls
+return_call_indirect.wast:305  unsupported: tail calls
+return_call_indirect.wast:487  unsupported: tail calls
+return_call_indirect.wast:493  unsupported: tail calls
+return_call_ref.wast:168  unsupported: opcode 0x15
+return_call_ref.wast:169  unsupported: opcode 0x15
+return_call_ref.wast:170  unsupported: opcode 0x15
+return_call_ref.wast:171  unsupported: opcode 0x15
+return_call_ref.wast:173  unsupported: opcode 0x15
+return_call_ref.wast:174  unsupported: opcode 0x15
+return_call_ref.wast:175  unsupported: opcode 0x15
+return_call_ref.wast:176  unsupported: opcode 0x15
+return_call_ref.wast:178  unsupported: opcode 0x15
+return_call_ref.wast:179  unsupported: opcode 0x15
+return_call_ref.wast:180  unsupported: opcode 0x15
+return_call_ref.wast:181  unsupported: opcode 0x15
+return_call_ref.wast:183  unsupported: opcode 0x15
+return_call_ref.wast:185  unsupported: opcode 0x15
+return_call_ref.wast:186  unsupported: opcode 0x15
+return_call_ref.wast:187  unsupported: opcode 0x15
+return_call_ref.wast:189  unsupported: opcode 0x15
+return_call_ref.wast:193  unsupported: opcode 0x15
+return_call_ref.wast:194  unsupported: opcode 0x15
+return_call_ref.wast:195  unsupported: opcode 0x15
+return_call_ref.wast:197  unsupported: opcode 0x15
+return_call_ref.wast:198  unsupported: opcode 0x15
+return_call_ref.wast:199  unsupported: opcode 0x15
+return_call_ref.wast:200  unsupported: opcode 0x15
+return_call_ref.wast:201  unsupported: opcode 0x15
+return_call_ref.wast:202  unsupported: opcode 0x15
+return_call_ref.wast:203  unsupported: opcode 0x15
+return_call_ref.wast:204  unsupported: opcode 0x15
+return_call_ref.wast:205  unsupported: opcode 0x15
+return_call_ref.wast:206  unsupported: opcode 0x15
+return_call_ref.wast:207  unsupported: opcode 0x15
+return_call_ref.wast:208  unsupported: opcode 0x15
+return_call_ref.wast:213  unsupported: opcode 0x15
 return_call_ref.wast:299  unsupported: opcode 0x15
-return_call_ref.wast:3  unsupported: tables
+return_call_ref.wast:3  unsupported: opcode 0x15
 return_call_ref.wast:306  unsupported: opcode 0x15
-return_call_ref.wast:308  unsupported: tables
-return_call_ref.wast:319  unsupported: tables
-return_call_ref.wast:321  unsupported: tables
-return_call_ref.wast:334  unsupported: tables
-select.wast:1  unsupported: tables
-select.wast:219  unsupported: tables
-select.wast:220  unsupported: tables
-select.wast:221  unsupported: tables
-select.wast:222  unsupported: tables
-select.wast:224  unsupported: tables
-select.wast:225  unsupported: tables
-select.wast:226  unsupported: tables
-select.wast:227  unsupported: tables
-select.wast:229  unsupported: tables
-select.wast:230  unsupported: tables
-select.wast:231  unsupported: tables
-select.wast:232  unsupported: tables
-select.wast:233  unsupported: tables
-select.wast:234  unsupported: tables
-select.wast:235  unsupported: tables
-select.wast:236  unsupported: tables
-select.wast:238  unsupported: tables
-select.wast:239  unsupported: tables
-select.wast:240  unsupported: tables
-select.wast:241  unsupported: tables
-select.wast:242  unsupported: tables
-select.wast:243  unsupported: tables
-select.wast:244  unsupported: tables
-select.wast:245  unsupported: tables
-select.wast:247  unsupported: tables
-select.wast:248  unsupported: tables
-select.wast:249  unsupported: tables
-select.wast:250  unsupported: tables
-select.wast:251  unsupported: tables
-select.wast:252  unsupported: tables
-select.wast:254  unsupported: tables
-select.wast:255  unsupported: tables
-select.wast:256  unsupported: tables
-select.wast:257  unsupported: tables
-select.wast:258  unsupported: tables
-select.wast:259  unsupported: tables
-select.wast:261  unsupported: tables
-select.wast:262  unsupported: tables
-select.wast:263  unsupported: tables
-select.wast:264  unsupported: tables
-select.wast:265  unsupported: tables
-select.wast:266  unsupported: tables
-select.wast:267  unsupported: tables
-select.wast:268  unsupported: tables
-select.wast:270  unsupported: tables
-select.wast:271  unsupported: tables
-select.wast:272  unsupported: tables
-select.wast:273  unsupported: tables
-select.wast:274  unsupported: tables
-select.wast:275  unsupported: tables
-select.wast:276  unsupported: tables
-select.wast:277  unsupported: tables
-select.wast:279  unsupported: tables
-select.wast:280  unsupported: tables
-select.wast:282  unsupported: tables
-select.wast:283  unsupported: tables
-select.wast:284  unsupported: tables
-select.wast:285  unsupported: tables
-select.wast:287  unsupported: tables
-select.wast:288  unsupported: tables
-select.wast:289  unsupported: tables
-select.wast:290  unsupported: tables
-select.wast:291  unsupported: tables
-select.wast:292  unsupported: tables
-select.wast:294  unsupported: tables
-select.wast:295  unsupported: tables
-select.wast:296  unsupported: tables
-select.wast:297  unsupported: tables
-select.wast:298  unsupported: tables
-select.wast:299  unsupported: tables
-select.wast:301  unsupported: tables
-select.wast:302  unsupported: tables
-select.wast:303  unsupported: tables
-select.wast:304  unsupported: tables
-select.wast:305  unsupported: tables
-select.wast:306  unsupported: tables
-select.wast:308  unsupported: tables
-select.wast:309  unsupported: tables
-select.wast:310  unsupported: tables
-select.wast:311  unsupported: tables
-select.wast:313  unsupported: tables
-select.wast:314  unsupported: tables
-select.wast:315  unsupported: tables
-select.wast:316  unsupported: tables
-select.wast:318  unsupported: tables
-select.wast:319  unsupported: tables
-select.wast:320  unsupported: tables
-select.wast:321  unsupported: tables
-select.wast:322  unsupported: tables
-select.wast:323  unsupported: tables
-select.wast:325  unsupported: tables
-select.wast:326  unsupported: tables
-select.wast:327  unsupported: tables
-select.wast:328  unsupported: tables
-select.wast:330  unsupported: tables
-select.wast:331  unsupported: tables
-select.wast:333  unsupported: tables
-select.wast:334  unsupported: tables
-select.wast:335  unsupported: tables
-select.wast:336  unsupported: tables
-select.wast:337  unsupported: tables
-select.wast:338  unsupported: tables
-select.wast:339  unsupported: tables
-select.wast:340  unsupported: tables
-select.wast:341  unsupported: tables
-select.wast:342  unsupported: tables
-select.wast:343  unsupported: tables
-select.wast:344  unsupported: tables
-select.wast:345  unsupported: tables
-select.wast:346  unsupported: tables
-select.wast:347  unsupported: tables
-select.wast:348  unsupported: tables
-select.wast:350  unsupported: tables
-select.wast:351  unsupported: tables
-select.wast:352  unsupported: tables
-select.wast:353  unsupported: tables
-select.wast:354  unsupported: tables
-select.wast:355  unsupported: tables
-select.wast:356  unsupported: tables
-select.wast:357  unsupported: tables
-select.wast:358  unsupported: tables
-select.wast:359  unsupported: tables
-select.wast:360  unsupported: tables
-select.wast:361  unsupported: tables
-select.wast:403  unsupported: reference types
-select.wast:579  unsupported: tables
-stack.wast:156  unsupported: tables
-start.wast:80  unsupported: tables
-start.wast:86  unsupported: tables
-start.wast:92  unsupported: tables
-table.wast:10  unsupported: tables
-table.wast:112  unsupported: tables
-table.wast:113  unsupported: tables
-table.wast:114  unsupported: tables
-table.wast:115  unsupported: tables
-table.wast:116  unsupported: tables
-table.wast:12  unsupported: tables
-table.wast:13  unsupported: tables
-table.wast:14  unsupported: tables
-table.wast:16  unsupported: tables
-table.wast:17  unsupported: tables
-table.wast:19  unsupported: tables
-table.wast:20  unsupported: tables
-table.wast:21  unsupported: tables
-table.wast:3  unsupported: tables
-table.wast:4  unsupported: tables
-table.wast:5  unsupported: tables
-table.wast:6  unsupported: tables
-table.wast:7  unsupported: tables
-table.wast:8  unsupported: tables
-table.wast:86  unsupported: reference types
-table.wast:91  unsupported: reference types
-table.wast:93  unsupported: tables
-table_get.wast:1  unsupported: tables
-table_get.wast:23  unsupported: tables
-table_get.wast:25  unsupported: tables
-table_get.wast:26  unsupported: tables
-table_get.wast:28  unsupported: tables
-table_get.wast:29  unsupported: tables
-table_get.wast:30  unsupported: tables
-table_get.wast:32  unsupported: tables
-table_get.wast:33  unsupported: tables
-table_get.wast:34  unsupported: tables
-table_get.wast:35  unsupported: tables
-table_grow.wast:1  unsupported: tables
-table_grow.wast:107  unsupported: tables
-table_grow.wast:108  unsupported: tables
-table_grow.wast:109  unsupported: tables
-table_grow.wast:112  unsupported: tables
-table_grow.wast:117  unsupported: tables
-table_grow.wast:118  unsupported: tables
-table_grow.wast:124  unsupported: tables
-table_grow.wast:125  unsupported: tables
-table_grow.wast:130  unsupported: tables
-table_grow.wast:17  unsupported: tables
-table_grow.wast:18  unsupported: tables
-table_grow.wast:19  unsupported: tables
-table_grow.wast:201  unsupported: tables
-table_grow.wast:208  unsupported: tables
-table_grow.wast:209  unsupported: tables
-table_grow.wast:21  unsupported: tables
-table_grow.wast:22  unsupported: tables
-table_grow.wast:23  unsupported: tables
-table_grow.wast:24  unsupported: tables
-table_grow.wast:25  unsupported: tables
-table_grow.wast:26  unsupported: tables
-table_grow.wast:27  unsupported: tables
-table_grow.wast:29  unsupported: tables
-table_grow.wast:30  unsupported: tables
-table_grow.wast:31  unsupported: tables
-table_grow.wast:32  unsupported: tables
-table_grow.wast:33  unsupported: tables
-table_grow.wast:34  unsupported: tables
-table_grow.wast:35  unsupported: tables
-table_grow.wast:36  unsupported: tables
-table_grow.wast:37  unsupported: tables
-table_grow.wast:38  unsupported: tables
-table_grow.wast:39  unsupported: tables
-table_grow.wast:43  unsupported: tables
-table_grow.wast:51  unsupported: tables
-table_grow.wast:54  unsupported: tables
-table_grow.wast:61  unsupported: tables
-table_grow.wast:62  unsupported: tables
-table_grow.wast:63  unsupported: tables
-table_grow.wast:64  unsupported: tables
-table_grow.wast:65  unsupported: tables
-table_grow.wast:68  unsupported: tables
-table_grow.wast:75  unsupported: tables
-table_grow.wast:76  unsupported: tables
-table_grow.wast:77  unsupported: tables
-table_grow.wast:78  unsupported: tables
-table_grow.wast:79  unsupported: tables
-table_grow.wast:80  unsupported: tables
-table_grow.wast:81  unsupported: tables
-table_grow.wast:82  unsupported: tables
-table_grow.wast:85  unsupported: tables
-table_set.wast:1  unsupported: tables
-table_set.wast:29  unsupported: tables
-table_set.wast:30  unsupported: tables
-table_set.wast:31  unsupported: tables
-table_set.wast:32  unsupported: tables
-table_set.wast:33  unsupported: tables
-table_set.wast:35  unsupported: tables
-table_set.wast:36  unsupported: tables
-table_set.wast:37  unsupported: tables
-table_set.wast:38  unsupported: tables
-table_set.wast:39  unsupported: tables
-table_set.wast:41  unsupported: tables
-table_set.wast:42  unsupported: tables
-table_set.wast:43  unsupported: tables
-table_set.wast:44  unsupported: tables
-table_set.wast:46  unsupported: tables
-table_set.wast:47  unsupported: tables
-table_set.wast:48  unsupported: tables
-table_set.wast:49  unsupported: tables
-table_size.wast:1  unsupported: tables
-table_size.wast:26  unsupported: tables
-table_size.wast:27  unsupported: tables
-table_size.wast:28  unsupported: tables
-table_size.wast:29  unsupported: tables
-table_size.wast:30  unsupported: tables
-table_size.wast:31  unsupported: tables
-table_size.wast:32  unsupported: tables
-table_size.wast:34  unsupported: tables
-table_size.wast:35  unsupported: tables
-table_size.wast:36  unsupported: tables
-table_size.wast:37  unsupported: tables
-table_size.wast:38  unsupported: tables
-table_size.wast:39  unsupported: tables
-table_size.wast:40  unsupported: tables
-table_size.wast:42  unsupported: tables
-table_size.wast:43  unsupported: tables
-table_size.wast:44  unsupported: tables
-table_size.wast:45  unsupported: tables
-table_size.wast:46  unsupported: tables
-table_size.wast:47  unsupported: tables
-table_size.wast:48  unsupported: tables
-table_size.wast:49  unsupported: tables
-table_size.wast:50  unsupported: tables
-table_size.wast:51  unsupported: tables
-table_size.wast:52  unsupported: tables
-table_size.wast:54  unsupported: tables
-table_size.wast:55  unsupported: tables
-table_size.wast:56  unsupported: tables
-table_size.wast:57  unsupported: tables
-table_size.wast:58  unsupported: tables
-table_size.wast:59  unsupported: tables
-table_size.wast:60  unsupported: tables
-table_size.wast:61  unsupported: tables
-table_size.wast:62  unsupported: tables
-table_size.wast:63  unsupported: tables
-table_size.wast:64  unsupported: tables
-token.wast:33  unsupported: tables
-token.wast:38  unsupported: tables
-token.wast:47  unsupported: tables
+return_call_ref.wast:308  unsupported: opcode 0x15
+return_call_ref.wast:319  unsupported: opcode 0x15
+return_call_ref.wast:321  unsupported: opcode 0x15
+return_call_ref.wast:334  unsupported: opcode 0x15
 type-canon.wast:1  LoadError: NotImplementedError: rec / sub / struct / array types
 type-canon.wast:9  LoadError: NotImplementedError: rec / sub / struct / array types
-type-equivalence.wast:102  unsupported: tables
-type-equivalence.wast:107  unsupported: tables
-type-equivalence.wast:131  unsupported: tables
 type-equivalence.wast:136  LoadError: NotImplementedError: rec / sub / struct / array types
-type-equivalence.wast:156  unsupported: tables
-type-equivalence.wast:16  unsupported: reference types
 type-equivalence.wast:161  LoadError: NotImplementedError: rec / sub / struct / array types
-type-equivalence.wast:188  unsupported: tables
-type-equivalence.wast:195  unsupported: reference types
-type-equivalence.wast:199  unsupported: reference types
-type-equivalence.wast:200  unsupported: reference types
-type-equivalence.wast:208  unsupported: reference types
-type-equivalence.wast:217  unsupported: reference types
-type-equivalence.wast:218  unsupported: reference types
 type-equivalence.wast:233  LoadError: NotImplementedError: rec / sub / struct / array types
-type-equivalence.wast:237  unsupported: reference types
 type-equivalence.wast:238  LoadError: NotImplementedError: rec / sub / struct / array types
 type-equivalence.wast:246  LoadError: NotImplementedError: rec / sub / struct / array types
-type-equivalence.wast:256  unsupported: reference types
 type-equivalence.wast:257  LoadError: NotImplementedError: rec / sub / struct / array types
 type-equivalence.wast:268  LoadError: NotImplementedError: rec / sub / struct / array types
-type-equivalence.wast:278  unsupported: reference types
 type-equivalence.wast:279  LoadError: NotImplementedError: rec / sub / struct / array types
 type-equivalence.wast:290  LoadError: NotImplementedError: rec / sub / struct / array types
 type-equivalence.wast:30  LoadError: NotImplementedError: rec / sub / struct / array types
-type-equivalence.wast:307  unsupported: reference types
 type-equivalence.wast:308  LoadError: NotImplementedError: rec / sub / struct / array types
-type-equivalence.wast:38  unsupported: reference types
 type-equivalence.wast:49  LoadError: NotImplementedError: rec / sub / struct / array types
-type-equivalence.wast:5  unsupported: reference types
-type-equivalence.wast:89  unsupported: tables
 type-rec.wast:137  LoadError: NotImplementedError: rec / sub / struct / array types
 type-rec.wast:141  KeyError: 'M'
 type-rec.wast:143  LoadError: NotImplementedError: rec / sub / struct / array types
@@ -2320,78 +329,14 @@ type-rec.wast:39  LoadError: NotImplementedError: rec / sub / struct / array typ
 type-rec.wast:45  LoadError: NotImplementedError: rec / sub / struct / array types
 type-rec.wast:71  LoadError: NotImplementedError: rec / sub / struct / array types
 type-rec.wast:78  LoadError: NotImplementedError: rec / sub / struct / array types
-unreachable.wast:221  unsupported: tables
-unreachable.wast:222  unsupported: tables
-unreachable.wast:223  unsupported: tables
-unreachable.wast:224  unsupported: tables
-unreachable.wast:226  unsupported: tables
-unreachable.wast:227  unsupported: tables
-unreachable.wast:228  unsupported: tables
-unreachable.wast:229  unsupported: tables
-unreachable.wast:231  unsupported: tables
-unreachable.wast:232  unsupported: tables
-unreachable.wast:233  unsupported: tables
-unreachable.wast:234  unsupported: tables
-unreachable.wast:235  unsupported: tables
-unreachable.wast:237  unsupported: tables
-unreachable.wast:238  unsupported: tables
-unreachable.wast:239  unsupported: tables
-unreachable.wast:240  unsupported: tables
-unreachable.wast:242  unsupported: tables
-unreachable.wast:244  unsupported: tables
-unreachable.wast:245  unsupported: tables
-unreachable.wast:246  unsupported: tables
-unreachable.wast:248  unsupported: tables
-unreachable.wast:249  unsupported: tables
-unreachable.wast:250  unsupported: tables
-unreachable.wast:251  unsupported: tables
-unreachable.wast:252  unsupported: tables
-unreachable.wast:254  unsupported: tables
-unreachable.wast:256  unsupported: tables
-unreachable.wast:257  unsupported: tables
-unreachable.wast:258  unsupported: tables
-unreachable.wast:259  unsupported: tables
-unreachable.wast:260  unsupported: tables
-unreachable.wast:261  unsupported: tables
-unreachable.wast:262  unsupported: tables
-unreachable.wast:264  unsupported: tables
-unreachable.wast:265  unsupported: tables
-unreachable.wast:266  unsupported: tables
-unreachable.wast:267  unsupported: tables
-unreachable.wast:268  unsupported: tables
-unreachable.wast:270  unsupported: tables
-unreachable.wast:271  unsupported: tables
-unreachable.wast:272  unsupported: tables
-unreachable.wast:274  unsupported: tables
-unreachable.wast:275  unsupported: tables
-unreachable.wast:276  unsupported: tables
-unreachable.wast:277  unsupported: tables
-unreachable.wast:279  unsupported: tables
-unreachable.wast:280  unsupported: tables
-unreachable.wast:281  unsupported: tables
-unreachable.wast:283  unsupported: tables
-unreachable.wast:284  unsupported: tables
-unreachable.wast:286  unsupported: tables
-unreachable.wast:287  unsupported: tables
-unreachable.wast:288  unsupported: tables
-unreachable.wast:289  unsupported: tables
-unreachable.wast:291  unsupported: tables
-unreachable.wast:293  unsupported: tables
-unreachable.wast:294  unsupported: tables
-unreachable.wast:296  unsupported: tables
-unreachable.wast:298  unsupported: tables
-unreachable.wast:299  unsupported: tables
-unreachable.wast:3  unsupported: tables
-unreachable.wast:301  unsupported: tables
-unreachable.wast:303  unsupported: tables
-unreached-valid.wast:1  unsupported: reference types
-unreached-valid.wast:48  unsupported: reference types
-unreached-valid.wast:49  unsupported: reference types
-unreached-valid.wast:50  unsupported: reference types
-unreached-valid.wast:51  unsupported: reference types
-unreached-valid.wast:53  unsupported: reference types
-unreached-valid.wast:54  unsupported: reference types
-unreached-valid.wast:55  unsupported: reference types
-unreached-valid.wast:56  unsupported: reference types
-unreached-valid.wast:58  unsupported: reference types
-unreached-valid.wast:82  unsupported: reference types
+unreached-valid.wast:1  unsupported: opcode 0x14
+unreached-valid.wast:48  unsupported: opcode 0x14
+unreached-valid.wast:49  unsupported: opcode 0x14
+unreached-valid.wast:50  unsupported: opcode 0x14
+unreached-valid.wast:51  unsupported: opcode 0x14
+unreached-valid.wast:53  unsupported: opcode 0x14
+unreached-valid.wast:54  unsupported: opcode 0x14
+unreached-valid.wast:55  unsupported: opcode 0x14
+unreached-valid.wast:56  unsupported: opcode 0x14
+unreached-valid.wast:58  unsupported: opcode 0x14
+unreached-valid.wast:82  unsupported: typed function references

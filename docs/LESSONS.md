@@ -129,3 +129,21 @@ What went wrong or surprised us while building the PoC, so it is not found again
     skipped constant-only expressions, and `i32.const 1; i32.const 0; i32.div_s` is one. Every flush
     before a side effect now includes the `x` flag, loads carry `x`, and `flush` never skips an `x`
     value (`test_trap_*` in `tests/test_pyc.py`). Found: pyc loop, 2026-10-30.
+31. **An indirect call that switches the context also switches the stack limits.** The runtime
+    wrote `NSTACK_LIMIT`/`VSTACK_LIMIT` only into the context of the instance it entered. Once
+    `call_indirect` runs another instance's function on that instance's context (r15 from the
+    function record), the callee's prologue checks *its* words, which were zero for an instance
+    never entered from the host: zero means "no limit", so unbounded recursion there would have run
+    off the native stack and killed the process. Every context of the store now gets the limits at
+    creation and whenever the outermost entry computes a new native limit
+    (`test_shared_table_calls_switch_the_context` recurses inside the other instance). Rule: any
+    word a prologue or poll reads must be valid in every context code can switch to, not only in
+    the one the host entered. Found: JIT step 3d (design review before the first run), 2026-10-30.
+32. **A popped operand may still be in `tos`.** The core's `need_tos()` spills only entries that
+    stay on the stack; an operand already popped keeps living in the `tos` register until the
+    backend reads it. `table.set` moved its value (a slot or a constant) into rax first and read the
+    index afterwards, so a computed index (in rax) was replaced by the value: `table.set` of a null
+    at `arg + 1` cleared element 0. Rule: a backend method reads every operand that can be in a
+    register it writes before writing it, and the tests try each operand of each instruction as a
+    constant, a local and a computed value (`test_computed_operands_of_table_and_bulk_ops_match_wasmtime`).
+    Found: JIT step 3d review, 2026-10-30.

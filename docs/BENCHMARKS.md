@@ -27,6 +27,7 @@ crcfinal depends on the iteration count).
 | wasmtime (Cranelift) | 16 589 / **19 044** | first / last session |
 | **w2jit2: stdlib JIT with registers, CPython 3.13 / 3.8** | 15 088, **15 337 / 15 437** | last session; ~80 % of wasmtime, 6.3× wasm3 |
 | **package `jit-x86_64`** (step 3c: one-pass core, explicit bounds checks, stack checks, interrupt polls, trap-by-return) | 16 299 / 16 315 / 15 100 | 2026-10-30, alternated with `w2jit2` in one session: 16 949 / 16 023 / 16 411 (medians 16 299 vs 16 411, −0.7 %, within noise); details below |
+| package `jit-x86_64` (step 3d: + tables, references, `call_indirect`, bulk memory) | 16 571 / 15 385 / 15 879 | 2026-10-30, alternated with `w2jit2` in one session: 16 058 / 15 819 / 16 569 (medians 15 879 vs 16 058, −1.1 %, within noise); details below |
 | w2jit: stdlib JIT, every value in memory | 3 874–3 898 (3.13), 3 882 (3.8) | |
 | w2py → PyPy 7.3.19 | 2 873; 2 300–2 900 later | noisy |
 | wasm3 (pywasm3) | 1 850–2 035 / **2 433** | first / last session |
@@ -58,6 +59,24 @@ passed in every run (crcfinal 0x4983). Runner: `python3 tools/run_coremark_jit.p
 * Compile: 61–67 ms, 45 396 bytes of code (`w2jit2`: 28–29 ms, 39 357 bytes). The package adds
   stack-limit checks and an interrupt poll per function, the value-stack frame and the reload of the
   memory registers after host calls.
+
+### Package JIT, second CoreMark checkpoint (JIT step 3d)
+
+Conditions: 2026-10-30, 4 vCPU cloud machine, CPython 3.13.17, CoreMark self-check passed in every
+run (crcfinal 0x4983 / 0xcc42 by iteration count). Same commands as the first checkpoint, alternated
+round by round: `python3 tools/run_coremark_jit.py poc/in/core.wasm`, then
+`python3 poc/run_jit2.py poc/in/core.wasm`.
+
+| round | package `jit-x86_64` | `w2jit2` (PoC) |
+|---|---|---|
+| 1 | 16 571 | 16 058 |
+| 2 | 15 385 | 15 819 |
+| 3 | 15 879 | 16 569 |
+| median | **15 879** | 16 058 |
+
+* CoreMark has no table, `call_indirect` or bulk-memory instruction, so this checks that step 3d
+  costs nothing elsewhere: the code is byte-for-byte the size of step 3c's (45 396 bytes, data area
+  from 44 872); compile 60–64 ms. The −1.1 % is within the run-to-run noise (~±5 %).
 
 ## Compile and load times (CoreMark)
 

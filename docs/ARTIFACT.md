@@ -148,10 +148,12 @@ the phase-3 meaning of each word and the register roles are in [S0003](specs/S00
 | 8 | `HOST_BRIDGE` | host → code | address of the host-call bridge for the host's calling convention |
 | 9–15 | reserved | | zero |
 | 16 … | per memory *i*: `base`, `size_bytes` (2 words) | host ↔ code | the base never moves (4 GiB reserved, committed on grow); the code reloads the size after every host call |
-| … | per table *i*: `base`, `size` (2 words) | | table elements: `{code pointer, type id, context pointer}` |
+| … | per table *i*: `base`, `size` (2 words) | host ↔ code | `base`: the element words (one per element), `size`: elements; `table.grow` may move the elements, so code reads both words at each use and never keeps them across a host call. A `funcref` element (and value) is 0 (null) or the address of a function record (below); an `externref` element is a host handle (0 = null) |
 | … | per global *i*: 1 word (2 for v128) | both | imported globals: a pointer to the owner's word instead |
 | … | per function import *i*: 1 word | host → code | address of a host function (signature below) |
-| … | per libcall *j*: 1 word | host → code | a runtime service, same signature as an import, in a fixed order: 0 `memory.grow` (`table.grow` and segment init follow); never computation (D25) |
+| … | per libcall *j*: 1 word | host → code | a runtime service, same signature as an import, in a fixed order, all six words in every context: 0 `memory.grow`, 1 `table.grow`, 2 `table.init`, 3 `elem.drop`, 4 `memory.init`, 5 `data.drop`; never computation (D25). The operands are in the slots, the instruction's immediates (table, segment) after them |
+| … | per signature *k*: 1 word | host → code | the canonical type id of a type the module's `call_indirect`s name (equal for equivalent types of every module of the process, never 0) |
+| … | per function record *r*: 3 words | host → code | `{code address, canonical type id, context address}` of a function the module can take a reference to (`ref.func`, segments): a defined one; an import from another instance of the same store (its code and context: a direct call); a host function (the module's thunk, which calls the import's word through the bridge). `call_indirect` checks bounds, null and the type id, then calls `code` with r15 = `context` (and that context's memory words) |
 
 Offsets of the variable part follow from the counts in the artifact, in exactly this order.
 

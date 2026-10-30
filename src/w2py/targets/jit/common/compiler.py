@@ -25,11 +25,20 @@ from typing import Any
 
 from w2py.targets.base import TrapCode, Unsupported, ValidModule
 from w2py.targets.jit.common.backend import NEGATE, Backend, Imm, Operand, Reg, Slot
-from w2py.targets.jit.common.context import MEMORY_GROW, Layout
+from w2py.targets.jit.common.context import (
+    DATA_DROP,
+    ELEM_DROP,
+    MEMORY_GROW,
+    MEMORY_INIT,
+    TABLE_GROW,
+    TABLE_INIT,
+    Layout,
+)
 
 I32, I64, F32, F64 = 0x7F, 0x7E, 0x7D, 0x7C
 NUM = (I32, I64, F32, F64)
 WIDE = (I64, F64)
+NARROW = (I32, F32)  # everything else (i64, f64, references) is a 64-bit value
 M32, M64 = 0xFFFFFFFF, (1 << 64) - 1
 CONST, LOCAL, TOS, SLOT, CMP = range(5)
 SLOTE = (SLOT, None)
@@ -72,23 +81,31 @@ CONVERTS = {
     0xB6: "f32.demote_f64", 0xBB: "f64.promote_f32",
 }  # fmt: skip
 CONTROL = (0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x1A, 0x1B)
+TABLES = (0x11, 0x25, 0x26, 0xD0, 0xD1, 0xD2, *range(0xFC08, 0xFC12))  # incl. bulk memory
 SUPPORTED = frozenset(
     (*CONTROL, *range(0x20, 0x25), *range(0x41, 0x46), 0x50, *BINOPS, *CMPS, *UNOPS, *LOADS,
-     *STORES, *REINTERPRET, *FCMPS, *FUNOPS, *FBINOPS, *CONVERTS, 0x3F, 0x40)
+     *STORES, *REINTERPRET, *FCMPS, *FUNOPS, *FBINOPS, *CONVERTS, 0x3F, 0x40, *TABLES)
 )  # fmt: skip
+# abstract heap types a reference may have here: func, extern and their bottom types nofunc,
+# noextern (all one word: a record address / host handle, 0 = null)
+HEAPS = (-16, -17, -13, -14)
 
 
 def feature(op: int) -> str:
     """The name an `Unsupported` carries for an opcode this core does not compile (yet)."""
-    if op in (0x11, 0x25, 0x26) or 0xFC0C <= op <= 0xFC11:
-        return "tables"
-    if 0xD0 <= op <= 0xD6:
-        return "reference types"
-    if 0xFC08 <= op <= 0xFC0B:
-        return "bulk memory"
+    if 0xD4 <= op <= 0xD6:
+        return "typed function references"
     if op in (0x12, 0x13):
         return "tail calls"
     return f"opcode {op:#x}"
+
+
+def type_ok(t: Any) -> str | None:
+    """None if values of type `t` are compiled here (numbers, function and extern references),
+    else the feature."""
+    if t in NUM or t in (0x70, 0x6F) or t.__class__ is tuple and (t[1] >= 0 or t[1] in HEAPS):
+        return None
+    return "simd" if t == 0x7B else "GC types"
 
 
 def unsupported(mod: ValidModule) -> str | None:
@@ -96,15 +113,14 @@ def unsupported(mod: ValidModule) -> str | None:
     if not mod.get("validated"):
         return "module not fully validated"
     imps: list[tuple[Any, ...]] = mod["imports"]
-    if mod["tables"] or mod["elem_info"] or any(im[0] == "table" for im in imps):
-        return "tables"
     if len(mod["mems"]) + sum(im[0] == "mem" for im in imps) > 1:
         return "multi-memory"
     vts: list[Any] = [t for ps, rs in mod["types"] for t in (*ps, *rs)]
     vts += [g[0] for g in mod["globals"]] + [im[3][0] for im in imps if im[0] == "global"]
-    vts += [t for locs, _ in mod["codes"] for t in locs]
-    if any(t not in NUM for t in vts):
-        return "reference types"
+    vts += [t for locs, _ in mod["codes"] for t in locs] + list(mod["ttypes"])
+    for t in vts:
+        if type_ok(t):
+            return type_ok(t)
     for insns in mod["insns"]:
         for ins in insns:
             op = ins[0]
@@ -115,8 +131,9 @@ def unsupported(mod: ValidModule) -> str | None:
                 ts = (*ins[1][0], *ins[1][1])
             elif op == 0x1B and len(ins) > 1:  # typed select
                 ts = ins[1]
-            if any(t not in NUM for t in ts):
-                return "reference types"
+            for t in ts:
+                if type_ok(t):
+                    return type_ok(t)
     return None
 
 
@@ -139,6 +156,9 @@ class Compiled:
     data_start: int
     funcs: list[tuple[int, int]]  # (code offset, result count) per defined function
     layout: Layout
+    records: list[int]  # the function index of each function record (Layout.record)
+    sigs: list[int]  # the type index of each signature word (Layout.sig)
+    thunks: dict[int, int]  # imported function -> code offset of its entry for a table element
 
 
 @dataclass(slots=True)
@@ -163,6 +183,8 @@ class _Mod:
     layout: Layout
     gtypes: list[Any]
     nimpg: int
+    records: dict[int, int]  # function index -> record
+    sigs: dict[int, int]  # type index -> signature word
 
 
 def compile_module(mod: ValidModule, b: Backend[Any, Any], target: str) -> Compiled:
@@ -174,12 +196,22 @@ def compile_module(mod: ValidModule, b: Backend[Any, Any], target: str) -> Compi
     fimps = [im[3] for im in imps if im[0] == "func"]
     gimps = [im[3][0] for im in imps if im[0] == "global"]
     has_mem = bool(mod["mems"]) or any(im[0] == "mem" for im in imps)
+    # every function a reference can be taken to (the validator checks that ref.func names one
+    # of them) gets a record; every type call_indirect names a signature word
+    inits = [e for _, _, _, items in mod["elem_info"] for e in items]
+    inits += [g[2] for g in mod["globals"]] + [e for e in mod["tinit"] if e is not None]
+    refd = {e[1] for e in inits if e[0] == "func"}
+    refd |= {i[1] for insns in mod["insns"] for i in insns if i[0] == 0xD2}
+    sigs = sorted({i[1] for insns in mod["insns"] for i in insns if i[0] == 0x11})
     layout = Layout(
-        memories=int(has_mem), globals=len(gimps) + len(mod["globals"]), imports=len(fimps)
-    )
+        memories=int(has_mem), tables=len(mod["ttypes"]),
+        globals=len(gimps) + len(mod["globals"]), imports=len(fimps), sigs=len(sigs),
+        records=len(refd),
+    )  # fmt: skip
     m = _Mod(
         b, mod["types"], fimps + mod["funcs"], len(fimps), [b.new_label() for _ in mod["funcs"]],
         layout, gimps + [g[0] for g in mod["globals"]], len(gimps),
+        {f: r for r, f in enumerate(sorted(refd))}, {t: k for k, t in enumerate(sigs)},
     )  # fmt: skip
     nopin = os.environ.get("W2PY_JIT_NOPIN", "")
     funcs: list[tuple[int, int]] = []
@@ -188,8 +220,9 @@ def compile_module(mod: ValidModule, b: Backend[Any, Any], target: str) -> Compi
         pin = not (nopin == "all" or str(fidx) in nopin.split(","))
         funcs.append((b.here(), len(m.types[m.ftypes[fidx]][1])))
         _Func(m, fidx, locs, insns, pin).run()
+    thunks = {i: b.host_thunk(layout.import_(i)) for i in sorted(refd) if i < len(fimps)}
     code, data = b.finish()
-    return Compiled(mod, code, data, funcs, layout)
+    return Compiled(mod, code, data, funcs, layout, sorted(refd), sigs, thunks)
 
 
 class _Func:
@@ -430,6 +463,38 @@ class _Func:
         self.st += [SLOTE] * nres
         self.maxh = max(self.maxh, h0 + max(n, nres))
 
+    def call_indirect(self, ti: int, table: int) -> None:
+        m, b = self.m, self.b
+        ps, rs = m.types[ti]
+        n, nres = len(ps), len(rs)
+        index = self.pop()  # stays valid across flush (br_table does the same)
+        self.flush()
+        h0 = len(self.st) - n
+        del self.st[h0:]
+        b.call_indirect(self.f, m.layout.table(table), m.layout.sig(m.sigs[ti]), index, self.L + h0)
+        self.st += [SLOTE] * nres
+        self.maxh = max(self.maxh, h0 + max(n, nres))
+
+    def service(self, j: int, nargs: int, imms: Sequence[int], nres: int) -> None:
+        """A runtime service through the host bridge (D25): its operands, then the immediates,
+        in slots; results replace the operands."""
+        self.flush()
+        h0 = len(self.st) - nargs
+        for k, v in enumerate(imms):
+            self.b.move(Slot(self.L + h0 + nargs + k), Imm(v), True)
+        self.b.call_host(self.f, self.m.layout.libcall(j), self.L + h0)
+        del self.st[h0:]
+        self.st += [SLOTE] * nres
+        self.maxh = max(self.maxh, h0 + max(nargs + len(imms), nres))
+
+    def pop3(self) -> tuple[Operand, Operand, Operand]:
+        """Three operands of a bulk operation; `tos` is free afterwards (the backend uses it)."""
+        z = self.pop()
+        y = self.pop()
+        x = self.pop()
+        self.need_tos()
+        return x, y, z
+
     # ------------------------------------------------------------------ the pass
     def run(self) -> None:
         b, L = self.b, self.L
@@ -571,6 +636,49 @@ class _Func:
             elif op == 0x00:
                 b.trap(f, TrapCode.UNREACHABLE)
                 self.dead = True
+            elif op == 0x11:
+                self.call_indirect(ins[1], ins[2])
+            elif op == 0xD0:
+                push((CONST, 0))
+            elif op == 0xD1:
+                push((CMP, ("eq", pop(), Imm(0), True)))
+            elif op == 0xD2:
+                self.need_tos()
+                b.ctx_addr(tos, self.m.layout.record(self.m.records[ins[1]]))
+                push((TOS, None))
+            elif op == 0x25:
+                x = pop()
+                self.need_tos()
+                b.table_get(f, tos, self.m.layout.table(ins[1]), x)
+                push((TOS, None))
+            elif op == 0x26:
+                v = pop()
+                x = pop()
+                self.need_tos()
+                b.table_set(f, self.m.layout.table(ins[1]), x, v)
+            elif op == 0xFC10:
+                self.need_tos()
+                b.ctx_load(tos, self.m.layout.table(ins[1]) + 1, False)
+                push((TOS, None))
+            elif op == 0xFC11:
+                b.table_fill(f, self.m.layout.table(ins[1]), *self.pop3())
+            elif op == 0xFC0E:
+                lay = self.m.layout
+                b.table_copy(f, lay.table(ins[1]), lay.table(ins[2]), *self.pop3())
+            elif op == 0xFC0B:
+                b.memory_fill(f, *self.pop3())
+            elif op == 0xFC0A:
+                b.memory_copy(f, *self.pop3())
+            elif op == 0xFC0F:  # (init, delta) + table -> old size or -1
+                self.service(TABLE_GROW, 2, [ins[1]], 1)
+            elif op == 0xFC0C:  # (d, s, n) + segment, table
+                self.service(TABLE_INIT, 3, [ins[1], ins[2]], 0)
+            elif op == 0xFC0D:
+                self.service(ELEM_DROP, 0, [ins[1]], 0)
+            elif op == 0xFC08:  # (d, s, n) + segment
+                self.service(MEMORY_INIT, 3, [ins[1]], 0)
+            elif op == 0xFC09:
+                self.service(DATA_DROP, 0, [ins[1]], 0)
             elif op in REINTERPRET or op == 0x01:
                 pass
             else:  # unsupported() already refused it
