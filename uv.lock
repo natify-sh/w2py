@@ -139,7 +139,7 @@ dev = [
     { name = "pytest" },
     { name = "pywasm" },
     { name = "ruff" },
-    { name = "wabt-package" },
+    { name = "wasm-tools-package" },
     { name = "wasmtime" },
 ]
 
@@ -151,36 +151,28 @@ dev = [
     { name = "pytest" },
     { name = "pywasm" },
     { name = "ruff" },
-    { name = "wabt-package" },
+    { name = "wasm-tools-package", specifier = "==1.262.0.0" },
     { name = "wasmtime", specifier = "==50.0.1" },
 ]
 
 [[package]]
-name = "wabt-package"
-version = "1.0.42.0"
+name = "wasm-tools-package"
+version = "1.262.0.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e5/11/f26205757dbf91ad9407565d1c83089d37f1bc5e18691e33f750ab76aa54/wabt_package-1.0.42.0.tar.gz", hash = "sha256:336d9d8254ae1d98c910ada69deeabf3759d084f04872b2ca5725f43f0ba38fc", size = 9310253, upload-time = "2026-10-19T07:36:03.704Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/25/9f/54d6c97a7d08de1f06c110e0a47c8ece23e8aeffa68ffc3797967070db46/wasm_tools_package-1.262.0.0.tar.gz", hash = "sha256:b04c991b10f38d6a798cd7c4b627fb664b8d2ffa0b5a7e9b3f7dec6b41cb2d8f", size = 6313374, upload-time = "2026-10-23T13:06:40.283Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/99/a4/374b35c167b259879d529938d5ffebf0f83d5c29c76bbd76fe4b8a230bf2/wabt_package-1.0.42.0-py3-none-macosx_11_0_arm64.whl", hash = "sha256:b55c40c11dcfd4bb779fbc942a04758e585630dc070e54e6845c479e34076453", size = 3967641, upload-time = "2026-10-19T07:35:28.983Z" },
-    { url = "https://files.pythonhosted.org/packages/60/52/40a51742579450b08876411d19987f46a209e48e2f87af214d311f3e731e/wabt_package-1.0.42.0-py3-none-macosx_11_0_universal2.whl", hash = "sha256:50984175e6284fd558078ba2e142a02b462809a60baae4a6aae24527965f0758", size = 6863913, upload-time = "2026-10-19T07:35:30.952Z" },
-    { url = "https://files.pythonhosted.org/packages/58/eb/f7b9a2f0939743a3be64176254b355bf0f00bfced3b322c8009bc53971f0/wabt_package-1.0.42.0-py3-none-macosx_11_0_x86_64.whl", hash = "sha256:3bd11bba62bca7f3f7d20d2503f29d4f66a8e3e55a061e52bce4ceb11c7a185a", size = 4184007, upload-time = "2026-10-19T07:35:33.044Z" },
-    { url = "https://files.pythonhosted.org/packages/16/82/beeabc50cda40a3548a32564a5c17d9aad99df92abe4231b972d67ac79ac/wabt_package-1.0.42.0-py3-none-manylinux_2_26_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:0ec816626faf483e1ae82389f8911dd45ab09c9d47a11416beac957802ec4217", size = 5174251, upload-time = "2026-10-19T07:35:34.62Z" },
-    { url = "https://files.pythonhosted.org/packages/8c/4d/604762073b6c3f472f12dc2f320b0274de2a08c2e2250a11fee79aaebaa8/wabt_package-1.0.42.0-py3-none-manylinux_2_26_armv7l.manylinux_2_31_armv7l.whl", hash = "sha256:30c75b78c911e11cba848297b5b5c6f6d836bdf787ee86beccd23bbe470529a2", size = 4701989, upload-time = "2026-10-19T07:35:36.286Z" },
-    { url = "https://files.pythonhosted.org/packages/de/cb/f7681d3962504b12653225d51d0e17339e93b4d5e81568262dcba3ed064e/wabt_package-1.0.42.0-py3-none-manylinux_2_26_i686.manylinux_2_28_i686.whl", hash = "sha256:2914053ab3fdf86d5a076b25f30c48598073c34ebcf8aa280f5da0c3ff75d863", size = 5782742, upload-time = "2026-10-19T07:35:37.788Z" },
-    { url = "https://files.pythonhosted.org/packages/ba/35/3f900bedd2243929e2d4cdc9f1daadcaccafb240939a9bae79b133a4304a/wabt_package-1.0.42.0-py3-none-manylinux_2_26_ppc64le.manylinux_2_28_ppc64le.whl", hash = "sha256:d0686d97bc6a6f8f73ec429e5e939ce1ca7aba9bf336558d6f92c74e502fc9e1", size = 5969319, upload-time = "2026-10-19T07:35:39.646Z" },
-    { url = "https://files.pythonhosted.org/packages/11/22/5c6dfefb627fd75bd63913f9116798106855985ddfc9413c56f16cff8bdf/wabt_package-1.0.42.0-py3-none-manylinux_2_26_s390x.manylinux_2_28_s390x.whl", hash = "sha256:b7489fb563873473ea0e09d1255485509b2320b74d7cadb70c31ede48684b96a", size = 5935487, upload-time = "2026-10-19T07:35:41.358Z" },
-    { url = "https://files.pythonhosted.org/packages/ad/cc/6dd7204e2f194f1759773ddcd21dcb1927eaa976fcdbf152bef151d620d4/wabt_package-1.0.42.0-py3-none-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:2dc71ae1a0194e145a2c96796f7ad162135b8a4f4cfda3c2f2864a08cecabe81", size = 5283415, upload-time = "2026-10-19T07:35:43.007Z" },
-    { url = "https://files.pythonhosted.org/packages/4e/eb/a2c202fa546821a95dfca519d1695b8965ee31af74024bc3b328d2a1f2dd/wabt_package-1.0.42.0-py3-none-manylinux_2_38_riscv64.manylinux_2_39_riscv64.whl", hash = "sha256:25a26c0a5f6f87db31458a5420eb38d204de88ab8a8848d4a07958caf545217d", size = 5557094, upload-time = "2026-10-19T07:35:44.713Z" },
-    { url = "https://files.pythonhosted.org/packages/2e/fb/31564d579880fbde531d53ad7a155850816587e99097d91627cc33963c00/wabt_package-1.0.42.0-py3-none-musllinux_1_2_aarch64.whl", hash = "sha256:a7e411398a9c16d89dbf6149225ddb530cab0a24c8ba0d2f56b9585196db8800", size = 5398408, upload-time = "2026-10-19T07:35:46.521Z" },
-    { url = "https://files.pythonhosted.org/packages/94/1d/c1889861ec41ea0b36ce5008fb10524137d220dceb62e2402fd8acbc8d44/wabt_package-1.0.42.0-py3-none-musllinux_1_2_armv7l.whl", hash = "sha256:285733bee15fae6a5ff27b3a65552b85b473e8cab600afdc5a8b8938851b8392", size = 4793824, upload-time = "2026-10-19T07:35:48.227Z" },
-    { url = "https://files.pythonhosted.org/packages/41/aa/acdef19ab20d41a5103706d3117b3e53cffe4410d995c91febffa5926a92/wabt_package-1.0.42.0-py3-none-musllinux_1_2_i686.whl", hash = "sha256:fd7a91c6e27af86bda9c4401a2c859098f1c90fcc87f0e0c8e725eedfde84ef0", size = 6132260, upload-time = "2026-10-19T07:35:49.973Z" },
-    { url = "https://files.pythonhosted.org/packages/fc/fc/1b00d6936df473e92a459a5417c5ef2520329cf32f0241a2fb2204cb3ad5/wabt_package-1.0.42.0-py3-none-musllinux_1_2_ppc64le.whl", hash = "sha256:3c92f5a022bb58377497f35de0a759ca59b7467cfc647d2737623e4bb42cb106", size = 6217797, upload-time = "2026-10-19T07:35:51.802Z" },
-    { url = "https://files.pythonhosted.org/packages/43/bf/4a7a42846c3498c10c3c97039b6c559ef01c8bfaf0032febc884b7a359d2/wabt_package-1.0.42.0-py3-none-musllinux_1_2_riscv64.whl", hash = "sha256:cb29ccee5634c6c9296f9bbaeeac121495164febd4bdb51f278ab3d69cc42f36", size = 5594997, upload-time = "2026-10-19T07:35:53.496Z" },
-    { url = "https://files.pythonhosted.org/packages/75/95/5b5f10885ed5599238df43c429de388496011c0a954f3f846bb42e912a9e/wabt_package-1.0.42.0-py3-none-musllinux_1_2_s390x.whl", hash = "sha256:e2044b21dd9ba93d92075e917f08cc9ac9178b168c683248b7594334b01c5ec4", size = 6083191, upload-time = "2026-10-19T07:35:55.16Z" },
-    { url = "https://files.pythonhosted.org/packages/95/9a/7dc8ce47a7ae7e8933d3a405e225b2c4dbbaf0ec287329258b482fabf61b/wabt_package-1.0.42.0-py3-none-musllinux_1_2_x86_64.whl", hash = "sha256:182241de27f21f4de39f5c895e2177f278d5dbbd9d307add63ae005589167cb3", size = 5533754, upload-time = "2026-10-19T07:35:56.837Z" },
-    { url = "https://files.pythonhosted.org/packages/e5/44/8cadb46ffd2cd1f36a49f3266d320dd045fbd04ef34fd512b992c91191b7/wabt_package-1.0.42.0-py3-none-win32.whl", hash = "sha256:5357896b4d72d2f1e9432404872d301be849da979ea8a7b36722e8da938c0a94", size = 4784399, upload-time = "2026-10-19T07:35:58.536Z" },
-    { url = "https://files.pythonhosted.org/packages/72/ca/14e140f630ccbffed849145605cdcaec9e5bee47ce4bc4c289b5b4bb5ad2/wabt_package-1.0.42.0-py3-none-win_amd64.whl", hash = "sha256:e6bf5d21f428baac13df2a7121b3724f6d688d6fc85a21069ef9d2d5e9d5b964", size = 5208519, upload-time = "2026-10-19T07:36:00.188Z" },
-    { url = "https://files.pythonhosted.org/packages/c5/83/e3f068e1570dc924ca847639fc6114a20b88b017316eaf8fb1c0f82c8d8c/wabt_package-1.0.42.0-py3-none-win_arm64.whl", hash = "sha256:2f9680014573d699849c37f0c303d9c9d296fcf7a1b77f19b2cafb09183920d1", size = 4914356, upload-time = "2026-10-19T07:36:01.825Z" },
+    { url = "https://files.pythonhosted.org/packages/ce/91/fa62aa36ba449ff64c3873595963f6bb4d58db276bb4bc554641d7a09581/wasm_tools_package-1.262.0.0-py3-none-macosx_11_0_arm64.whl", hash = "sha256:d541f851bf0187c4ac9c3f41da25c26b30b3d0a03e0e9730cf67af641a64238c", size = 5579517, upload-time = "2026-10-23T13:06:17.002Z" },
+    { url = "https://files.pythonhosted.org/packages/b3/85/90a6e60430ddfe93f9e861767c15f33f1cb199736bfee7e1c58f224d1276/wasm_tools_package-1.262.0.0-py3-none-macosx_11_0_universal2.whl", hash = "sha256:958d9757b6655620935ccdfe41209b3f4147b9e047b1d4d67728da4fcf0dce16", size = 11434685, upload-time = "2026-10-23T13:06:19.29Z" },
+    { url = "https://files.pythonhosted.org/packages/1a/d8/2d75a00f74134f823d492c96e46fe491caa1aae8547c346307400949066d/wasm_tools_package-1.262.0.0-py3-none-macosx_11_0_x86_64.whl", hash = "sha256:0ecfd107fe832a77ffb75490068ccbcc01776c72e5933111339ceed025bc2c55", size = 5868915, upload-time = "2026-10-23T13:06:21.727Z" },
+    { url = "https://files.pythonhosted.org/packages/33/3e/444e5e43d42cd3d694b22af9b2912d1c5488d0365a6e1a0010168740606e/wasm_tools_package-1.262.0.0-py3-none-manylinux_2_28_aarch64.whl", hash = "sha256:fcf30f614e9e072aa130ca7b7f4bf8c1782c5f8eeb736caebe1a75b50ca541a2", size = 5667487, upload-time = "2026-10-23T13:06:23.454Z" },
+    { url = "https://files.pythonhosted.org/packages/0a/79/134f39e1321c36d2377bd4737b60ca962dbc97c19c409fa8dd44fbdd8d23/wasm_tools_package-1.262.0.0-py3-none-manylinux_2_28_i686.whl", hash = "sha256:e55031c8b1da29ca7e92c52de7bf03bd1be09889191d001f60e897ebd3f6a0f6", size = 6626978, upload-time = "2026-10-23T13:06:25.169Z" },
+    { url = "https://files.pythonhosted.org/packages/ab/00/4070558747b4e73b237a8707dbbe50fb13f0de13356d5bfbdd6482ac4efb/wasm_tools_package-1.262.0.0-py3-none-manylinux_2_28_x86_64.whl", hash = "sha256:4d488dc7843c538c802d7efebfc9dc39af607126e09e1dd32bc470307b716e1c", size = 6134883, upload-time = "2026-10-23T13:06:26.915Z" },
+    { url = "https://files.pythonhosted.org/packages/be/2d/8f386c52b545f91c9cc9383f831445fe83a82683ca222008f29263c9551d/wasm_tools_package-1.262.0.0-py3-none-manylinux_2_31_armv7l.whl", hash = "sha256:d114361b08ec82192006c06cbe699425b27883cfb2a8209d6b43690153c1cb4a", size = 5471432, upload-time = "2026-10-23T13:06:28.981Z" },
+    { url = "https://files.pythonhosted.org/packages/08/9e/8256ed8a7a7e5a2cab1d9f9cb24c9c7c2f3fe03076ec4984316c3c18f6ae/wasm_tools_package-1.262.0.0-py3-none-musllinux_1_2_aarch64.whl", hash = "sha256:d41b27d0be36deca056405431e37a37fd3d8053ba2cb37b0c0bc462d5a9fea7c", size = 5590727, upload-time = "2026-10-23T13:06:30.822Z" },
+    { url = "https://files.pythonhosted.org/packages/d4/cd/56c27c0567034933c2ef16d54650e6823873336d8b388dd7636292f0b253/wasm_tools_package-1.262.0.0-py3-none-musllinux_1_2_x86_64.whl", hash = "sha256:84787335130bb36cdf8e5d5c06d4efe6a51e92cc3bfd09b0db7b005c924f2696", size = 6226090, upload-time = "2026-10-23T13:06:32.911Z" },
+    { url = "https://files.pythonhosted.org/packages/b8/b5/e40766134bb410d92d64b43cdd7a59c96f31aa63672f6c4ec2292f13f4ba/wasm_tools_package-1.262.0.0-py3-none-win32.whl", hash = "sha256:c9977e51b13cef937a2a63109070e91a981a45a22005adf2afc4c97759a31873", size = 5367230, upload-time = "2026-10-23T13:06:34.835Z" },
+    { url = "https://files.pythonhosted.org/packages/9e/f6/eed7a7dc0c24b4c80bfc9e92fabe1ce5049fa3e636915f3ddf02d317ec89/wasm_tools_package-1.262.0.0-py3-none-win_amd64.whl", hash = "sha256:bf8ba1c0a436746a251424ec2e8a20c8ffda38aeb1835c0185a5d86c2329f897", size = 5881920, upload-time = "2026-10-23T13:06:36.797Z" },
+    { url = "https://files.pythonhosted.org/packages/06/70/f7a46bd8202c35b152d4cf838c3097bd303fb7eee23ad3b519f56098a318/wasm_tools_package-1.262.0.0-py3-none-win_arm64.whl", hash = "sha256:cbae700ff1f68a9411f43adace6bfc8b34b78dadd64e3244571c7d130c135bd7", size = 5420293, upload-time = "2026-10-23T13:06:38.342Z" },
 ]
 
 [[package]]

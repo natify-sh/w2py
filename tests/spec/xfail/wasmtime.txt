@@ -1,0 +1,2 @@
+local_init.wast:*  wasmtime-py aborts on typed references in signatures
+ref_null.wast:*  wasmtime-py aborts on typed references in signatures

@@ -19,7 +19,7 @@ dev = [
     "ruff",
     "pyright",
     "wasmtime==50.0.1",
-    "wabt-package",
+    "wasm-tools-package==1.262.0.0",
     "pywasm",
 ]
 

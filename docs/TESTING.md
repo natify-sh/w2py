@@ -35,7 +35,7 @@ show what is new; the spec commit moves the same way, in small steps.
 | tool | why |
 |---|---|
 | **wasmtime** (pip, pinned) | **the test oracle**: differential runs compare every w2py target with Wasmtime on the same module and inputs (results, traps, memory contents); also the reference for API behaviour and feature defaults |
-| wabt (`wast2json`, `wasm2wat`) | turns the spec test suite `.wast` files into `.json` + `.wasm` (natify-sh/wabt-package, or built from source as in the PoC) |
+| wasm-tools `json-from-wast` (`wasm-tools-package`) | turns the spec test suite `.wast` files into `.json` + `.wasm` ([S0001](specs/S0001-engine-interface.md)) |
 | wasm-tools (`wasm-smith`, `validate`) | random valid modules for differential fuzzing; a second validator |
 | pywasm (pip) | a second oracle and a source of ideas: its spec runner (`test/spec.py`) was adapted in the PoC session; it passes the core spec suite (54 006 commands, 0 failures at its pinned spec commit `fffc6e12f`) but treats `assert_invalid` / `assert_malformed` as no-ops |
 | meld | fusing component test programs into core modules for WASI 0.2 |
@@ -44,7 +44,7 @@ show what is new; the spec commit moves the same way, in small steps.
 
 The runtime package itself declares **no** dependencies; these live in a development group.
 The Python ones are the uv `dev` group in `pyproject.toml` (`uv sync`); wasmtime 50.0.1 needs
-Python ≥ 3.9 and `wabt-package` ≥ 3.11; with the floor at 3.11 (D19) no markers are needed (all dev
+Python ≥ 3.9; with the floor at 3.11 (D19) no markers are needed (all dev
 tools installed on CPython 3.11, 3.15 and 3.15t; PyPy 3.11 is first checked in CI).
 
 ## The spec test suite

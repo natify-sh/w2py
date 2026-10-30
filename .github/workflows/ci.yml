@@ -22,3 +22,15 @@ jobs:
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2  # v10.3.3
       - run: uv sync --python ${{ matrix.python }}
       - run: uv run pytest -q
+  spec:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2  # v10.3.3
+      - run: uv sync --python 3.13
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: .cache/spec
+          key: spec-${{ hashFiles('tests/spec/fetch.py', 'tests/spec/spectest.wat') }}
+      - run: uv run python tests/spec/fetch.py
+      - run: uv run python -m tests.spec.run --engine wasmtime --json spec-wasmtime.json
