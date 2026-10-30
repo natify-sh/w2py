@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 
 from tests.jit import need
-from w2py.targets.jit.x86_64.encoder import ALU, BT, CC, RAX, RBP, RSP, SHIFT, UNARY, Asm, Mem
+from w2py.targets.jit.x86_64.encoder import ALU, BT, CC, RAX, RBP, RSP, SHIFT, SSE, UNARY, Asm, Mem
 
 LLVM_MC = shutil.which("llvm-mc")
 OBJCOPY = shutil.which("llvm-objcopy") or shutil.which("objcopy")
@@ -170,6 +170,32 @@ def forms() -> list[Form]:
             add(lambda a, x=x, m=m: a.movsx(x, m, 32), f"movsxd {R64[x]}, {mem_text(m, 32)}")
         for s in REGS:
             add(lambda a, x=x, s=s: a.movsx(x, s, 32), f"movsxd {R64[x]}, {R32[s]}")
+    # SSE/SSE2 scalar: every xmm against every register, a few memory operands
+    for d in REGS:
+        for s in REGS:
+            for dbl, sfx in ((False, "ss"), (True, "sd")):
+                for op in SSE:
+                    t = f"{op}ps" if op in ("and", "or", "xor") else f"{op}{sfx}"
+                    add(
+                        lambda a, d=d, s=s, op=op, dbl=dbl: a.sse(op, d, s, dbl),
+                        f"{t} xmm{d}, xmm{s}",
+                    )
+                add(lambda a, d=d, s=s, dbl=dbl: a.ucomis(d, s, dbl), f"ucomi{sfx} xmm{d}, xmm{s}")
+                add(lambda a, d=d, s=s, dbl=dbl: a.cvtff(d, s, dbl),
+                    f"cvt{sfx}2{'ss' if dbl else 'sd'} xmm{d}, xmm{s}")  # fmt: skip
+                for w, r in ((False, R32), (True, R64)):
+                    add(lambda a, d=d, s=s, dbl=dbl, w=w: a.cvtsi2f(d, s, dbl, w),
+                        f"cvtsi2{sfx} xmm{d}, {r[s]}")  # fmt: skip
+                    add(lambda a, d=d, s=s, dbl=dbl, w=w: a.cvttf2si(d, s, dbl, w),
+                        f"cvtt{sfx}2si {r[d]}, xmm{s}")  # fmt: skip
+            for w, r, mv in ((False, R32, "movd"), (True, R64, "movq")):
+                add(lambda a, d=d, s=s, w=w: a.movq_to_xmm(d, s, w), f"{mv} xmm{d}, {r[s]}")
+                add(lambda a, d=d, s=s, w=w: a.movq_from_xmm(d, s, w), f"{mv} {r[d]}, xmm{s}")
+        for m in MEMS:
+            add(lambda a, d=d, m=m: a.movs(d, m, False), f"movss xmm{d}, {mem_text(m, 32)}")
+            add(lambda a, d=d, m=m: a.movs(d, m, True), f"movsd xmm{d}, {mem_text(m, 64)}")
+            add(lambda a, d=d, m=m: a.sse("add", d, m, True), f"addsd xmm{d}, {mem_text(m, 64)}")
+            add(lambda a, d=d, m=m: a.ucomis(d, m, False), f"ucomiss xmm{d}, {mem_text(m, 32)}")
     for m in MEMS:
         add(lambda a, m=m: a.call(m), f"call {mem_text(m, 64)}")
         add(lambda a, m=m: a.jmp(m), f"jmp {mem_text(m, 64)}")

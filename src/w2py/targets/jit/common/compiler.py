@@ -25,7 +25,7 @@ from typing import Any
 
 from w2py.targets.base import TrapCode, Unsupported, ValidModule
 from w2py.targets.jit.common.backend import NEGATE, Backend, Imm, Operand, Reg, Slot
-from w2py.targets.jit.common.context import Layout
+from w2py.targets.jit.common.context import MEMORY_GROW, Layout
 
 I32, I64, F32, F64 = 0x7F, 0x7E, 0x7D, 0x7C
 NUM = (I32, I64, F32, F64)
@@ -53,19 +53,33 @@ LOADS = {0x28: (4, False, False), 0x29: (8, False, True), 0x2A: (4, False, False
          0x34: (4, True, True), 0x35: (4, False, True)}  # fmt: skip
 STORES = {0x36: 4, 0x37: 8, 0x38: 4, 0x39: 8, 0x3A: 1, 0x3B: 2, 0x3C: 1, 0x3D: 2, 0x3E: 4}
 REINTERPRET = (0xBC, 0xBD, 0xBE, 0xBF)  # bit patterns: nothing to do
+# Floats are bit patterns in the same entries as integers (slots, tos, constants); the backend
+# computes each float operation whole (D25: natively), with its own scratch registers.
+_FCMP, _FUN = "eq ne lt gt le ge".split(), "abs neg ceil floor trunc nearest sqrt".split()
+_FBIN = "add sub mul div min max copysign".split()
+FCMPS = {**{0x5B + i: (n, False) for i, n in enumerate(_FCMP)},
+         **{0x61 + i: (n, True) for i, n in enumerate(_FCMP)}}  # fmt: skip
+FUNOPS = {**{0x8B + i: (n, False) for i, n in enumerate(_FUN)},
+          **{0x99 + i: (n, True) for i, n in enumerate(_FUN)}}  # fmt: skip
+FBINOPS = {**{0x92 + i: (n, False) for i, n in enumerate(_FBIN)},
+           **{0xA0 + i: (n, True) for i, n in enumerate(_FBIN)}}  # fmt: skip
+_TRUNCS = [(r, f, s) for r in ("i32", "i64") for f in ("f32", "f64") for s in "su"]
+_CONVS = [(r, f, s) for f in ("f32", "f64") for r in ("i32", "i64") for s in "su"]
+CONVERTS = {
+    **{0xA8 + i + 2 * (r == "i64"): f"{r}.trunc_{f}_{s}" for i, (r, f, s) in enumerate(_TRUNCS)},
+    **{0xFC00 + i: f"{r}.trunc_sat_{f}_{s}" for i, (r, f, s) in enumerate(_TRUNCS)},
+    **{0xB2 + i + (f == "f64"): f"{f}.convert_{r}_{s}" for i, (r, f, s) in enumerate(_CONVS)},
+    0xB6: "f32.demote_f64", 0xBB: "f64.promote_f32",
+}  # fmt: skip
 CONTROL = (0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x1A, 0x1B)
 SUPPORTED = frozenset(
     (*CONTROL, *range(0x20, 0x25), *range(0x41, 0x46), 0x50, *BINOPS, *CMPS, *UNOPS, *LOADS,
-     *STORES, *REINTERPRET)
+     *STORES, *REINTERPRET, *FCMPS, *FUNOPS, *FBINOPS, *CONVERTS, 0x3F, 0x40)
 )  # fmt: skip
 
 
 def feature(op: int) -> str:
     """The name an `Unsupported` carries for an opcode this core does not compile (yet)."""
-    if op in (0x3F, 0x40):
-        return "memory.size/grow"
-    if 0x5B <= op <= 0xBF or 0xFC00 <= op <= 0xFC07:
-        return "float arithmetic"
     if op in (0x11, 0x25, 0x26) or 0xFC0C <= op <= 0xFC11:
         return "tables"
     if 0xD0 <= op <= 0xD6:
@@ -522,6 +536,38 @@ class _Func:
                 push((CONST, f32_bits(ins[1])))
             elif op == 0x44:
                 push((CONST, f64_bits(ins[1])))
+            elif op in FBINOPS:
+                name, w = FBINOPS[op]
+                y = pop()
+                x = pop()
+                self.need_tos()
+                b.fbinop(name, tos, x, y, w)
+                push((TOS, None))
+            elif op in FUNOPS:
+                name, w = FUNOPS[op]
+                x = pop()
+                self.need_tos()
+                b.funop(name, tos, x, w)
+                push((TOS, None))
+            elif op in FCMPS:  # a value, not a pending compare (no fused float branch yet)
+                name, w = FCMPS[op]
+                y = pop()
+                x = pop()
+                self.need_tos()
+                b.fcmp_set(name, tos, x, y, w)
+                push((TOS, None))
+            elif op in CONVERTS:
+                x = pop()
+                self.need_tos()
+                b.convert(f, CONVERTS[op], tos, x)
+                push((TOS, None))
+            elif op == 0x3F:
+                self.need_tos()
+                b.memory_size(tos)
+                push((TOS, None))
+            elif op == 0x40:  # a runtime service through the host bridge; the delta's slot
+                self.flush()  # receives the result
+                b.call_host(f, self.m.layout.libcall(MEMORY_GROW), self.L + len(self.st) - 1)
             elif op == 0x00:
                 b.trap(f, TrapCode.UNREACHABLE)
                 self.dead = True

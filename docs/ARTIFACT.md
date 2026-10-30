@@ -132,33 +132,34 @@ int32_t entry(uint64_t *ctx, uint64_t *frame, const void *code_of_function);
 * **Re-entrant**: the trampoline saves the previous `ctx[SAVED_SP]` on its own stack and restores it on
   return or trap, so wasm → host → wasm nesting works (the PoC lacked this; LESSONS.md).
 
-**Context words** (`uint64_t ctx[]`, 8-byte aligned, at a stable address for the instance's lifetime):
+**Context words** (`uint64_t ctx[]`, 8-byte aligned, at a stable address for the instance's lifetime;
+the phase-3 meaning of each word and the register roles are in [S0003](specs/S0003-jit-context-abi.md)):
 
 | index | name | direction | meaning |
 |---|---|---|---|
-| 0 | `SAVED_SP` | internal | native stack pointer of the innermost entry (unwind target) |
-| 1 | `TRAP_CODE` | code → host | set together with the return value |
-| 2 | `INTERRUPT` | host → code | non-zero: the code traps with `INTERRUPT` at its next poll (any thread may set it) |
+| 0 | `SAVED_SP` | internal | zero in phase 3 (traps return through frames); kept for the phase-5 fault handler |
+| 1 | `TRAP_CODE` | code → host | written by the trampoline when it returns a non-zero status |
+| 2 | `INTERRUPT` | host → code | non-zero: the code returns `INTERRUPT` at its next poll (any thread may set it) |
 | 3 | `FUEL` | both | remaining fuel (signed), when compiled with fuel |
 | 4 | `EPOCH_DEADLINE` | host → code | when compiled with epochs |
 | 5 | `VSTACK_LIMIT` | host → code | address the value stack must not cross → `STACK_OVERFLOW` |
 | 6 | `NSTACK_LIMIT` | host → code | lowest native stack address allowed → `STACK_OVERFLOW` |
-| 7 | `HOST_ERROR` | host → code | set by a host function that failed; checked after every import call, unwinds like a trap with code `HOST_ERROR`; the host keeps the actual exception |
-| 8–15 | reserved | | zero |
-| 16 … | per memory *i*: `base`, `size_bytes` (2 words) | host ↔ code | the host updates them on growth (the code reloads after `memory.grow` and after host calls) |
+| 7 | `HOST_ERROR` | — | unused: a host call reports failure through its status (13) |
+| 8 | `HOST_BRIDGE` | host → code | address of the host-call bridge for the host's calling convention |
+| 9–15 | reserved | | zero |
+| 16 … | per memory *i*: `base`, `size_bytes` (2 words) | host ↔ code | the base never moves (4 GiB reserved, committed on grow); the code reloads the size after every host call |
 | … | per table *i*: `base`, `size` (2 words) | | table elements: `{code pointer, type id, context pointer}` |
 | … | per global *i*: 1 word (2 for v128) | both | imported globals: a pointer to the owner's word instead |
-| … | per function import *i*: 1 word | host → code | a C function pointer (signature below) |
+| … | per function import *i*: 1 word | host → code | address of a host function (signature below) |
+| … | per libcall *j*: 1 word | host → code | a runtime service, same signature as an import, in a fixed order: 0 `memory.grow` (`table.grow` and segment init follow); never computation (D25) |
 
 Offsets of the variable part follow from the counts in the artifact, in exactly this order.
 
-**Host functions** (imports) are C functions in the host's calling convention:
-`ret f(uint64_t *ctx, args…)` — the context first (so a host can reach memory, implement `Caller`, or
-set `HOST_ERROR`), then the wasm parameters mapped as i32 → `uint32_t`, i64 → `uint64_t`,
-f32 → `float`, f64 → `double`, references → pointer-sized; a single result returned the same way;
-more than one result written through an extra trailing `uint64_t *results` parameter.
-Pool registers the compiled code keeps across such calls are its own responsibility (it saves every
-register the host convention lets the callee clobber).
+**Host functions** (imports and libcalls) share one C signature in the host's calling convention:
+`int32_t f(uint64_t *ctx, uint64_t *slots)` — the arguments in `slots[0..n)`, one 64-bit slot per
+value as for entries; the function writes its results to `slots[0..m)` and returns `0`, a trap code,
+or `13` `HOST_ERROR` (the host keeps the actual exception). Compiled code calls it through the bridge
+(`ctx[HOST_BRIDGE]`), which saves the pool registers the host convention lets a callee clobber.
 
 **Trap codes** (keep the PoC's first six numbers; names are Wasmtime's `TrapCode`):
 

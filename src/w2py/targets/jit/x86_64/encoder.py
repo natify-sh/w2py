@@ -1,7 +1,7 @@
-"""x86-64 instruction encoder (S0002 step 2): the forms the phase-3 integer core needs, x86-64-v1
-only (D24). Ported deliberately from `poc/w2jit.py` `Asm`. Jumps and calls go through labels and
-fixups only (LESSONS 6). Every form is checked against `llvm-mc --show-encoding`
-(tests/jit/test_encoder.py).
+"""x86-64 instruction encoder (S0002 step 2): the forms the phase-3 core needs (SSE2 scalar
+included), x86-64-v1 only (D24). Ported deliberately from `poc/w2jit.py` `Asm`. Jumps and calls
+go through labels and fixups only (LESSONS 6). Every form is checked against
+`llvm-mc --show-encoding` (tests/jit/test_encoder.py).
 
 Registers are numbers 0-15 (RAX..R15); `w=True` selects the 64-bit form, else 32-bit. Where several
 encodings exist, the one llvm-mc picks is emitted (shortest immediate, rax short forms, D1 for a
@@ -23,6 +23,8 @@ ALU = {"add": 0, "or": 1, "adc": 2, "sbb": 3, "and": 4, "sub": 5, "xor": 6, "cmp
 UNARY = {"not": 2, "neg": 3, "mul": 4, "div": 6, "idiv": 7}  # F7 /ext
 SHIFT = {"rol": 0, "ror": 1, "shl": 4, "shr": 5, "sar": 7}
 BT = {"bt": 4, "bts": 5, "btr": 6, "btc": 7}  # 0F BA /ext ib; 0F A3+8*(ext-4) /r
+SSE = {"sqrt": 0x51, "and": 0x54, "or": 0x56, "xor": 0x57, "add": 0x58, "mul": 0x59, "sub": 0x5C,
+       "min": 0x5D, "div": 0x5E, "max": 0x5F}  # fmt: skip
 _SCALE = {1: 0, 2: 1, 4: 2, 8: 3}
 
 
@@ -282,6 +284,42 @@ class Asm:
 
     def bsr(self, dst: Reg, src: Reg | Mem, w: bool = False) -> None:
         self._op(b"\x0f\xbd", dst, src, w)
+
+    # --- SSE/SSE2 scalar (x86-64-v1). xmm registers are numbers 0-15 like the GPRs; `double`
+    # selects the sd form (F2) over the ss form (F3).
+    def sse(self, op: str, dst: Reg, src: Reg | Mem, double: bool) -> None:
+        """addss/sd, subss/sd, mulss/sd, divss/sd, minss/sd, maxss/sd, sqrtss/sd xmm, xmm/m;
+        and/or/xor are andps/orps/xorps (bitwise, the same for both widths)."""
+        pre = b"" if op in ("and", "or", "xor") else b"\xf2" if double else b"\xf3"
+        self._op(bytes([0x0F, SSE[op]]), dst, src, pre=pre)
+
+    def movs(self, dst: Reg, src: Mem, double: bool) -> None:
+        """movss/movsd xmm, m32/m64 (a load)."""
+        self._op(b"\x0f\x10", dst, src, pre=b"\xf2" if double else b"\xf3")
+
+    def movq_to_xmm(self, dst: Reg, src: Reg, w: bool) -> None:
+        """movd xmm, r32 / movq xmm, r64 (the upper part of xmm is zeroed)."""
+        self._op(b"\x0f\x6e", dst, src, w, pre=b"\x66")
+
+    def movq_from_xmm(self, dst: Reg, src: Reg, w: bool) -> None:
+        """movd r32, xmm (zero-extends) / movq r64, xmm."""
+        self._op(b"\x0f\x7e", src, dst, w, pre=b"\x66")
+
+    def ucomis(self, x: Reg, y: Reg | Mem, double: bool) -> None:
+        """ucomiss/ucomisd: ZF PF CF = 111 unordered, 100 equal, 001 below, 000 above."""
+        self._op(b"\x0f\x2e", x, y, pre=b"\x66" if double else b"")
+
+    def cvtsi2f(self, dst: Reg, src: Reg, double: bool, w: bool) -> None:
+        """cvtsi2ss/cvtsi2sd xmm, r32/r64 (signed; rounds by MXCSR, nearest-even)."""
+        self._op(b"\x0f\x2a", dst, src, w, pre=b"\xf2" if double else b"\xf3")
+
+    def cvttf2si(self, dst: Reg, src: Reg, double: bool, w: bool) -> None:
+        """cvttss2si/cvttsd2si r32/r64, xmm (truncates; NaN or out of range: INT_MIN)."""
+        self._op(b"\x0f\x2c", dst, src, w, pre=b"\xf2" if double else b"\xf3")
+
+    def cvtff(self, dst: Reg, src: Reg, double_src: bool) -> None:
+        """cvtsd2ss (from double) / cvtss2sd (from single)."""
+        self._op(b"\x0f\x5a", dst, src, pre=b"\xf2" if double_src else b"\xf3")
 
     def cdq(self) -> None:
         self.buf.append(0x99)

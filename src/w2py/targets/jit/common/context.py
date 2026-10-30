@@ -12,6 +12,10 @@ FIRST_VAR = 16  # words 9-15 are reserved, zero
 STATUS_INTERRUPT = 12
 STATUS_HOST_ERROR = 13
 
+# Libcalls (S0003): runtime services, one context word each after the imports, in this order.
+MEMORY_GROW = 0
+LIBCALLS = 1
+
 
 @dataclass(frozen=True)
 class Layout:
@@ -33,7 +37,10 @@ class Layout:
     def import_(self, i: int) -> int:
         return FIRST_VAR + 2 * self.memories + 2 * self.tables + self.globals + i
 
+    def libcall(self, j: int) -> int:
+        return self.import_(self.imports) + j
+
     @property
     def words(self) -> int:
         # at least memory 0's two words: the entry loads them whether or not the module has a memory
-        return max(self.import_(self.imports), FIRST_VAR + 2)
+        return max(self.libcall(LIBCALLS), FIRST_VAR + 2)

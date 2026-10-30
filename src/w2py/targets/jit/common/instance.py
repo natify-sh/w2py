@@ -20,6 +20,7 @@ from w2py.targets.jit.common.compiler import M32, M64, WIDE, Compiled, f32_bits,
 from w2py.targets.jit.common.context import (
     HOST_BRIDGE,
     INTERRUPT,
+    MEMORY_GROW,
     NSTACK_LIMIT,
     STATUS_HOST_ERROR,
     STATUS_INTERRUPT,
@@ -211,6 +212,11 @@ class Instance:
             self.ctx[self.layout.import_(i)] = ctypes.cast(cb, ctypes.c_void_p).value or 0
         if memory:
             memory.bind(self.ctx, self.layout.memory(0))
+            grow = HOST(self._host(lambda args: [memory.grow(args[0])], 1, [M32]))
+            self.callbacks.append(grow)  # a runtime service (libcall), not a computation (D25)
+            self.ctx[self.layout.libcall(MEMORY_GROW)] = (
+                ctypes.cast(grow, ctypes.c_void_p).value or 0
+            )
         self.memory = memory
         store.instances.append(self)
 

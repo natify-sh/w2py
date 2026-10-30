@@ -392,7 +392,286 @@ class Backend:
                 a.jmp(label)
         self.tables.append((table, [pads[label] for label in labels]))
 
+    # ---------------------------------------------------------------- floats
+    # Values stay bit patterns in GPRs and slots; xmm0-xmm2 are scratch inside one method, so no
+    # xmm register is live across a call (SysV: all caller-saved; Win64 xmm6-15 never touched).
+    # Constants go through rcx/rdx (no data-area constants). SSE2 only (x86-64-v1, D24).
+    def _xmm(self, x: int, o: Operand, wide: bool) -> None:
+        """Load the bits of `o` into xmm `x` (an immediate through rcx)."""
+        a = self.a
+        if isinstance(o, Slot):
+            a.movs(x, _slot(o.k), wide)
+        elif isinstance(o, Reg):
+            a.movq_to_xmm(x, o.id, wide)
+        elif o.value == 0:
+            a.sse("xor", x, x, wide)
+        else:
+            a.mov_imm(RCX, o.value & (M64 if wide else M32), w=wide)
+            a.movq_to_xmm(x, RCX, wide)
+
+    def _kxmm(self, x: int, value: float, wide: bool) -> None:
+        """xmm `x` = a float constant (through rdx)."""
+        bits = struct.unpack("<Q" if wide else "<I", struct.pack("<d" if wide else "<f", value))
+        self.a.mov_imm(RDX, bits[0], w=wide)
+        self.a.movq_to_xmm(x, RDX, wide)
+
+    def _cvtsi(self, x: int, r: int, double: bool, w: bool) -> None:
+        self.a.sse("xor", x, x, double)  # cvtsi2s* merges into x: break the dependency
+        self.a.cvtsi2f(x, r, double, w)
+
+    def _sign_only(self, r: int, w: bool) -> None:
+        if w:
+            self.a.shift("shr", r, 63, w=True)
+            self.a.shift("shl", r, 63, w=True)
+        else:
+            self.a.alu_imm("and", r, 0x80000000)
+
+    def fbinop(self, op: str, dst: Reg, x: Operand, y: Operand, wide: bool) -> None:
+        a, d, w = self.a, dst.id, wide
+        if op == "copysign":  # bit operations: NaN payloads stay exact
+            self.move(Reg(RCX), y, w)
+            self.move(dst, x, w)
+            if w:
+                a.bt_imm("btr", d, 63, w=True)
+            else:
+                a.alu_imm("and", d, 0x7FFFFFFF)
+            self._sign_only(RCX, w)
+            a.alu("or", d, RCX, w=w)
+            return
+        self._xmm(0, x, w)
+        if op in ("min", "max"):
+            # wasm: NaN if either is NaN; min(-0, +0) = -0, max = +0. minss/maxss return the
+            # second operand in both cases, so equal and unordered take their own paths (the
+            # same split as Winch's and Liftoff's x64 lowering).
+            self._xmm(1, y, w)
+            ordered, nan, done = a.label(), a.label(), a.label()
+            a.ucomis(0, 1, w)
+            a.jcc("ne", ordered, short=True)
+            a.jcc("p", nan, short=True)
+            a.sse("or" if op == "min" else "and", 0, 1, w)  # equal: only the sign bits differ
+            a.jmp(done, short=True)
+            a.bind(nan)
+            a.sse("add", 0, 1, w)  # a quiet NaN from the NaN operand(s)
+            a.jmp(done, short=True)
+            a.bind(ordered)
+            a.sse(op, 0, 1, w)
+            a.bind(done)
+        elif isinstance(y, Slot):
+            a.sse(op, 0, _slot(y.k), w)
+        else:
+            self._xmm(1, y, w)
+            a.sse(op, 0, 1, w)
+        a.movq_from_xmm(d, 0, w)
+
+    def funop(self, op: str, dst: Reg, x: Operand, wide: bool) -> None:
+        a, d, w = self.a, dst.id, wide
+        if op in ("abs", "neg"):  # bit operations: NaN payloads stay exact
+            self.move(dst, x, w)
+            if w:
+                a.bt_imm("btr" if op == "abs" else "btc", d, 63, w=True)
+            else:
+                a.alu_imm(
+                    "and" if op == "abs" else "xor", d, 0x7FFFFFFF if op == "abs" else 1 << 31
+                )
+            return
+        if op == "sqrt":
+            self._xmm(0, x, w)
+            a.sse("sqrt", 0, 0, w)
+            a.movq_from_xmm(d, 0, w)
+            return
+        self._round(op, d, x, w)
+
+    def _round(self, op: str, d: int, x: Operand, w: bool) -> None:
+        """ceil/floor/trunc/nearest without SSE4.1 `round*` (D24). |x| >= 2**52 (2**23 for f32),
+        inf and NaN are integral already: x + 0.0 (quiets a NaN). Otherwise trunc goes through
+        cvtt + cvtsi; nearest adds and subtracts 2**52 on |x| (rounds to even by MXCSR); the
+        sign of x is put back (so -0.5 -> -0.0); floor/ceil step trunc by 1 toward -inf/+inf."""
+        a = self.a
+        assert d not in (RCX, RDX)
+        big_bits = 0x4330000000000000 if w else 0x4B000000
+        self.move(Reg(RCX), x, w)
+        a.movq_to_xmm(0, RCX, w)
+        a.mov(RDX, RCX, w=w)
+        if w:
+            a.bt_imm("btr", RDX, 63, w=True)
+            a.mov_imm(d, big_bits, w=True)
+            a.alu("cmp", RDX, d, w=True)
+        else:
+            a.alu_imm("and", RDX, 0x7FFFFFFF)
+            a.alu_imm("cmp", RDX, big_bits)
+        big, done = a.label(), a.label()
+        a.jcc("ae", big)  # unsigned bit compare: NaN and inf are above 2**52 too
+        if op == "nearest":
+            a.movq_to_xmm(1, RDX, w)
+            if not w:
+                a.mov_imm(d, big_bits)
+            a.movq_to_xmm(2, d, w)
+            a.sse("add", 1, 2, w)
+            a.sse("sub", 1, 2, w)
+        else:
+            a.cvttf2si(d, 0, w, w)
+            self._cvtsi(1, d, w, w)
+        a.movq_from_xmm(d, 1, w)
+        self._sign_only(RCX, w)
+        a.alu("or", d, RCX, w=w)
+        if op in ("floor", "ceil"):
+            a.movq_to_xmm(1, d, w)
+            a.ucomis(1, 0, w)  # trunc(x) vs x
+            a.jcc("be" if op == "floor" else "ae", done)
+            self._kxmm(2, 1.0, w)
+            a.sse("sub" if op == "floor" else "add", 1, 2, w)
+            a.movq_from_xmm(d, 1, w)
+        a.jmp(done)
+        a.bind(big)
+        a.sse("xor", 1, 1, w)
+        a.sse("add", 0, 1, w)
+        a.movq_from_xmm(d, 0, w)
+        a.bind(done)
+
+    def fcmp_set(self, cond: str, dst: Reg, x: Operand, y: Operand, wide: bool) -> None:
+        """ucomis: unordered sets ZF PF CF, so lt/le are gt/ge swapped (above/above-or-equal are
+        false on NaN), eq needs PF clear and ne is true on PF."""
+        a, d, w = self.a, dst.id, wide
+        if cond in ("lt", "le"):
+            x, y, cond = y, x, "gt" if cond == "lt" else "ge"
+        self._xmm(0, x, w)
+        if isinstance(y, Slot):
+            a.ucomis(0, _slot(y.k), w)
+        else:
+            self._xmm(1, y, w)
+            a.ucomis(0, 1, w)
+        a.setcc({"eq": "e", "ne": "ne", "gt": "a", "ge": "ae"}[cond], d)
+        a.movzx(d, d, 8)
+        if cond in ("eq", "ne"):  # only mov/movzx between ucomis and the cmov (LESSONS 1)
+            a.mov_imm(RCX, int(cond == "ne"))
+            a.cmov("p", d, RCX)
+
+    def convert(self, f: Frame, op: str, dst: Reg, x: Operand) -> None:
+        a, d = self.a, dst.id
+        rt, name = op.split(".")
+        parts = name.split("_")
+        if parts[0] == "trunc":
+            sat = parts[1] == "sat"
+            self._trunc(f, d, x, parts[-2] == "f64", rt == "i64", parts[-1] == "s", sat)
+            return
+        double = rt == "f64"
+        if parts[0] in ("demote", "promote"):
+            self._xmm(0, x, not double)
+            a.cvtff(0, 0, not double)
+            a.movq_from_xmm(d, 0, double)
+            return
+        src64, signed = parts[1] == "i64", parts[2] == "s"
+        self.move(Reg(RCX), x, src64)  # an i32 is zero-extended: its 64-bit value is unsigned
+        if not src64:  # i32_s converts the 32-bit register, i32_u the zero-extended 64-bit one
+            self._cvtsi(0, RCX, double, not signed)
+        elif signed:
+            self._cvtsi(0, RCX, double, True)
+        else:  # u64: halve with the low bit kept (round to odd), convert, double (Liftoff, wasm2c)
+            big, done = a.label(), a.label()
+            a.test(RCX, RCX, w=True)
+            a.jcc("s", big, short=True)
+            self._cvtsi(0, RCX, double, True)
+            a.jmp(done, short=True)
+            a.bind(big)
+            a.mov(RDX, RCX, w=True)
+            a.shift("shr", RDX, 1, w=True)
+            a.alu_imm("and", RCX, 1)
+            a.alu("or", RDX, RCX, w=True)
+            self._cvtsi(0, RDX, double, True)
+            a.sse("add", 0, 0, double)
+            a.bind(done)
+        a.movq_from_xmm(d, 0, double)
+
+    def _trunc(
+        self, f: Frame, d: int, x: Operand, double: bool, w: bool, signed: bool, sat: bool
+    ) -> None:
+        """Float -> int, trapping (BAD_CONVERSION_TO_INTEGER on NaN, INTEGER_OVERFLOW out of
+        range) or saturating. cvtt* gives INT_MIN for NaN and out-of-range values; only then is
+        the input examined (the shape of Cranelift's x64 lowering)."""
+        a = self.a
+        assert d not in (RCX, RDX)
+        bad = None if sat else self._stub(f, TrapCode.BAD_CONVERSION_TO_INTEGER)
+        ovf = None if sat else self._stub(f, TrapCode.INTEGER_OVERFLOW)
+        done = a.label()
+        self._xmm(0, x, double)
+        if signed:
+            a.cvttf2si(d, 0, double, w)
+            a.alu_imm("cmp", d, 1, w=w)  # overflows only for INT_MIN
+            a.jcc("no", done)
+            a.ucomis(0, 0, double)
+            if sat:
+                nan = a.label()
+                a.jcc("p", nan, short=True)
+                a.sse("xor", 1, 1, double)
+                a.ucomis(0, 1, double)
+                a.jcc("b", done, short=True)  # negative: INT_MIN is right
+                a.mov_imm(d, (1 << 63) - 1 if w else (1 << 31) - 1, w=w)
+                a.jmp(done, short=True)
+                a.bind(nan)
+                a.mov_imm(d, 0)
+            else:
+                assert bad and ovf
+                a.jcc("p", bad)
+                # INT_MIN is right iff trunc(x) = INT_MIN: x > -2**31 - 1 (f64 -> i32), else
+                # x >= INT_MIN (exact in both formats); positive x overflowed
+                lower = -(2.0**31) - 1 if double and not w else -(2.0 ** (63 if w else 31))
+                self._kxmm(1, lower, double)
+                a.ucomis(0, 1, double)
+                a.jcc("be" if double and not w else "b", ovf)
+                a.sse("xor", 1, 1, double)
+                a.ucomis(0, 1, double)
+                a.jcc("a", ovf)
+        elif not w:  # u32: truncate to 64 bits, valid iff the upper half is 0
+            a.cvttf2si(d, 0, double, True)
+            a.mov(RCX, d, w=True)
+            a.shift("shr", RCX, 32, w=True)
+            a.jcc("e", done)
+            if sat:  # NaN or x <= -1: 0; else (x >= 2**32) the maximum
+                a.sse("xor", 1, 1, double)
+                a.ucomis(0, 1, double)
+                a.mov_imm(d, 0)
+                a.jcc("be", done, short=True)
+                a.mov_imm(d, M32)
+            else:
+                assert bad and ovf
+                a.ucomis(0, 0, double)
+                a.jcc("p", bad)
+                a.jmp(ovf)
+        else:  # u64: below 2**63 directly, else subtract 2**63 first and set bit 63 after
+            big = a.label()
+            self._kxmm(1, 2.0**63, double)
+            a.ucomis(0, 1, double)
+            if bad:
+                a.jcc("p", bad)
+            a.jcc("ae", big, short=True)  # not taken on NaN (CF = 1)
+            a.cvttf2si(d, 0, double, True)
+            a.test(d, d, w=True)  # negative: x <= -1, or NaN (sat)
+            if ovf:
+                a.jcc("s", ovf)
+            else:
+                a.jcc("ns", done)
+                a.mov_imm(d, 0)
+            a.jmp(done)
+            a.bind(big)
+            a.sse("sub", 0, 1, double)
+            a.cvttf2si(d, 0, double, True)
+            a.test(d, d, w=True)  # negative: x >= 2**64
+            if ovf:
+                a.jcc("s", ovf)
+            else:
+                fits = a.label()
+                a.jcc("ns", fits, short=True)
+                a.mov_imm(d, M64, w=True)
+                a.jmp(done, short=True)
+                a.bind(fits)
+            a.bt_imm("btc", d, 63, w=True)
+        a.bind(done)
+
     # ---------------------------------------------------------------- memory 0 and context
+    def memory_size(self, dst: Reg) -> None:
+        self.a.mov(dst.id, R14, w=True)
+        self.a.shift("shr", dst.id, 16, w=True)
+
     def _bounds(self, f: Frame, addr: Operand, offset: int, size: int) -> Mem:
         """The bounds check (R3: the one place memory safety rests on). The effective address
         addr + offset (< 2**33) and its end are computed in 64 bits, so nothing wraps; the end

@@ -26,6 +26,7 @@ crcfinal depends on the iteration count).
 |---|---|---|
 | wasmtime (Cranelift) | 16 589 / **19 044** | first / last session |
 | **w2jit2: stdlib JIT with registers, CPython 3.13 / 3.8** | 15 088, **15 337 / 15 437** | last session; ~80 % of wasmtime, 6.3× wasm3 |
+| **package `jit-x86_64`** (step 3c: one-pass core, explicit bounds checks, stack checks, interrupt polls, trap-by-return) | 16 299 / 16 315 / 15 100 | 2026-10-30, alternated with `w2jit2` in one session: 16 949 / 16 023 / 16 411 (medians 16 299 vs 16 411, −0.7 %, within noise); details below |
 | w2jit: stdlib JIT, every value in memory | 3 874–3 898 (3.13), 3 882 (3.8) | |
 | w2py → PyPy 7.3.19 | 2 873; 2 300–2 900 later | noisy |
 | wasm3 (pywasm3) | 1 850–2 035 / **2 433** | first / last session |
@@ -38,6 +39,25 @@ crcfinal depends on the iteration count).
 | w2py → MicroPython 1.29 | .py 66 · .mpy 69 · `@native` 94 | native .mpy needs the big printf function left as bytecode |
 | w2py `--trust-align` (memoryview casts) | CPython 74 · PyPy 137 | rejected |
 | pywasm 2.2.3 | CPython 0.58 · PyPy 6.1 | PyPy run < 10 s (formally invalid for CoreMark) |
+
+### Package JIT, first CoreMark checkpoint (JIT step 3c)
+
+Conditions: 2026-10-30, the same cloud machine type but 4 vCPU, CPython 3.13.17, CoreMark self-check
+passed in every run (crcfinal 0x4983). Runner: `python3 tools/run_coremark_jit.py poc/in/core.wasm` (the package API; host
+`millis`/`print` through the host bridge), alternated round by round with `python3 poc/run_jit2.py poc/in/core.wasm`.
+
+| round | package `jit-x86_64` | `w2jit2` (PoC) | package, no `test eax; jnz` after wasm calls |
+|---|---|---|---|
+| 1 | 16 299 | 16 949 | 16 853 |
+| 2 | 16 315 | 16 023 | 15 307 |
+| 3 | 15 100 | 16 411 | 15 640 |
+| median | **16 299** | 16 411 | 15 640 |
+
+* Trap-by-return (S0003: `test eax, eax; jnz unwind` after every wasm → wasm call) has no measurable
+  cost: the build without it (a local patch, not kept) is not faster; the run-to-run noise is ~±5 %.
+* Compile: 61–67 ms, 45 396 bytes of code (`w2jit2`: 28–29 ms, 39 357 bytes). The package adds
+  stack-limit checks and an interrupt poll per function, the value-stack frame and the reload of the
+  memory registers after host calls.
 
 ## Compile and load times (CoreMark)
 

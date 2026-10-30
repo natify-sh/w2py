@@ -243,3 +243,25 @@ uv run pytest tests/jit -k "entry or trap or reentry or host or interrupt or sta
   the same register (the review found the skipped self-move left the upper half). The bounds check
   zero-extends the address again before use. A function of another JIT instance is imported through
   the host path (no direct cross-instance calls yet); an imported global is shared as a pointer.
+
+* 2026-10-30 (step 3c): floats and `memory.size`/`memory.grow`. Floats stay bit patterns in the
+  places integers use (slots, `rax`, constants, f32 zero-extended); each float operation is one
+  backend call that loads its operands into `xmm0`–`xmm2`, computes, and moves the result back, so
+  no xmm register is live across any call (none to save on SysV, `xmm6`–`xmm15` never touched for
+  Win64); constants go through `rcx`/`rdx` (`mov` + `movq`), not a data area. SSE2 only (D24):
+  abs/neg/copysign are integer bit operations (NaN bits exact); min/max split ordered (`minss`),
+  equal (`orps`/`andps` for ±0) and unordered (`addss`, a quiet NaN) after `ucomiss`;
+  trunc/floor/ceil/nearest: |x| ≥ 2^52 (2^23), inf and NaN return x + 0.0, otherwise trunc is
+  `cvtt` + `cvtsi2`, nearest is (|x| + 2^52) − 2^52 under round-to-nearest-even, the sign of x is
+  put back, floor/ceil step by 1; float → int traps are decided only when `cvtt` returns INT_MIN
+  (or, unsigned, a value out of range); u64 ↔ float split at 2^63. Float compares produce 0/1 in
+  `tos` (not fused into branches). The context gains a fixed libcall section after the imports:
+  one word, libcall 0 = `memory.grow` (`context.MEMORY_GROW`), present in every context and set by
+  the runtime when the instance has a memory; it is called through the host bridge with the delta
+  in the slot that receives the result (old pages or −1), and the reload of `r13`/`r14` after every
+  bridge call makes the new size visible to every frame. `memory.size` is `r14 >> 16`. The runtime
+  service lives in `common/instance.py` (no `libcalls.py` module until a second service exists).
+* 2026-10-30 (step 3c review): float code assumes the default MXCSR (round to nearest, no FTZ/DAZ)
+  and the entry trampoline does not set it, as Wasmtime does not; a host library that changes MXCSR
+  changes `nearest` and subnormal results. Tests: float operands in r10/r11
+  (`test_operands_in_high_registers`), no xmm6–15 in the float code (`test_isa_check_on_float_code`).

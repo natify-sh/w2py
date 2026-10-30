@@ -483,8 +483,10 @@ def test_host_exception_and_trap_through_compiled_code() -> None:
 @pytest.mark.parametrize(
     "text,feature",
     [
-        ("(func (result f32) (f32.add (f32.const 1) (f32.const 2)))", "float arithmetic"),
-        ("(memory 1) (func (result i32) (memory.grow (i32.const 1)))", "memory.size/grow"),
+        (
+            "(memory 1) (func (memory.fill (i32.const 0) (i32.const 0) (i32.const 0)))",
+            "bulk memory",
+        ),  # fmt: skip
         ("(table 1 funcref)", "tables"),
         ("(func (result funcref) (ref.null func))", "reference types"),
     ],
