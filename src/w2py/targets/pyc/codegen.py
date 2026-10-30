@@ -3,7 +3,8 @@
 
 import os
 
-from w2py.frontend.binary import F32, F64, I32, I64, M32, M64, decode, parse
+from w2py.frontend.binary import F32, F64, I32, I64, M32, M64, parse
+from w2py.frontend.validate import validate
 
 BRTREE = int(
     os.environ.get("W2PY_BT", "4")
@@ -77,12 +78,12 @@ class Ctl:
 
 # ----------------------------------------------------------------------------- function compiler
 class FuncGen:
-    def __init__(s, mg, fidx, tidx, locs, body):
+    def __init__(s, mg, fidx, tidx, locs, ins):
         s.mg = mg
         s.fidx = fidx
         s.params, s.results = mg.types[tidx]
         s.ltypes = list(s.params) + locs
-        s.ins = decode(body)
+        s.ins = ins
         s.lines = []
         s.ind = 1
         s.stack = []
@@ -1195,8 +1196,8 @@ class ModGen:
         for i in range(s.nimp):
             out.append("I%d = None" % i)
             gl.append("I%d" % i)
-        for k, ((locs, body), tidx) in enumerate(zip(mod["codes"], mod["funcs"])):
-            out.append(FuncGen(s, s.nimp + k, tidx, locs, body).gen())
+        for k, ((locs, _), tidx) in enumerate(zip(mod["codes"], mod["funcs"])):
+            out.append(FuncGen(s, s.nimp + k, tidx, locs, mod["insns"][k]).gen())
             out.append("f%d.s = %r" % (s.nimp + k, s.sig(*s.types[tidx])))
         for i, im in enumerate(s.fimports):
             L.append("    I%d = imports[%r][%r]" % (i, im[1], im[2]))
@@ -1229,4 +1230,6 @@ class ModGen:
 
 
 def generate(wasm: bytes) -> str:
-    return ModGen(parse(wasm)).gen()
+    mod = parse(wasm)
+    validate(mod)  # also decodes the bodies into mod["insns"]
+    return ModGen(mod).gen()

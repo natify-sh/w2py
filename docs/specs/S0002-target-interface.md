@@ -72,7 +72,11 @@ class TargetInstance(Protocol):
     def interrupt(self) -> None: ...                           # JIT: sets the word; pyc: later
 ```
 * `ValidModule` is what the front end's validator returns (decoded sections, function types,
-  per-function bodies already validated). No target ever sees an unvalidated module.
+  per-function bodies already validated). No target ever sees an invalid module. While the validator
+  does not cover a construct (typed function references, tags, some table instructions), it ends
+  without a verdict and marks the module `validated = False`: `pyc` may run it (a Python exception is
+  safe), a JIT target's `supports()` refuses it, so machine code is only ever generated for fully
+  validated modules.
 * `StoreState` (internal, `src/w2py/runtime/store.py`): the owner thread, the entry depth, the
   pending host exception, `max_wasm_stack`, the stack bounds the JIT needs (S0003), the list of
   live instances for `interrupt`. The phase-6 `Store` wraps it.

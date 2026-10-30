@@ -8,7 +8,6 @@ address.wast:208  gap: no bounds/segment checks (instantiation or table access d
 address.wast:209  gap: no bounds/segment checks (instantiation or table access does not trap)
 address.wast:210  gap: no bounds/segment checks (instantiation or table access does not trap)
 address.wast:211  gap: no bounds/segment checks (instantiation or table access does not trap)
-address.wast:214  no validator yet
 address.wast:496  gap: no bounds/segment checks (instantiation or table access does not trap)
 address.wast:497  gap: no bounds/segment checks (instantiation or table access does not trap)
 address.wast:498  gap: no bounds/segment checks (instantiation or table access does not trap)
@@ -27,103 +26,10 @@ address.wast:559  gap: no bounds/segment checks (instantiation or table access d
 address.wast:560  gap: no bounds/segment checks (instantiation or table access does not trap)
 address.wast:609  gap: no bounds/segment checks (instantiation or table access does not trap)
 address.wast:610  gap: no bounds/segment checks (instantiation or table access does not trap)
-align.wast:1005  no validator yet
-align.wast:1017  no validator yet
-align.wast:306  no validator yet
-align.wast:310  no validator yet
-align.wast:314  no validator yet
-align.wast:318  no validator yet
-align.wast:322  no validator yet
-align.wast:326  no validator yet
-align.wast:330  no validator yet
-align.wast:334  no validator yet
-align.wast:338  no validator yet
-align.wast:342  no validator yet
-align.wast:346  no validator yet
-align.wast:350  no validator yet
-align.wast:354  no validator yet
-align.wast:358  no validator yet
-align.wast:363  no validator yet
-align.wast:367  no validator yet
-align.wast:371  no validator yet
-align.wast:375  no validator yet
-align.wast:379  no validator yet
-align.wast:383  no validator yet
-align.wast:387  no validator yet
-align.wast:391  no validator yet
-align.wast:395  no validator yet
-align.wast:399  no validator yet
-align.wast:403  no validator yet
-align.wast:407  no validator yet
-align.wast:411  no validator yet
-align.wast:415  no validator yet
-align.wast:420  no validator yet
-align.wast:424  no validator yet
-align.wast:428  no validator yet
-align.wast:432  no validator yet
-align.wast:436  no validator yet
-align.wast:440  no validator yet
-align.wast:444  no validator yet
-align.wast:448  no validator yet
-align.wast:452  no validator yet
-align.wast:873  no validator yet
-align.wast:892  no validator yet
-align.wast:911  no validator yet
-align.wast:930  no validator yet
-align.wast:949  no validator yet
+align.wast:949  gap: decoder does not support the construct (block type / memarg memory index)
 annotations.wast:129  gap: table import / unknown import kind
 annotations.wast:98  gap: table import / unknown import kind
-binary.wast:1238  no validator yet: unknown type index in a type (step 2)
-block.wast:1001  no validator yet
-block.wast:1008  no validator yet
-block.wast:1014  no validator yet
-block.wast:1020  no validator yet
-block.wast:1026  no validator yet
-block.wast:1032  no validator yet
-block.wast:1038  no validator yet
-block.wast:1044  no validator yet
-block.wast:1050  no validator yet
-block.wast:1056  no validator yet
-block.wast:1062  no validator yet
-block.wast:1068  no validator yet
-block.wast:1074  no validator yet
-block.wast:1080  no validator yet
-block.wast:1087  no validator yet
-block.wast:1093  no validator yet
-block.wast:1099  no validator yet
-block.wast:1105  no validator yet
-block.wast:1111  no validator yet
-block.wast:1118  no validator yet
-block.wast:1124  no validator yet
-block.wast:1130  no validator yet
-block.wast:1136  no validator yet
-block.wast:1142  no validator yet
-block.wast:1149  no validator yet
-block.wast:1155  no validator yet
-block.wast:1161  no validator yet
-block.wast:1167  no validator yet
-block.wast:1173  no validator yet
-block.wast:1180  no validator yet
-block.wast:1188  no validator yet
-block.wast:1196  no validator yet
-block.wast:1204  no validator yet
-block.wast:1212  no validator yet
-block.wast:1220  no validator yet
-block.wast:1228  no validator yet
-block.wast:1236  no validator yet
-block.wast:1244  no validator yet
-block.wast:1252  no validator yet
-block.wast:1260  no validator yet
-block.wast:1268  no validator yet
-block.wast:1276  no validator yet
-block.wast:1426  gap: block parameters
-block.wast:1432  gap: block parameters
-block.wast:1438  gap: block parameters
-block.wast:1444  gap: block parameters
-block.wast:1450  gap: block parameters
-block.wast:1456  gap: block parameters
-block.wast:1462  gap: block parameters
-block.wast:1468  gap: block parameters
+binary.wast:1238  validator gap: accepted (typed references, tag, table initializer, non-core construct)
 block.wast:3  gap: block parameters
 block.wast:353  earlier module of the file did not load
 block.wast:354  earlier module of the file did not load
@@ -177,118 +83,6 @@ block.wast:414  earlier module of the file did not load
 block.wast:415  earlier module of the file did not load
 block.wast:417  earlier module of the file did not load
 block.wast:419  earlier module of the file did not load
-block.wast:497  no validator yet
-block.wast:505  no validator yet
-block.wast:509  no validator yet
-block.wast:513  no validator yet
-block.wast:517  no validator yet
-block.wast:522  no validator yet
-block.wast:528  no validator yet
-block.wast:534  no validator yet
-block.wast:540  no validator yet
-block.wast:546  no validator yet
-block.wast:552  no validator yet
-block.wast:558  no validator yet
-block.wast:564  no validator yet
-block.wast:570  no validator yet
-block.wast:576  no validator yet
-block.wast:583  no validator yet
-block.wast:592  no validator yet
-block.wast:601  no validator yet
-block.wast:611  no validator yet
-block.wast:617  no validator yet
-block.wast:623  no validator yet
-block.wast:629  no validator yet
-block.wast:635  no validator yet
-block.wast:641  no validator yet
-block.wast:647  no validator yet
-block.wast:653  no validator yet
-block.wast:659  no validator yet
-block.wast:665  no validator yet
-block.wast:671  no validator yet
-block.wast:677  no validator yet
-block.wast:683  no validator yet
-block.wast:689  no validator yet
-block.wast:695  no validator yet
-block.wast:701  no validator yet
-block.wast:707  no validator yet
-block.wast:713  no validator yet
-block.wast:719  no validator yet
-block.wast:725  no validator yet
-block.wast:732  no validator yet
-block.wast:738  no validator yet
-block.wast:744  no validator yet
-block.wast:750  no validator yet
-block.wast:756  no validator yet
-block.wast:762  no validator yet
-block.wast:768  no validator yet
-block.wast:774  no validator yet
-block.wast:780  no validator yet
-block.wast:786  no validator yet
-block.wast:792  no validator yet
-block.wast:798  no validator yet
-block.wast:805  no validator yet
-block.wast:811  no validator yet
-block.wast:817  no validator yet
-block.wast:823  no validator yet
-block.wast:829  no validator yet
-block.wast:836  no validator yet
-block.wast:842  no validator yet
-block.wast:848  no validator yet
-block.wast:854  no validator yet
-block.wast:860  no validator yet
-block.wast:867  no validator yet
-block.wast:873  no validator yet
-block.wast:879  no validator yet
-block.wast:885  no validator yet
-block.wast:892  no validator yet
-block.wast:898  no validator yet
-block.wast:904  no validator yet
-block.wast:910  no validator yet
-block.wast:916  no validator yet
-block.wast:922  no validator yet
-block.wast:928  no validator yet
-block.wast:934  no validator yet
-block.wast:940  no validator yet
-block.wast:946  no validator yet
-block.wast:952  no validator yet
-block.wast:958  no validator yet
-block.wast:964  no validator yet
-block.wast:970  no validator yet
-block.wast:977  no validator yet
-block.wast:983  no validator yet
-block.wast:989  no validator yet
-block.wast:995  no validator yet
-br.wast:471  no validator yet
-br.wast:478  no validator yet
-br.wast:484  no validator yet
-br.wast:490  no validator yet
-br.wast:497  no validator yet
-br.wast:506  no validator yet
-br.wast:515  no validator yet
-br.wast:524  no validator yet
-br.wast:535  no validator yet
-br.wast:546  no validator yet
-br.wast:558  no validator yet
-br.wast:574  no validator yet
-br.wast:586  no validator yet
-br.wast:598  no validator yet
-br.wast:610  no validator yet
-br.wast:622  no validator yet
-br.wast:634  no validator yet
-br_if.wast:515  no validator yet
-br_if.wast:521  no validator yet
-br_if.wast:527  no validator yet
-br_if.wast:533  no validator yet
-br_if.wast:540  no validator yet
-br_if.wast:546  no validator yet
-br_if.wast:552  no validator yet
-br_if.wast:560  no validator yet
-br_if.wast:581  no validator yet
-br_if.wast:587  no validator yet
-br_if.wast:593  no validator yet
-br_if.wast:599  no validator yet
-br_if.wast:641  no validator yet
 br_if.wast:668  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
 br_on_non_null.wast:1  decoder rejects a valid module (unsupported construct)
 br_on_non_null.wast:49  earlier module of the file did not load
@@ -473,36 +267,7 @@ br_table.wast:1261  earlier module of the file did not load
 br_table.wast:1262  earlier module of the file did not load
 br_table.wast:1263  earlier module of the file did not load
 br_table.wast:1264  earlier module of the file did not load
-br_table.wast:1267  no validator yet
-br_table.wast:1281  no validator yet
-br_table.wast:1287  no validator yet
-br_table.wast:1295  no validator yet
-br_table.wast:1306  no validator yet
-br_table.wast:1323  no validator yet
-br_table.wast:1329  no validator yet
-br_table.wast:1335  no validator yet
-br_table.wast:1341  no validator yet
-br_table.wast:1350  no validator yet
-br_table.wast:1392  no validator yet
-br_table.wast:1404  no validator yet
-br_table.wast:1416  no validator yet
 br_table.wast:3  gap: element segment flags
-call.wast:388  no validator yet
-call.wast:410  no validator yet
-call.wast:417  no validator yet
-call.wast:439  no validator yet
-call.wast:446  no validator yet
-call_indirect.wast:1038  no validator yet
-call_indirect.wast:791  no validator yet
-call_indirect.wast:807  no validator yet
-call_indirect.wast:832  no validator yet
-call_indirect.wast:840  no validator yet
-call_indirect.wast:859  no validator yet
-call_indirect.wast:888  no validator yet
-call_indirect.wast:898  no validator yet
-call_indirect.wast:961  no validator yet
-call_indirect.wast:977  no validator yet
-call_indirect.wast:995  no validator yet
 call_ref.wast:1  decoder rejects a valid module (unsupported construct)
 call_ref.wast:100  earlier module of the file did not load
 call_ref.wast:101  earlier module of the file did not load
@@ -524,8 +289,8 @@ call_ref.wast:121  earlier module of the file did not load
 call_ref.wast:122  earlier module of the file did not load
 call_ref.wast:123  earlier module of the file did not load
 call_ref.wast:124  earlier module of the file did not load
-call_ref.wast:168  no validator yet
-call_ref.wast:184  no validator yet
+call_ref.wast:168  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+call_ref.wast:184  validator gap: accepted (typed references, tag, table initializer, non-core construct)
 call_ref.wast:201  gap: opcode not implemented
 call_ref.wast:211  gap: opcode not implemented
 call_ref.wast:94  earlier module of the file did not load
@@ -544,47 +309,10 @@ conversions.wast:628  wrong result (float NaN payload / conversion)
 conversions.wast:629  wrong result (float NaN payload / conversion)
 conversions.wast:657  wrong result (float NaN payload / conversion)
 conversions.wast:658  wrong result (float NaN payload / conversion)
-conversions.wast:678  no validator yet
-conversions.wast:679  no validator yet
-conversions.wast:680  no validator yet
-conversions.wast:681  no validator yet
-conversions.wast:682  no validator yet
-conversions.wast:683  no validator yet
-conversions.wast:684  no validator yet
-conversions.wast:685  no validator yet
-conversions.wast:686  no validator yet
-conversions.wast:687  no validator yet
-conversions.wast:688  no validator yet
-conversions.wast:689  no validator yet
-conversions.wast:690  no validator yet
-conversions.wast:691  no validator yet
-conversions.wast:692  no validator yet
-conversions.wast:693  no validator yet
-conversions.wast:694  no validator yet
-conversions.wast:695  no validator yet
-conversions.wast:696  no validator yet
-conversions.wast:697  no validator yet
-conversions.wast:698  no validator yet
-conversions.wast:699  no validator yet
-conversions.wast:700  no validator yet
-conversions.wast:701  no validator yet
-conversions.wast:702  no validator yet
 data.wast:178  decoder rejects a valid module (unsupported construct)
 data.wast:183  decoder rejects a valid module (unsupported construct)
 data.wast:188  decoder rejects a valid module (unsupported construct)
 data.wast:195  decoder rejects a valid module (unsupported construct)
-data.wast:330  no validator yet
-data.wast:338  no validator yet
-data.wast:351  no validator yet
-data.wast:362  no validator yet
-data.wast:374  no validator yet
-data.wast:396  no validator yet
-data.wast:415  no validator yet
-data.wast:423  gap: init expression
-data.wast:497  no validator yet
-data.wast:506  no validator yet
-data.wast:514  no validator yet
-data.wast:523  no validator yet
 data.wast:532  gap: opcode not implemented
 data.wast:542  earlier module of the file did not load (name or export missing)
 data.wast:543  earlier module of the file did not load (name or export missing)
@@ -634,73 +362,14 @@ elem.wast:698  gap: opcode not implemented
 elem.wast:706  earlier module of the file did not load (name or export missing)
 elem.wast:708  gap: opcode not implemented
 elem.wast:716  earlier module of the file did not load (name or export missing)
-elem.wast:722  no validator yet
-elem.wast:733  no validator yet
-elem.wast:741  gap: init expression
 elem.wast:80  gap: element segment flags
-elem.wast:816  no validator yet
-elem.wast:825  no validator yet
-elem.wast:833  no validator yet
-elem.wast:842  no validator yet
-elem.wast:979  no validator yet
-exports.wast:100  translator crashes on an invalid or unsupported module (no validator)
-exports.wast:104  translator crashes on an invalid or unsupported module (no validator)
-exports.wast:108  translator crashes on an invalid or unsupported module (no validator)
-exports.wast:112  no validator yet
-exports.wast:116  no validator yet
-exports.wast:120  no validator yet
-exports.wast:124  no validator yet
-exports.wast:128  no validator yet
-exports.wast:155  no validator yet
-exports.wast:159  no validator yet
-exports.wast:163  gap: table import / unknown import kind
-exports.wast:167  no validator yet
-exports.wast:171  no validator yet
-exports.wast:175  no validator yet
-exports.wast:179  no validator yet
-exports.wast:183  no validator yet
-exports.wast:211  no validator yet
-exports.wast:215  no validator yet
-exports.wast:219  no validator yet
-exports.wast:223  no validator yet
-exports.wast:232  no validator yet
-exports.wast:236  no validator yet
-exports.wast:240  no validator yet
-exports.wast:39  translator crashes on an invalid or unsupported module (no validator)
-exports.wast:43  translator crashes on an invalid or unsupported module (no validator)
-exports.wast:47  translator crashes on an invalid or unsupported module (no validator)
-exports.wast:51  no validator yet
-exports.wast:55  no validator yet
-exports.wast:59  no validator yet
-exports.wast:63  no validator yet
-exports.wast:67  no validator yet
-exports.wast:71  no validator yet
+exports.wast:71  validator gap: accepted (typed references, tag, table initializer, non-core construct)
 f32.wast:2461  wrong result (float NaN payload / conversion)
 f32.wast:2463  wrong result (float NaN payload / conversion)
 f32.wast:2465  wrong result (float NaN payload / conversion)
 f32.wast:2481  wrong result (float NaN payload / conversion)
 f32.wast:2483  wrong result (float NaN payload / conversion)
 f32.wast:2485  wrong result (float NaN payload / conversion)
-f32.wast:2523  no validator yet
-f32.wast:2524  no validator yet
-f32.wast:2525  no validator yet
-f32.wast:2526  no validator yet
-f32.wast:2527  no validator yet
-f32.wast:2528  no validator yet
-f32.wast:2529  no validator yet
-f32.wast:2530  no validator yet
-f32.wast:2531  no validator yet
-f32.wast:2532  no validator yet
-f32.wast:2533  no validator yet
-f32_bitwise.wast:374  no validator yet
-f32_bitwise.wast:375  no validator yet
-f32_bitwise.wast:376  no validator yet
-f32_cmp.wast:2417  no validator yet
-f32_cmp.wast:2418  no validator yet
-f32_cmp.wast:2419  no validator yet
-f32_cmp.wast:2420  no validator yet
-f32_cmp.wast:2421  no validator yet
-f32_cmp.wast:2422  no validator yet
 f64.wast:2456  wrong result (float NaN payload / conversion)
 f64.wast:2458  wrong result (float NaN payload / conversion)
 f64.wast:2461  wrong result (float NaN payload / conversion)
@@ -715,26 +384,6 @@ f64.wast:2496  wrong result (float NaN payload / conversion)
 f64.wast:2498  wrong result (float NaN payload / conversion)
 f64.wast:2516  wrong result (float NaN payload / conversion)
 f64.wast:2518  wrong result (float NaN payload / conversion)
-f64.wast:2523  no validator yet
-f64.wast:2524  no validator yet
-f64.wast:2525  no validator yet
-f64.wast:2526  no validator yet
-f64.wast:2527  no validator yet
-f64.wast:2528  no validator yet
-f64.wast:2529  no validator yet
-f64.wast:2530  no validator yet
-f64.wast:2531  no validator yet
-f64.wast:2532  no validator yet
-f64.wast:2533  no validator yet
-f64_bitwise.wast:374  no validator yet
-f64_bitwise.wast:375  no validator yet
-f64_bitwise.wast:376  no validator yet
-f64_cmp.wast:2417  no validator yet
-f64_cmp.wast:2418  no validator yet
-f64_cmp.wast:2419  no validator yet
-f64_cmp.wast:2420  no validator yet
-f64_cmp.wast:2421  no validator yet
-f64_cmp.wast:2422  no validator yet
 fac.wast:1  gap: block parameters
 fac.wast:102  earlier module of the file did not load
 fac.wast:103  earlier module of the file did not load
@@ -789,60 +438,7 @@ float_misc.wast:646  wrong result (float NaN payload / conversion)
 float_misc.wast:647  wrong result (float NaN payload / conversion)
 float_misc.wast:648  wrong result (float NaN payload / conversion)
 float_misc.wast:649  wrong result (float NaN payload / conversion)
-func.wast:635  gap: opcode not implemented
-func.wast:647  no validator yet
-func.wast:651  no validator yet
-func.wast:655  no validator yet
-func.wast:660  no validator yet
-func.wast:671  no validator yet
-func.wast:675  no validator yet
-func.wast:679  no validator yet
-func.wast:687  no validator yet
-func.wast:691  no validator yet
-func.wast:695  no validator yet
-func.wast:699  no validator yet
-func.wast:703  no validator yet
-func.wast:708  no validator yet
-func.wast:714  no validator yet
-func.wast:720  no validator yet
-func.wast:726  no validator yet
-func.wast:732  no validator yet
-func.wast:738  no validator yet
-func.wast:744  no validator yet
-func.wast:751  no validator yet
-func.wast:757  no validator yet
-func.wast:763  no validator yet
-func.wast:769  no validator yet
-func.wast:775  no validator yet
-func.wast:781  no validator yet
-func.wast:788  no validator yet
-func.wast:794  no validator yet
-func.wast:800  no validator yet
-func.wast:806  no validator yet
-func.wast:812  no validator yet
-func.wast:818  no validator yet
-func.wast:824  no validator yet
-func.wast:830  no validator yet
-func.wast:836  no validator yet
-func.wast:843  no validator yet
-func.wast:849  no validator yet
-func.wast:855  no validator yet
-func.wast:861  no validator yet
-func.wast:867  no validator yet
-func.wast:873  no validator yet
-func.wast:879  no validator yet
-func.wast:885  no validator yet
-func.wast:891  no validator yet
-func.wast:898  no validator yet
-func.wast:904  no validator yet
-func.wast:910  no validator yet
-func.wast:916  no validator yet
-func.wast:922  no validator yet
-func.wast:928  no validator yet
-func_ptrs.wast:32  no validator yet
-func_ptrs.wast:33  no validator yet
-func_ptrs.wast:36  no validator yet
-func_ptrs.wast:49  no validator yet
+func.wast:660  validator gap: accepted (typed references, tag, table initializer, non-core construct)
 global.wast:204  earlier module of the file did not load
 global.wast:205  earlier module of the file did not load
 global.wast:206  earlier module of the file did not load
@@ -905,160 +501,14 @@ global.wast:278  earlier module of the file did not load
 global.wast:280  earlier module of the file did not load
 global.wast:281  earlier module of the file did not load
 global.wast:282  earlier module of the file did not load
-global.wast:285  no validator yet
-global.wast:290  no validator yet
 global.wast:3  decoder rejects a valid module (unsupported construct)
-global.wast:329  no validator yet
-global.wast:344  no validator yet
-global.wast:359  no validator yet
-global.wast:364  no validator yet
-global.wast:369  no validator yet
-global.wast:377  no validator yet
-global.wast:472  no validator yet
-global.wast:477  no validator yet
-global.wast:485  no validator yet
-global.wast:493  no validator yet
-global.wast:512  no validator yet
-global.wast:522  no validator yet
-global.wast:532  no validator yet
-global.wast:542  no validator yet
-global.wast:552  no validator yet
 global.wast:634  gap: element segment flags
 global.wast:659  earlier module of the file did not load (name or export missing)
 global.wast:660  earlier module of the file did not load (name or export missing)
 global.wast:661  earlier module of the file did not load (name or export missing)
 global.wast:663  earlier module of the file did not load (name or export missing)
 global.wast:664  earlier module of the file did not load (name or export missing)
-global.wast:667  no validator yet
 global.wast:675  gap: init expression
-i32.wast:452  no validator yet
-i32.wast:461  no validator yet
-i32.wast:470  no validator yet
-i32.wast:479  no validator yet
-i32.wast:488  no validator yet
-i32.wast:497  no validator yet
-i32.wast:506  no validator yet
-i32.wast:627  no validator yet
-i32.wast:636  no validator yet
-i32.wast:645  no validator yet
-i32.wast:654  no validator yet
-i32.wast:663  no validator yet
-i32.wast:672  no validator yet
-i32.wast:681  no validator yet
-i32.wast:701  no validator yet
-i32.wast:710  no validator yet
-i32.wast:719  no validator yet
-i32.wast:728  no validator yet
-i32.wast:737  no validator yet
-i32.wast:746  no validator yet
-i32.wast:948  no validator yet
-i32.wast:949  no validator yet
-i32.wast:950  no validator yet
-i32.wast:951  no validator yet
-i32.wast:952  no validator yet
-i32.wast:953  no validator yet
-i32.wast:954  no validator yet
-i32.wast:955  no validator yet
-i32.wast:956  no validator yet
-i32.wast:957  no validator yet
-i32.wast:958  no validator yet
-i32.wast:959  no validator yet
-i32.wast:960  no validator yet
-i32.wast:961  no validator yet
-i32.wast:962  no validator yet
-i32.wast:963  no validator yet
-i32.wast:964  no validator yet
-i32.wast:965  no validator yet
-i32.wast:966  no validator yet
-i32.wast:967  no validator yet
-i32.wast:968  no validator yet
-i32.wast:969  no validator yet
-i32.wast:970  no validator yet
-i32.wast:971  no validator yet
-i32.wast:972  no validator yet
-i32.wast:973  no validator yet
-i32.wast:974  no validator yet
-i32.wast:975  no validator yet
-i32.wast:976  no validator yet
-i64.wast:457  no validator yet
-i64.wast:458  no validator yet
-i64.wast:459  no validator yet
-i64.wast:460  no validator yet
-i64.wast:461  no validator yet
-i64.wast:462  no validator yet
-i64.wast:463  no validator yet
-i64.wast:464  no validator yet
-i64.wast:465  no validator yet
-i64.wast:466  no validator yet
-i64.wast:467  no validator yet
-i64.wast:468  no validator yet
-i64.wast:469  no validator yet
-i64.wast:470  no validator yet
-i64.wast:471  no validator yet
-i64.wast:472  no validator yet
-i64.wast:473  no validator yet
-i64.wast:474  no validator yet
-i64.wast:475  no validator yet
-i64.wast:476  no validator yet
-i64.wast:477  no validator yet
-i64.wast:478  no validator yet
-i64.wast:479  no validator yet
-i64.wast:480  no validator yet
-i64.wast:481  no validator yet
-i64.wast:482  no validator yet
-i64.wast:483  no validator yet
-i64.wast:484  no validator yet
-i64.wast:485  no validator yet
-if.wast:1004  no validator yet
-if.wast:1010  no validator yet
-if.wast:1017  no validator yet
-if.wast:1023  no validator yet
-if.wast:1029  no validator yet
-if.wast:1036  no validator yet
-if.wast:1042  no validator yet
-if.wast:1048  no validator yet
-if.wast:1055  no validator yet
-if.wast:1062  no validator yet
-if.wast:1069  no validator yet
-if.wast:1077  no validator yet
-if.wast:1083  no validator yet
-if.wast:1089  no validator yet
-if.wast:1096  no validator yet
-if.wast:1102  no validator yet
-if.wast:1109  no validator yet
-if.wast:1119  no validator yet
-if.wast:1129  no validator yet
-if.wast:1140  no validator yet
-if.wast:1146  no validator yet
-if.wast:1152  no validator yet
-if.wast:1158  no validator yet
-if.wast:1165  no validator yet
-if.wast:1174  no validator yet
-if.wast:1183  no validator yet
-if.wast:1192  no validator yet
-if.wast:1202  no validator yet
-if.wast:1211  no validator yet
-if.wast:1220  no validator yet
-if.wast:1229  no validator yet
-if.wast:1239  no validator yet
-if.wast:1248  no validator yet
-if.wast:1257  no validator yet
-if.wast:1266  no validator yet
-if.wast:1275  no validator yet
-if.wast:1285  no validator yet
-if.wast:1304  no validator yet
-if.wast:1313  no validator yet
-if.wast:1322  no validator yet
-if.wast:1331  no validator yet
-if.wast:1341  no validator yet
-if.wast:1464  gap: block parameters
-if.wast:1470  gap: block parameters
-if.wast:1476  gap: block parameters
-if.wast:1482  gap: block parameters
-if.wast:1488  gap: block parameters
-if.wast:1494  gap: block parameters
-if.wast:1500  gap: block parameters
-if.wast:1506  gap: block parameters
 if.wast:3  gap: block parameters
 if.wast:537  earlier module of the file did not load
 if.wast:538  earlier module of the file did not load
@@ -1184,36 +634,6 @@ if.wast:725  earlier module of the file did not load
 if.wast:728  earlier module of the file did not load
 if.wast:731  earlier module of the file did not load
 if.wast:733  earlier module of the file did not load
-if.wast:836  no validator yet
-if.wast:844  no validator yet
-if.wast:848  no validator yet
-if.wast:852  no validator yet
-if.wast:856  no validator yet
-if.wast:861  no validator yet
-if.wast:865  no validator yet
-if.wast:869  no validator yet
-if.wast:873  no validator yet
-if.wast:878  no validator yet
-if.wast:884  no validator yet
-if.wast:890  no validator yet
-if.wast:896  no validator yet
-if.wast:903  no validator yet
-if.wast:909  no validator yet
-if.wast:915  no validator yet
-if.wast:921  no validator yet
-if.wast:928  no validator yet
-if.wast:934  no validator yet
-if.wast:940  no validator yet
-if.wast:947  no validator yet
-if.wast:953  no validator yet
-if.wast:959  no validator yet
-if.wast:966  no validator yet
-if.wast:972  no validator yet
-if.wast:979  no validator yet
-if.wast:985  no validator yet
-if.wast:991  no validator yet
-if.wast:998  no validator yet
-imports.wast:101  no validator yet
 imports.wast:240  gap: table import / unknown import kind
 imports.wast:244  gap: table import / unknown import kind
 imports.wast:248  gap: table import / unknown import kind
@@ -1237,8 +657,6 @@ instance.wast:55  earlier module of the file did not load
 instance.wast:56  earlier module of the file did not load
 instance.wast:57  earlier module of the file did not load
 instance.wast:62  gap: table import / unknown import kind
-labels.wast:322  no validator yet
-labels.wast:326  no validator yet
 linking.wast:112  gap: table import / unknown import kind
 linking.wast:168  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
 linking.wast:207  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
@@ -1249,7 +667,7 @@ linking.wast:451  gap: table import / unknown import kind
 linking.wast:455  gap: table import / unknown import kind
 linking.wast:460  gap: table import / unknown import kind
 linking.wast:464  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
-linking.wast:50  translator crashes on an invalid or unsupported module (no validator)
+linking.wast:50  translator crashes on a valid module (TypeError, not a validator matter)
 linking.wast:68  earlier module of the file did not load (name or export missing)
 linking.wast:69  earlier module of the file did not load (name or export missing)
 linking.wast:71  earlier module of the file did not load (name or export missing)
@@ -1258,107 +676,16 @@ linking.wast:75  earlier module of the file did not load (name or export missing
 linking.wast:77  earlier module of the file did not load (name or export missing)
 linking.wast:81  earlier module of the file did not load (name or export missing)
 linking.wast:83  earlier module of the file did not load (name or export missing)
-load.wast:312  no validator yet
-load.wast:316  no validator yet
-load.wast:320  no validator yet
-load.wast:324  no validator yet
-load.wast:328  no validator yet
-load.wast:332  no validator yet
-load.wast:336  no validator yet
-load.wast:340  no validator yet
-load.wast:344  no validator yet
-load.wast:348  no validator yet
-load.wast:352  no validator yet
-load.wast:356  no validator yet
-load.wast:360  no validator yet
-load.wast:364  no validator yet
-load.wast:371  no validator yet
-load.wast:372  no validator yet
-load.wast:373  no validator yet
-load.wast:374  no validator yet
-load.wast:375  no validator yet
-load.wast:376  no validator yet
-load.wast:377  no validator yet
-load.wast:378  no validator yet
-load.wast:379  no validator yet
-load.wast:380  no validator yet
-load.wast:381  no validator yet
-load.wast:382  no validator yet
-load.wast:383  no validator yet
-load.wast:384  no validator yet
-load.wast:397  no validator yet
-load.wast:407  no validator yet
-load.wast:417  no validator yet
-load.wast:427  no validator yet
-load.wast:437  no validator yet
-load.wast:447  no validator yet
-load.wast:457  no validator yet
-local_get.wast:149  no validator yet
-local_get.wast:153  no validator yet
-local_get.wast:157  no validator yet
-local_get.wast:165  no validator yet
-local_get.wast:169  no validator yet
-local_get.wast:173  no validator yet
-local_get.wast:181  no validator yet
-local_get.wast:185  no validator yet
-local_get.wast:189  no validator yet
-local_get.wast:193  no validator yet
 local_init.wast:21  earlier module of the file did not load
 local_init.wast:22  earlier module of the file did not load
 local_init.wast:23  earlier module of the file did not load
-local_init.wast:26  translator crashes on an invalid or unsupported module (no validator)
-local_init.wast:3  translator crashes on an invalid or unsupported module (no validator)
-local_init.wast:30  no validator yet
-local_init.wast:40  no validator yet
-local_init.wast:53  no validator yet
+local_init.wast:26  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+local_init.wast:3  translator crashes on a valid module (TypeError, not a validator matter)
+local_init.wast:30  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+local_init.wast:40  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+local_init.wast:53  validator gap: accepted (typed references, tag, table initializer, non-core construct)
 local_init.wast:74  earlier module of the file did not load
-local_set.wast:152  no validator yet
-local_set.wast:156  no validator yet
-local_set.wast:160  no validator yet
-local_set.wast:173  no validator yet
-local_set.wast:177  no validator yet
-local_set.wast:181  no validator yet
-local_set.wast:194  no validator yet
-local_set.wast:203  no validator yet
-local_set.wast:212  no validator yet
-local_set.wast:221  no validator yet
-local_set.wast:230  no validator yet
-local_set.wast:301  no validator yet
-local_set.wast:305  no validator yet
-local_set.wast:309  no validator yet
-local_set.wast:317  no validator yet
-local_set.wast:321  no validator yet
-local_set.wast:325  no validator yet
-local_set.wast:329  no validator yet
-local_set.wast:337  no validator yet
-local_set.wast:341  no validator yet
-local_set.wast:346  no validator yet
-local_set.wast:350  no validator yet
-local_set.wast:355  no validator yet
-local_set.wast:359  no validator yet
 local_tee.wast:338  wrong result (float NaN payload / conversion)
-local_tee.wast:371  no validator yet
-local_tee.wast:375  no validator yet
-local_tee.wast:379  no validator yet
-local_tee.wast:388  no validator yet
-local_tee.wast:392  no validator yet
-local_tee.wast:396  no validator yet
-local_tee.wast:404  no validator yet
-local_tee.wast:408  no validator yet
-local_tee.wast:412  no validator yet
-local_tee.wast:421  no validator yet
-local_tee.wast:425  no validator yet
-local_tee.wast:429  no validator yet
-local_tee.wast:442  no validator yet
-local_tee.wast:451  no validator yet
-local_tee.wast:460  no validator yet
-local_tee.wast:469  no validator yet
-local_tee.wast:478  no validator yet
-local_tee.wast:487  no validator yet
-local_tee.wast:496  no validator yet
-local_tee.wast:599  no validator yet
-local_tee.wast:603  no validator yet
-local_tee.wast:607  no validator yet
 local_tee.wast:613  gap: opcode not implemented
 loop.wast:3  gap: block parameters
 loop.wast:441  earlier module of the file did not load
@@ -1439,81 +766,18 @@ loop.wast:531  earlier module of the file did not load
 loop.wast:532  earlier module of the file did not load
 loop.wast:534  earlier module of the file did not load
 loop.wast:536  earlier module of the file did not load
-loop.wast:614  no validator yet
-loop.wast:622  no validator yet
-loop.wast:626  no validator yet
-loop.wast:630  no validator yet
-loop.wast:634  no validator yet
-loop.wast:639  no validator yet
-loop.wast:645  no validator yet
-loop.wast:651  no validator yet
-loop.wast:657  no validator yet
-loop.wast:663  no validator yet
-loop.wast:669  no validator yet
-loop.wast:675  no validator yet
-loop.wast:681  no validator yet
-loop.wast:687  no validator yet
-loop.wast:693  no validator yet
-loop.wast:699  no validator yet
-loop.wast:706  no validator yet
-loop.wast:715  no validator yet
-loop.wast:724  no validator yet
-loop.wast:734  gap: block parameters
-loop.wast:740  gap: block parameters
-loop.wast:746  gap: block parameters
-loop.wast:752  gap: block parameters
-loop.wast:758  gap: block parameters
-loop.wast:764  gap: block parameters
-loop.wast:770  gap: block parameters
-loop.wast:776  gap: block parameters
-memory.wast:18  no validator yet
-memory.wast:19  no validator yet
-memory.wast:20  no validator yet
-memory.wast:23  no validator yet
-memory.wast:27  no validator yet
-memory.wast:31  no validator yet
-memory.wast:35  no validator yet
-memory.wast:39  no validator yet
-memory.wast:43  no validator yet
-memory.wast:49  no validator yet
-memory.wast:53  no validator yet
-memory.wast:57  no validator yet
-memory.wast:61  no validator yet
-memory.wast:65  no validator yet
-memory.wast:69  no validator yet
-memory.wast:73  no validator yet
-memory.wast:78  no validator yet
-memory.wast:82  no validator yet
-memory.wast:86  no validator yet
-memory.wast:91  no validator yet
-memory.wast:95  no validator yet
-memory.wast:99  no validator yet
-memory_grow.wast:342  no validator yet
-memory_grow.wast:360  no validator yet
-memory_grow.wast:370  no validator yet
-memory_grow.wast:380  no validator yet
-memory_grow.wast:391  no validator yet
-memory_grow.wast:400  no validator yet
-memory_grow.wast:410  no validator yet
-memory_grow.wast:419  no validator yet
-memory_size.wast:69  no validator yet
-memory_size.wast:78  no validator yet
-nop.wast:412  no validator yet
-nop.wast:416  no validator yet
-nop.wast:420  no validator yet
-nop.wast:424  no validator yet
-ref.wast:28  no validator yet
-ref.wast:32  no validator yet
+ref.wast:28  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+ref.wast:32  validator gap: accepted (typed references, tag, table initializer, non-core construct)
 ref.wast:37  gap: init expression
-ref.wast:42  no validator yet
+ref.wast:42  validator gap: accepted (typed references, tag, table initializer, non-core construct)
 ref.wast:47  gap: element segment flags
-ref.wast:52  no validator yet
-ref.wast:56  no validator yet
-ref.wast:60  no validator yet
-ref.wast:65  translator crashes on an invalid or unsupported module (no validator)
-ref.wast:69  translator crashes on an invalid or unsupported module (no validator)
-ref.wast:73  translator crashes on an invalid or unsupported module (no validator)
-ref.wast:78  no validator yet
+ref.wast:52  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+ref.wast:56  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+ref.wast:60  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+ref.wast:65  gap: decoder does not support the construct (block type / memarg memory index)
+ref.wast:69  gap: decoder does not support the construct (block type / memarg memory index)
+ref.wast:73  gap: decoder does not support the construct (block type / memarg memory index)
+ref.wast:78  validator gap: accepted (typed references, tag, table initializer, non-core construct)
 ref_as_non_null.wast:1  decoder rejects a valid module (unsupported construct)
 ref_as_non_null.wast:25  earlier module of the file did not load
 ref_as_non_null.wast:27  earlier module of the file did not load
@@ -1521,8 +785,6 @@ ref_as_non_null.wast:28  earlier module of the file did not load
 ref_as_non_null.wast:29  earlier module of the file did not load
 ref_as_non_null.wast:32  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
 ref_as_non_null.wast:41  decoder rejects a valid module (unsupported construct)
-ref_func.wast:109  gap: opcode not implemented
-ref_func.wast:113  gap: opcode not implemented
 ref_func.wast:56  earlier module of the file did not load (name or export missing)
 ref_func.wast:57  earlier module of the file did not load (name or export missing)
 ref_func.wast:58  earlier module of the file did not load (name or export missing)
@@ -1534,7 +796,6 @@ ref_func.wast:63  earlier module of the file did not load (name or export missin
 ref_func.wast:64  earlier module of the file did not load (name or export missing)
 ref_func.wast:65  earlier module of the file did not load (name or export missing)
 ref_func.wast:66  earlier module of the file did not load (name or export missing)
-ref_func.wast:69  no validator yet
 ref_func.wast:80  gap: element segment flags
 ref_is_null.wast:1  decoder rejects a valid module (unsupported construct)
 ref_is_null.wast:44  earlier module of the file did not load
@@ -1556,8 +817,6 @@ ref_is_null.wast:66  earlier module of the file did not load
 ref_is_null.wast:67  earlier module of the file did not load
 ref_is_null.wast:68  earlier module of the file did not load
 ref_is_null.wast:71  decoder rejects a valid module (unsupported construct)
-ref_is_null.wast:79  gap: opcode not implemented
-ref_is_null.wast:83  gap: opcode not implemented
 ref_null.wast:1  gap: init expression
 ref_null.wast:16  earlier module of the file did not load
 ref_null.wast:17  earlier module of the file did not load
@@ -1592,26 +851,6 @@ ref_null.wast:78  earlier module of the file did not load
 ref_null.wast:79  earlier module of the file did not load
 ref_null.wast:80  earlier module of the file did not load
 ref_null.wast:81  earlier module of the file did not load
-return.wast:311  no validator yet
-return.wast:315  no validator yet
-return.wast:324  no validator yet
-return.wast:333  no validator yet
-return.wast:342  no validator yet
-return.wast:351  no validator yet
-return.wast:360  no validator yet
-return.wast:369  no validator yet
-return.wast:378  no validator yet
-return.wast:386  no validator yet
-return.wast:394  no validator yet
-return.wast:403  no validator yet
-return.wast:418  no validator yet
-return.wast:427  no validator yet
-return.wast:436  no validator yet
-return.wast:445  no validator yet
-return.wast:454  no validator yet
-return.wast:463  no validator yet
-return.wast:472  no validator yet
-return.wast:476  no validator yet
 return_call.wast:101  earlier module of the file did not load
 return_call.wast:102  earlier module of the file did not load
 return_call.wast:103  earlier module of the file did not load
@@ -1646,22 +885,9 @@ return_call.wast:139  earlier module of the file did not load
 return_call.wast:140  earlier module of the file did not load
 return_call.wast:141  earlier module of the file did not load
 return_call.wast:142  earlier module of the file did not load
-return_call.wast:147  gap: opcode not implemented
-return_call.wast:154  gap: opcode not implemented
 return_call.wast:161  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
-return_call.wast:170  gap: opcode not implemented
-return_call.wast:177  gap: opcode not implemented
 return_call.wast:184  gap: opcode not implemented
 return_call.wast:189  gap: opcode not implemented
-return_call.wast:195  gap: opcode not implemented
-return_call.wast:202  gap: opcode not implemented
-return_call.wast:209  gap: opcode not implemented
-return_call.wast:216  gap: opcode not implemented
-return_call.wast:223  gap: opcode not implemented
-return_call.wast:232  gap: opcode not implemented
-return_call.wast:241  gap: opcode not implemented
-return_call.wast:253  gap: opcode not implemented
-return_call.wast:257  gap: opcode not implemented
 return_call.wast:3  decoder rejects a valid module (unsupported construct)
 return_call_indirect.wast:247  earlier module of the file did not load
 return_call_indirect.wast:248  earlier module of the file did not load
@@ -1714,27 +940,9 @@ return_call_indirect.wast:301  earlier module of the file did not load
 return_call_indirect.wast:303  earlier module of the file did not load
 return_call_indirect.wast:304  earlier module of the file did not load
 return_call_indirect.wast:305  earlier module of the file did not load
-return_call_indirect.wast:436  gap: opcode not implemented
-return_call_indirect.wast:444  gap: opcode not implemented
-return_call_indirect.wast:452  gap: opcode not implemented
 return_call_indirect.wast:460  gap: unsupported reference-type / tail-call / typed-ref feature (passed before only because the reader mis-parsed the module)
-return_call_indirect.wast:471  gap: opcode not implemented
-return_call_indirect.wast:479  gap: opcode not implemented
 return_call_indirect.wast:487  gap: opcode not implemented
 return_call_indirect.wast:493  gap: opcode not implemented
-return_call_indirect.wast:502  gap: opcode not implemented
-return_call_indirect.wast:510  gap: opcode not implemented
-return_call_indirect.wast:519  gap: opcode not implemented
-return_call_indirect.wast:529  gap: opcode not implemented
-return_call_indirect.wast:539  gap: opcode not implemented
-return_call_indirect.wast:549  gap: opcode not implemented
-return_call_indirect.wast:559  gap: table import / unknown import kind
-return_call_indirect.wast:570  gap: table import / unknown import kind
-return_call_indirect.wast:581  gap: table import / unknown import kind
-return_call_indirect.wast:594  gap: opcode not implemented
-return_call_indirect.wast:605  gap: opcode not implemented
-return_call_indirect.wast:612  gap: opcode not implemented
-return_call_indirect.wast:623  no validator yet
 return_call_ref.wast:168  earlier module of the file did not load
 return_call_ref.wast:169  earlier module of the file did not load
 return_call_ref.wast:170  earlier module of the file did not load
@@ -1775,8 +983,8 @@ return_call_ref.wast:265  gap: unsupported reference-type / tail-call / typed-re
 return_call_ref.wast:276  gap: opcode not implemented
 return_call_ref.wast:287  gap: opcode not implemented
 return_call_ref.wast:3  gap: init expression
-return_call_ref.wast:337  no validator yet
-return_call_ref.wast:353  no validator yet
+return_call_ref.wast:337  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+return_call_ref.wast:353  validator gap: accepted (typed references, tag, table initializer, non-core construct)
 return_call_ref.wast:369  gap: opcode not implemented
 return_call_ref.wast:379  gap: opcode not implemented
 return_call_ref.wast:389  gap: opcode not implemented
@@ -1907,90 +1115,22 @@ select.wast:358  earlier module of the file did not load
 select.wast:359  earlier module of the file did not load
 select.wast:360  earlier module of the file did not load
 select.wast:361  earlier module of the file did not load
-select.wast:372  no validator yet
-select.wast:384  no validator yet
-select.wast:392  no validator yet
-select.wast:398  no validator yet
-select.wast:408  no validator yet
-select.wast:414  no validator yet
-select.wast:420  no validator yet
-select.wast:427  no validator yet
-select.wast:431  no validator yet
-select.wast:435  no validator yet
-select.wast:439  no validator yet
-select.wast:443  no validator yet
-select.wast:473  no validator yet
-select.wast:482  no validator yet
-select.wast:491  no validator yet
-select.wast:500  no validator yet
-select.wast:509  no validator yet
-select.wast:518  no validator yet
-select.wast:557  no validator yet
-select.wast:561  no validator yet
-select.wast:565  no validator yet
-select.wast:572  no validator yet
-start.wast:14  no validator yet
-start.wast:2  no validator yet
-start.wast:7  no validator yet
-store.wast:112  no validator yet
-store.wast:116  no validator yet
-store.wast:120  no validator yet
-store.wast:124  no validator yet
-store.wast:128  no validator yet
-store.wast:132  no validator yet
-store.wast:136  no validator yet
-store.wast:140  no validator yet
-store.wast:144  no validator yet
-store.wast:168  no validator yet
-store.wast:178  no validator yet
-store.wast:188  no validator yet
-store.wast:198  no validator yet
-store.wast:248  no validator yet
-store.wast:258  no validator yet
-store.wast:268  no validator yet
-store.wast:278  no validator yet
-store.wast:399  no validator yet
-store.wast:400  no validator yet
-store.wast:401  no validator yet
-store.wast:402  no validator yet
-store.wast:403  no validator yet
-store.wast:404  no validator yet
-store.wast:405  no validator yet
-store.wast:406  no validator yet
-store.wast:407  no validator yet
-store.wast:409  no validator yet
-store.wast:410  no validator yet
-store.wast:411  no validator yet
-store.wast:412  no validator yet
-store.wast:413  no validator yet
-store.wast:414  no validator yet
-store.wast:415  no validator yet
-store.wast:416  no validator yet
-store.wast:417  no validator yet
+select.wast:384  validator gap: accepted (typed references, tag, table initializer, non-core construct)
 table.wast:112  earlier module of the file did not load (name or export missing)
 table.wast:113  earlier module of the file did not load (name or export missing)
 table.wast:114  earlier module of the file did not load (name or export missing)
 table.wast:115  earlier module of the file did not load (name or export missing)
 table.wast:116  earlier module of the file did not load (name or export missing)
-table.wast:120  no validator yet
-table.wast:128  no validator yet
-table.wast:136  no validator yet
-table.wast:23  no validator yet
-table.wast:24  no validator yet
-table.wast:27  no validator yet
-table.wast:31  no validator yet
-table.wast:36  no validator yet
-table.wast:40  no validator yet
-table.wast:44  no validator yet
-table.wast:51  no validator yet
-table.wast:52  no validator yet
-table.wast:55  no validator yet
-table.wast:59  no validator yet
-table.wast:63  no validator yet
-table.wast:67  no validator yet
-table.wast:71  no validator yet
-table.wast:75  no validator yet
-table.wast:79  no validator yet
+table.wast:120  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+table.wast:128  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+table.wast:136  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+table.wast:55  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+table.wast:59  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+table.wast:63  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+table.wast:67  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+table.wast:71  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+table.wast:75  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+table.wast:79  validator gap: accepted (typed references, tag, table initializer, non-core construct)
 table.wast:93  gap: opcode not implemented
 table_get.wast:1  gap: opcode not implemented
 table_get.wast:23  earlier module of the file did not load
@@ -2003,11 +1143,6 @@ table_get.wast:32  earlier module of the file did not load
 table_get.wast:33  earlier module of the file did not load
 table_get.wast:34  earlier module of the file did not load
 table_get.wast:35  earlier module of the file did not load
-table_get.wast:41  gap: opcode not implemented
-table_get.wast:50  gap: opcode not implemented
-table_get.wast:60  gap: opcode not implemented
-table_get.wast:69  gap: opcode not implemented
-table_get.wast:79  gap: opcode not implemented
 table_grow.wast:1  gap: opcode not implemented
 table_grow.wast:107  earlier module of the file did not load
 table_grow.wast:108  earlier module of the file did not load
@@ -2063,8 +1198,6 @@ table_grow.wast:81  earlier module of the file did not load
 table_grow.wast:82  earlier module of the file did not load
 table_grow.wast:85  gap: opcode not implemented
 table_set.wast:1  gap: opcode not implemented
-table_set.wast:101  gap: opcode not implemented
-table_set.wast:112  gap: opcode not implemented
 table_set.wast:29  earlier module of the file did not load
 table_set.wast:30  earlier module of the file did not load
 table_set.wast:31  earlier module of the file did not load
@@ -2083,11 +1216,6 @@ table_set.wast:46  earlier module of the file did not load
 table_set.wast:47  earlier module of the file did not load
 table_set.wast:48  earlier module of the file did not load
 table_set.wast:49  earlier module of the file did not load
-table_set.wast:55  gap: opcode not implemented
-table_set.wast:64  gap: opcode not implemented
-table_set.wast:73  gap: opcode not implemented
-table_set.wast:82  gap: opcode not implemented
-table_set.wast:91  gap: opcode not implemented
 table_size.wast:1  gap: opcode not implemented
 table_size.wast:26  earlier module of the file did not load
 table_size.wast:27  earlier module of the file did not load
@@ -2172,7 +1300,7 @@ type-equivalence.wast:290  decoder rejects a valid module (unsupported construct
 type-equivalence.wast:30  decoder rejects a valid module (unsupported construct)
 type-equivalence.wast:308  decoder rejects a valid module (unsupported construct)
 type-equivalence.wast:49  decoder rejects a valid module (unsupported construct)
-type-equivalence.wast:77  no validator yet
+type-equivalence.wast:77  validator gap: accepted (typed references, tag, table initializer, non-core construct)
 type-rec.wast:137  decoder rejects a valid module (unsupported construct)
 type-rec.wast:141  earlier module of the file did not load (name or export missing)
 type-rec.wast:143  decoder rejects a valid module (unsupported construct)
@@ -2185,126 +1313,12 @@ type-rec.wast:183  earlier module of the file did not load
 type-rec.wast:185  decoder rejects a valid module (unsupported construct)
 type-rec.wast:192  earlier module of the file did not load
 type-rec.wast:197  decoder rejects a valid module (unsupported construct)
-type-rec.wast:22  no validator yet
+type-rec.wast:22  validator gap: accepted (typed references, tag, table initializer, non-core construct)
 type-rec.wast:3  decoder rejects a valid module (unsupported construct)
 type-rec.wast:39  decoder rejects a valid module (unsupported construct)
 type-rec.wast:45  decoder rejects a valid module (unsupported construct)
 type-rec.wast:71  decoder rejects a valid module (unsupported construct)
 type-rec.wast:78  decoder rejects a valid module (unsupported construct)
-unreached-invalid.wast:101  no validator yet
-unreached-invalid.wast:107  no validator yet
-unreached-invalid.wast:113  no validator yet
-unreached-invalid.wast:119  no validator yet
-unreached-invalid.wast:12  no validator yet
-unreached-invalid.wast:125  no validator yet
-unreached-invalid.wast:132  no validator yet
-unreached-invalid.wast:138  no validator yet
-unreached-invalid.wast:144  no validator yet
-unreached-invalid.wast:150  no validator yet
-unreached-invalid.wast:156  no validator yet
-unreached-invalid.wast:162  no validator yet
-unreached-invalid.wast:168  no validator yet
-unreached-invalid.wast:174  no validator yet
-unreached-invalid.wast:180  no validator yet
-unreached-invalid.wast:186  no validator yet
-unreached-invalid.wast:193  no validator yet
-unreached-invalid.wast:199  no validator yet
-unreached-invalid.wast:205  no validator yet
-unreached-invalid.wast:21  no validator yet
-unreached-invalid.wast:211  no validator yet
-unreached-invalid.wast:217  no validator yet
-unreached-invalid.wast:223  no validator yet
-unreached-invalid.wast:229  no validator yet
-unreached-invalid.wast:235  no validator yet
-unreached-invalid.wast:241  no validator yet
-unreached-invalid.wast:247  no validator yet
-unreached-invalid.wast:253  no validator yet
-unreached-invalid.wast:259  no validator yet
-unreached-invalid.wast:265  no validator yet
-unreached-invalid.wast:27  no validator yet
-unreached-invalid.wast:271  no validator yet
-unreached-invalid.wast:284  no validator yet
-unreached-invalid.wast:290  no validator yet
-unreached-invalid.wast:296  no validator yet
-unreached-invalid.wast:302  no validator yet
-unreached-invalid.wast:308  no validator yet
-unreached-invalid.wast:314  no validator yet
-unreached-invalid.wast:321  no validator yet
-unreached-invalid.wast:327  no validator yet
-unreached-invalid.wast:33  no validator yet
-unreached-invalid.wast:334  no validator yet
-unreached-invalid.wast:340  no validator yet
-unreached-invalid.wast:348  no validator yet
-unreached-invalid.wast:354  no validator yet
-unreached-invalid.wast:360  no validator yet
-unreached-invalid.wast:366  no validator yet
-unreached-invalid.wast:372  no validator yet
-unreached-invalid.wast:378  no validator yet
-unreached-invalid.wast:384  no validator yet
-unreached-invalid.wast:390  no validator yet
-unreached-invalid.wast:396  no validator yet
-unreached-invalid.wast:4  no validator yet
-unreached-invalid.wast:402  no validator yet
-unreached-invalid.wast:415  no validator yet
-unreached-invalid.wast:42  no validator yet
-unreached-invalid.wast:427  no validator yet
-unreached-invalid.wast:433  no validator yet
-unreached-invalid.wast:439  no validator yet
-unreached-invalid.wast:445  no validator yet
-unreached-invalid.wast:451  no validator yet
-unreached-invalid.wast:457  no validator yet
-unreached-invalid.wast:46  no validator yet
-unreached-invalid.wast:463  no validator yet
-unreached-invalid.wast:470  no validator yet
-unreached-invalid.wast:477  no validator yet
-unreached-invalid.wast:484  no validator yet
-unreached-invalid.wast:490  no validator yet
-unreached-invalid.wast:498  no validator yet
-unreached-invalid.wast:50  no validator yet
-unreached-invalid.wast:507  no validator yet
-unreached-invalid.wast:515  no validator yet
-unreached-invalid.wast:521  no validator yet
-unreached-invalid.wast:527  no validator yet
-unreached-invalid.wast:540  no validator yet
-unreached-invalid.wast:546  no validator yet
-unreached-invalid.wast:552  no validator yet
-unreached-invalid.wast:558  no validator yet
-unreached-invalid.wast:56  no validator yet
-unreached-invalid.wast:565  no validator yet
-unreached-invalid.wast:571  no validator yet
-unreached-invalid.wast:577  no validator yet
-unreached-invalid.wast:584  no validator yet
-unreached-invalid.wast:590  no validator yet
-unreached-invalid.wast:596  no validator yet
-unreached-invalid.wast:60  no validator yet
-unreached-invalid.wast:604  no validator yet
-unreached-invalid.wast:611  no validator yet
-unreached-invalid.wast:617  no validator yet
-unreached-invalid.wast:623  no validator yet
-unreached-invalid.wast:629  no validator yet
-unreached-invalid.wast:637  no validator yet
-unreached-invalid.wast:64  no validator yet
-unreached-invalid.wast:643  no validator yet
-unreached-invalid.wast:649  no validator yet
-unreached-invalid.wast:656  no validator yet
-unreached-invalid.wast:662  no validator yet
-unreached-invalid.wast:669  no validator yet
-unreached-invalid.wast:676  no validator yet
-unreached-invalid.wast:687  no validator yet
-unreached-invalid.wast:698  no validator yet
-unreached-invalid.wast:71  no validator yet
-unreached-invalid.wast:710  no validator yet
-unreached-invalid.wast:715  no validator yet
-unreached-invalid.wast:721  no validator yet
-unreached-invalid.wast:726  no validator yet
-unreached-invalid.wast:731  no validator yet
-unreached-invalid.wast:737  no validator yet
-unreached-invalid.wast:744  no validator yet
-unreached-invalid.wast:749  gap: opcode not implemented
-unreached-invalid.wast:764  no validator yet
-unreached-invalid.wast:77  no validator yet
-unreached-invalid.wast:774  no validator yet
-unreached-invalid.wast:8  no validator yet
-unreached-invalid.wast:83  no validator yet
-unreached-invalid.wast:89  no validator yet
-unreached-invalid.wast:95  no validator yet
+unreached-invalid.wast:698  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+unreached-invalid.wast:764  validator gap: accepted (typed references, tag, table initializer, non-core construct)
+unreached-invalid.wast:774  validator gap: accepted (typed references, tag, table initializer, non-core construct)

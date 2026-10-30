@@ -170,6 +170,9 @@ def parse(data):
         elems=[],
         codes=[],
         datas=[],
+        ttypes=[],  # reference type of every table, imported first (for the validator)
+        elem_info=[],  # (table index or None, offset expr or None, reftype, item exprs) of every segment
+        data_mem=[],  # memory index of every data segment (None: passive)
     )
     datacount = None
     rank = 0
@@ -231,7 +234,7 @@ def parse(data):
                 if k == 0:
                     mod["imports"].append(("func", m, n, r.u()))
                 elif k == 1:
-                    r.vt(True)
+                    mod["ttypes"].append(r.vt(True))
                     mod["imports"].append(("table", m, n, r.limits()))
                 elif k == 2:
                     mod["imports"].append(("mem", m, n, r.limits()))
@@ -251,7 +254,7 @@ def parse(data):
                     r.p += 1
                     if r.u8() != 0:
                         raise Malformed("malformed table encoding")
-                r.vt(True)
+                mod["ttypes"].append(r.vt(True))
                 mod["tables"].append(r.limits())
                 if init:
                     initexpr()
@@ -279,6 +282,7 @@ def parse(data):
                     off = initexpr()
                     fs = [r.u() for _ in range(r.u())]
                     mod["elems"].append((0, off, fs))
+                    mod["elem_info"].append((0, off, 0x70, [("func", f) for f in fs]))
                 elif fl == 2:
                     ti = r.u()
                     off = initexpr()
@@ -286,13 +290,15 @@ def parse(data):
                         raise Malformed("malformed element kind")
                     fs = [r.u() for _ in range(r.u())]
                     mod["elems"].append((ti, off, fs))
+                    mod["elem_info"].append((ti, off, 0x70, [("func", f) for f in fs]))
                 elif fl in (1, 3):
                     if r.u8() != 0:
                         raise Malformed("malformed element kind")
-                    [r.u() for _ in range(r.u())]  # passive/declarative: ignore
-                elif fl in (5, 7):  # passive/declarative with expressions: ignore
-                    r.vt(True)
-                    [initexpr() for _ in range(r.u())]
+                    fs = [r.u() for _ in range(r.u())]  # passive/declarative: not translated
+                    mod["elem_info"].append((None, None, 0x70, [("func", f) for f in fs]))
+                elif fl in (5, 7):  # passive/declarative with expressions: not translated
+                    rt = r.vt(True)
+                    mod["elem_info"].append((None, None, rt, [initexpr() for _ in range(r.u())]))
                 elif fl < 8:
                     raise NotImplementedError("elem flags %d" % fl)
                 else:
@@ -326,10 +332,12 @@ def parse(data):
                 if fl == 0:
                     off = initexpr()
                     mod["datas"].append((off, r.bytes(r.u())))
+                    mod["data_mem"].append(0)
                 elif fl == 1:
                     mod["datas"].append((None, r.bytes(r.u())))
+                    mod["data_mem"].append(None)
                 elif fl == 2:
-                    r.u()
+                    mod["data_mem"].append(r.u())
                     off = initexpr()
                     mod["datas"].append((off, r.bytes(r.u())))
                 else:
@@ -425,11 +433,9 @@ def decode(body):
         elif op == 0x44:
             out.append((op, struct.unpack("<d", r.bytes(8))[0]))
         elif op == 0x1C:
-            [r.vt() for _ in range(r.u())]
-            out.append((0x1B,))
+            out.append((0x1B, [r.vt() for _ in range(r.u())]))
         elif op == 0xD0:
-            r.ht()
-            out.append((op,))
+            out.append((op, r.ht()))
         elif op == 0xFC:
             sub = r.u()
             if sub <= 7:
